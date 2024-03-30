@@ -1,0 +1,47 @@
+{
+  "name": "katt",
+  "version": "1.0.0",
+  "description": "Kill all the Things(KATT) is a bullet hell arcade game.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": {
+    "name": "Radical Edward",
+    "email": "raddedd@gmail.com"
+  },
+  "build": {
+    "appId": "katt",
+    "productName": "KATT",
+    "directories": {
+      "output": "build"
+    },
+    "win": {
+      "icon": "app/KATT.ico",
+      "target": ["nsis"]
+    },
+    "mac": {
+      "icon": "app/KATT.icns"
+    },
+    "linux": {
+      "target": ["deb", "rpm"],
+      "icon": "app/KATT.png",
+      "category": "Utility"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "installerIcon": "app/KATT.ico",
+      "uninstallerIcon": "app/KATT.ico",
+      "installerHeaderIcon": "app/KATT.ico",
+      "license": "license.txt"
+    }
+  },
+  "keywords": [],
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^29.1.6"
+  }
+}

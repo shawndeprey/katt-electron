@@ -1,0 +1,13 @@
+- Need to dial in the electron wrapper.
+- Can't get ship close enough to edge to shoot far off enemies. Consider bringing spawn locations in a bit.
+- No sound on bullet hit. BORING.
+- Background not zooming fast enough. BORING.
+- Movement feels stiff due to static movement speed, consider making this dynamic and weighty.
+- Consider adding booster graphics and animations for all ships, and also on player.
+- What is the story, we need to have an intro scene as well as intermittent scenes with NPCs.
+- Do all items have their good usages and do they feel impactful? Consider removing or changing ones that don't.
+- Scores, we probs need a server and DB for scores. It'd be cool to do it arcade style where users add their initials or some name and that's like a global list. Maybe show this leaderboard on the home screen.
+- Theme song title is random, we should pick one from what we have to be the primary theme song and always use that one.
+- Keyboard Navigation for all menus. This will be crucial for controller support.
+- Controller support.
+- Fullscreen, window, and scaling size support.
