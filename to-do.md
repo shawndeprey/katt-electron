@@ -11,3 +11,5 @@
 - Keyboard Navigation for all menus. This will be crucial for controller support.
 - Controller support.
 - Fullscreen, window, and scaling size support.
+- No quest progress tracking while in a level.
+- No sound when the player picks up money and items. Thing picking up rings in sonic.

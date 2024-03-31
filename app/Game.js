@@ -77,11 +77,14 @@ function Game()
 	}
 	var numImagesLoaded = 0;
         // Graphics
-		var starImages = [];
+        var starImages = [];
         for(var i = 0; i < 6; i++)
         {
             starImages[i] = new Image();
-			starImages[i].addEventListener('load', self.loadedImage, false);
+            starImages[i].addEventListener('load', self.loadedImage, false);
+            starImages[i].addEventListener('error', function() {
+                console.log('Error loading image: Graphics/star_' + i + '.png');
+            });
             starImages[i].src = ('Graphics/star_' + i + '.png');
         }
 		
@@ -196,15 +199,12 @@ function Game()
     // Global Functions
     /******************************************************/
 
-  this.InitSounds = function()
-	{
-		gco.bgm = document.getElementById('bgm_square');
-		gco.init_audio();
-		if(gco.bgm.canPlayType("audio/mp3") == "" ||  gco.bgm.canPlayType("audio/mp3") == "no") {
-			sfx.soundType = 1;//Play OGG sound effects
-		}
-		sfx.Init();
-	}
+    this.InitSounds = function()
+    {
+        gco.bgm = document.getElementById('bgm_square');
+        gco.init_audio();
+        sfx.Init();
+    }
 	
 	this.RefreshSoundsOnGameLoss = function()
 	{
@@ -622,7 +622,6 @@ function Game()
 	
 	function SFXObject()
 	{
-		this.soundType = 0;//0 = mp3, 1 = ogg
 		// Audio
 		this.explosion = {}
 		this.laser = 0;
@@ -638,19 +637,18 @@ function Game()
 			
 			for(var i = 0; i < this.explosion.channels; i++)
 			{
-				var a = null;
-				if(this.soundType == 0){a = new Audio('Audio/Explode.mp3');} else {a = new Audio('Audio/Explode.ogg');}
+				var a = new Audio('Audio/Explode.mp3');
 				a.volume = this.masterVolume;
 				a.preload = 'auto';
 				this.explosion.channel.push(a);
 			}
 		//Lasers
-			if(this.soundType == 0){this.laser = new Audio('Audio/lasorz.mp3');} else {this.laser = new Audio('Audio/lasorz.ogg');}
+            this.laser = new Audio('Audio/lasorz.mp3');
 			this.laser.volume = this.masterVolume;
 			this.laser.preload = 'auto';
 			this.laser.loop = true;
 			
-			if(this.soundType == 0){this.bossLaser = new Audio('Audio/lasorz.mp3');} else {this.bossLaser = new Audio('Audio/lasorz.ogg');}
+			this.bossLaser = new Audio('Audio/lasorz.mp3');
 			this.bossLaser.volume = this.masterVolume;
 			this.bossLaser.preload = 'auto';
 			this.bossLaser.loop = true;
