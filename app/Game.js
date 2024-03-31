@@ -9,7 +9,6 @@ function Game()
 	var enemiesKilled = 0;
 	var itemsUsed = 0;
 	var totalCores = 0;
-	var overNineThousand = false;
 	
     this.gameLoop = null;
     var self = this;
