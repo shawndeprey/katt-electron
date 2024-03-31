@@ -2428,11 +2428,22 @@ function Game()
         if(_canvas && _canvas.getContext)
         {
             canvas = _canvas.getContext('2d');
+            // Disable image smoothing
+            canvas.imageSmoothingEnabled = false;
+            canvas.mozImageSmoothingEnabled = false; // Firefox
+            canvas.webkitImageSmoothingEnabled = false; // Chrome, Safari, Opera
+            canvas.msImageSmoothingEnabled = false; // IE
 
             _buffer = document.createElement('canvas');
             _buffer.width = _canvas.width;
             _buffer.height = _canvas.height;
+            // Disable image smoothing
             buffer = _buffer.getContext('2d');
+            buffer.imageSmoothingEnabled = false;
+            buffer.mozImageSmoothingEnabled = false; // Firefox
+            buffer.webkitImageSmoothingEnabled = false; // Chrome, Safari, Opera
+            buffer.msImageSmoothingEnabled = false; // IE
+
 
             buffer.strokeStyle = "rgb(255, 255, 255)";
             buffer.fillStyle = "rgb(255, 255, 255)";
