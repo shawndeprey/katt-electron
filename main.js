@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 
 function createWindow () {
@@ -17,3 +17,7 @@ function createWindow () {
 }
 
 app.whenReady().then(createWindow);
+
+ipcMain.on('quit-app', () => {
+  app.quit();
+});

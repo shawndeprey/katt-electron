@@ -1,4 +1,6 @@
 //Authors: Shawn Deprey, Justin Hammond, Drew Muller
+const { ipcRenderer } = require('electron');
+
 function Game()
 {
 	//Tracked Data
@@ -18,8 +20,6 @@ function Game()
 	var playerInfo = false;
 	var masterBGMVolume = 0.2;
 	var bossPhase = -1;
-	
-	var logged = false;
 	
 	//GUI Info
 	var currentGui = 0;
@@ -2425,7 +2425,7 @@ function Game()
     // Initialization
     /******************************************************/
     
-    this.Init = function(isLoggedIn)
+    this.Init = function()
     {
         _canvas = document.getElementById('canvas');
         if(_canvas && _canvas.getContext)
@@ -2441,8 +2441,6 @@ function Game()
             buffer.fillStyle = "rgb(255, 255, 255)";
             buffer.font = "bold 25px sans-serif";
         }
-
-        logged = isLoggedIn;
 
         player = new Player(24, 40);
 		enemyGeneration = new EnemyGeneration();
@@ -2791,22 +2789,26 @@ function Game()
 		{
 			case 0:
 			{//Main Menu
-				if(logged && !gco.playStory)
-				{
-					if(mouseX > (_canvas.width / 2 + 10) - 115 && mouseX < (_canvas.width / 2 + 10) + 100 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)
-					{
-						currentGui = 2;//default case will Trigger
-					}
-					if(mouseX > (_canvas.width / 2 + 10) - 65 && mouseX < (_canvas.width / 2 + 10) + 40 && mouseY < (_canvas.height / 2 + 60) + 20 && mouseY > (_canvas.height / 2 + 60) - 10)
-					{
-						currentGui = 6; lastGui = 0;	
-					}
-					if(mouseX > (_canvas.width / 2 + 10) - 65 && mouseX < (_canvas.width / 2 + 10) + 40 && mouseY < (_canvas.height / 2 + 110) + 20 && mouseY > (_canvas.height / 2 + 110) - 10)
-					{
-						gco.playStory = true;
-					}
-				}
-				break;
+                if(!gco.playStory)
+                {
+                    if(mouseX > (_canvas.width / 2 + 10) - 115 && mouseX < (_canvas.width / 2 + 10) + 100 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)
+                    {
+                        currentGui = 2;//default case will Trigger
+                    }
+                    if(mouseX > (_canvas.width / 2 + 10) - 65 && mouseX < (_canvas.width / 2 + 10) + 40 && mouseY < (_canvas.height / 2 + 60) + 20 && mouseY > (_canvas.height / 2 + 60) - 10)
+                    {
+                        currentGui = 6; lastGui = 0;	
+                    }
+                    if(mouseX > (_canvas.width / 2 + 10) - 65 && mouseX < (_canvas.width / 2 + 10) + 40 && mouseY < (_canvas.height / 2 + 110) + 20 && mouseY > (_canvas.height / 2 + 110) - 10)
+                    {
+                        gco.playStory = true;
+                    }
+                    if(mouseX > (_canvas.width / 2 + 10) - 80 && mouseX < (_canvas.width / 2 + 10) + 55 && mouseY < (_canvas.height / 2 + 150) + 20 && mouseY > (_canvas.height / 2 + 150) - 10)
+                    {
+                        ipcRenderer.send('quit-app');
+                    }
+                }
+                break;
 			}
 			case 1:
 			{//Pause Menu
@@ -3720,30 +3722,27 @@ if(mouseX > _canvas.width - 150 && mouseX < _canvas.width - 102 && mouseY > 448 
 		{
 			case 0:
 			{// Main Menu
-				if(!logged)
-				{
-					guiText[0] = new GUIText("Please Login above to play", _canvas.width / 2, _canvas.height / 2 - 100, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
-					guiText[1] = new GUIText("Kill all the Things!", _canvas.width / 2, _canvas.height / 2 - 50, "28px Helvetica", "center", "top", "rgb(255, 0, 255)");
-				} else
-				{
-					guiText[0] = new GUIText("Kill all the Things!", _canvas.width / 2, _canvas.height / 2 - 100, "28px Helvetica", "center", "top", "rgb(255, 0, 255)");
-					guiText[1] = new GUIText("Start New Game", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
-					if(mouseX > (_canvas.width / 2 + 10) - 115 && mouseX < (_canvas.width / 2 + 10) + 100 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)
-					{
-						guiText[1] = new GUIText("Start New Game", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
-					}
-					guiText[2] = new GUIText("Options", _canvas.width / 2, (_canvas.height / 2) + 50, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
-					if(mouseX > (_canvas.width / 2 + 10) - 65 && mouseX < (_canvas.width / 2 + 10) + 40 && mouseY < (_canvas.height / 2 + 60) + 20 && mouseY > (_canvas.height / 2 + 60) - 10)
-					{
-						guiText[2] = new GUIText("Options", _canvas.width / 2, (_canvas.height / 2) + 50, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
-					}
-					guiText[3] = new GUIText("Story", _canvas.width / 2, (_canvas.height / 2) + 100, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
-					if(mouseX > (_canvas.width / 2 + 10) - 65 && mouseX < (_canvas.width / 2 + 10) + 40 && mouseY < (_canvas.height / 2 + 110) + 20 && mouseY > (_canvas.height / 2 + 110) - 10)
-					{
-						guiText[3] = new GUIText("Story", _canvas.width / 2, (_canvas.height / 2) + 100, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
-					}
-				}
-				
+                guiText[0] = new GUIText("Kill All the Things", _canvas.width / 2, _canvas.height / 2 - 100, "48px Helvetica", "center", "top", "rgb(255, 0, 255)");
+                guiText[1] = new GUIText("Start New Game", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
+                if(mouseX > (_canvas.width / 2 + 10) - 115 && mouseX < (_canvas.width / 2 + 10) + 100 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)
+                {
+                    guiText[1] = new GUIText("Start New Game", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                }
+                guiText[2] = new GUIText("Options", _canvas.width / 2, (_canvas.height / 2) + 50, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
+                if(mouseX > (_canvas.width / 2 + 10) - 65 && mouseX < (_canvas.width / 2 + 10) + 40 && mouseY < (_canvas.height / 2 + 60) + 20 && mouseY > (_canvas.height / 2 + 60) - 10)
+                {
+                    guiText[2] = new GUIText("Options", _canvas.width / 2, (_canvas.height / 2) + 50, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                }
+                guiText[3] = new GUIText("Story", _canvas.width / 2, (_canvas.height / 2) + 100, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
+                if(mouseX > (_canvas.width / 2 + 10) - 65 && mouseX < (_canvas.width / 2 + 10) + 40 && mouseY < (_canvas.height / 2 + 110) + 20 && mouseY > (_canvas.height / 2 + 110) - 10)
+                {
+                    guiText[3] = new GUIText("Story", _canvas.width / 2, (_canvas.height / 2) + 100, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                }
+                guiText[4] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2) + 145, "28px Helvetica", "center", "top", "rgb(96, 145, 96)");
+                if(mouseX > (_canvas.width / 2 + 10) - 80 && mouseX < (_canvas.width / 2 + 10) + 55 && mouseY < (_canvas.height / 2 + 150) + 20 && mouseY > (_canvas.height / 2 + 150) - 10)
+                {
+                    guiText[4] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2) + 145, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                }
 				break;
 			}
 			case 1:
