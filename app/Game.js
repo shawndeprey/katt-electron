@@ -2260,7 +2260,7 @@ function Game()
 		{
 			switch(i)
 			{
-				case 0:{out = "In the year 30XX, humans and Drones clashed for control of the universe."; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
+				case 0:{out = "In the year 3280, humans and Drones clashed for control of the universe."; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
 				case 1:{out = "After decades of fierce conflict, humanity's presence in international"; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
 				case 2:{out = "space began to dwindle, and, the Drones overran all major human civilization."; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
 				case 3:{out = " "; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
