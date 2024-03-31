@@ -14,3 +14,7 @@
 - No quest progress tracking while in a level.
 - No sound when the player picks up money and items. Thing picking up rings in sonic.
 - Fuel low sound
+- Foreground space debris
+- Much more variability of background stars and planets
+- Menu sound effects for weapon upgrades and weapon changes
+- Make ammo and life refill each round and remove buttons for refilling ammo and life
