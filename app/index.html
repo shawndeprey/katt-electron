@@ -26,8 +26,8 @@
         #canvas {
             max-width: 100%;
             max-height: 100vh;
-            /* Optional: adds a border around the canvas */
-            border: 1px solid #000;
+            transform-origin: 0 0; /* Sets the origin for scaling to the top-left corner */
+            transform: scale(var(--scale-factor));
         }
     </style>
 </head>
