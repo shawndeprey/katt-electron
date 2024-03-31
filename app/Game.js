@@ -2443,8 +2443,6 @@ function Game()
             buffer.mozImageSmoothingEnabled = false; // Firefox
             buffer.webkitImageSmoothingEnabled = false; // Chrome, Safari, Opera
             buffer.msImageSmoothingEnabled = false; // IE
-
-
             buffer.strokeStyle = "rgb(255, 255, 255)";
             buffer.fillStyle = "rgb(255, 255, 255)";
             buffer.font = "bold 25px sans-serif";
