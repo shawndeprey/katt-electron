@@ -42,7 +42,7 @@ function Game()
 	var mouseY = 0;
 	
 	//Options
-	var particleOffset = 3;
+	var particleOffset = 5;
 	
     // Timing
     var prevTime = Date.now();
