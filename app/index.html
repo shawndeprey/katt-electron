@@ -2,17 +2,34 @@
 <html class="game_page">
 <head>
     <title>Blackmodule's Space Game</title>
-	<script src="Game.js"></script>
-	<script type="text/javascript">
-		function soundsLoaded() { play.InitSounds(); }
-		window.onkeydown=function(e){
-		  if(e.keyCode==32){ return false; }
-		  if(e.keyCode==37){ return false; }
-		  if(e.keyCode==38){ return false; }
-		  if(e.keyCode==39){ return false; }
-		  if(e.keyCode==40){ return false; }
-		};
-	</script>
+    <script src="Game.js"></script>
+    <script type="text/javascript">
+        function soundsLoaded() { play.InitSounds(); }
+        window.onkeydown=function(e){
+            if(e.keyCode==32){ return false; }
+            if(e.keyCode==37){ return false; }
+            if(e.keyCode==38){ return false; }
+            if(e.keyCode==39){ return false; }
+            if(e.keyCode==40){ return false; }
+        };
+    </script>
+    <style>
+        /* This will apply to the entire body, making it a flex container */
+        body {
+            display: flex;
+            justify-content: center; /* Centers horizontally */
+            align-items: center; /* Centers vertically */
+            height: 100vh; /* Use the full height of the viewport */
+            margin: 0; /* Removes the default margin */
+        }
+        /* Ensure the canvas does not exceed the viewport */
+        #canvas {
+            max-width: 100%;
+            max-height: 100vh;
+            /* Optional: adds a border around the canvas */
+            border: 1px solid #000;
+        }
+    </style>
 </head>
 <body style="margin:0 auto;">
 
