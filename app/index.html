@@ -17,17 +17,20 @@
         /* This will apply to the entire body, making it a flex container */
         body {
             display: flex;
-            justify-content: center; /* Centers horizontally */
-            align-items: center; /* Centers vertically */
-            height: 100vh; /* Use the full height of the viewport */
-            margin: 0; /* Removes the default margin */
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: black;
+            overflow: hidden;
         }
-        /* Ensure the canvas does not exceed the viewport */
-        #canvas {
-            max-width: 100%;
-            max-height: 100vh;
-            transform-origin: 0 0; /* Sets the origin for scaling to the top-left corner */
-            transform: scale(var(--scale-factor));
+
+        canvas {
+            margin: 0;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
     </style>
 </head>
@@ -66,13 +69,24 @@
 </audio>
 <!-- End Audio -->
 
+
 <canvas id="canvas" width="800" height="600">
-		Your browser does not support the canvas element, sorry.
+    Your browser does not support the canvas element, sorry.
 </canvas>
 <script type="text/javascript">
+    function resizeCanvas() {
+        const canvas = document.getElementById('canvas');
+        const scaleX = window.innerWidth / 800;
+        const scaleY = window.innerHeight / 600;
+        const scaleToFit = Math.min(scaleX, scaleY);
+        canvas.style.transform = `translate(-50%, -50%) scale(${scaleToFit})`;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('load', resizeCanvas);
+
 	var play = new Game();
 	play.Init();
-	play.Run();
+	play.Run();    
 </script>
 
 </body>

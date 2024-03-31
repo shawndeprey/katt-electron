@@ -2961,24 +2961,23 @@ if(mouseX > _canvas.width - 150 && mouseX < _canvas.width - 102 && mouseY > 448 
 			}
 		}
 	}
-    
-	function getMousePos(canvas, evt)
-	{
-		// get canvas position
-		var obj = canvas;
-		var top = 0;
-		var left = 0;
-		while (obj && obj.tagName != 'BODY') {
-			top += obj.offsetTop;
-			left += obj.offsetLeft;
-			obj = obj.offsetParent;
-		}
-	 
-		// return relative mouse position
-		mouseX = evt.clientX - left + window.pageXOffset;
-		mouseY = evt.clientY - top + window.pageYOffset;
-	}
-	
+
+    function getMousePos(canvas, evt) {
+        const rect = canvas.getBoundingClientRect();
+        
+        // Since the canvas is centered using CSS translate, the scaling is applied
+        // around the center. We calculate the scale to adjust mouse coordinates accurately.
+        const scaleX = canvas.width / rect.width; // The width scale factor
+        const scaleY = canvas.height / rect.height; // The height scale factor
+        
+        // Adjust mouse positions considering the scale factor.
+        // The calculation here subtracts the rect's left/top (which includes any translation)
+        // from the clientX/clientY, then adjusts by the scaling factor,
+        // aligning the mouse position to the scaled canvas coordinate system.
+        mouseX = (evt.clientX - rect.left) * scaleX;
+        mouseY = (evt.clientY - rect.top) * scaleY;
+    }
+
     this.doInput = function()
     {
 		//Do Keyboard Input
