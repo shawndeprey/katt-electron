@@ -18,3 +18,5 @@
 - Much more variability of background stars and planets
 - Menu sound effects for weapon upgrades and weapon changes
 - Make ammo and life refill each round and remove buttons for refilling ammo and life
+- Make equiped gear look different than hovered gear.
+- Menu option swap sound effect.

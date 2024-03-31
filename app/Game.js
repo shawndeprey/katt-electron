@@ -3115,7 +3115,7 @@ if(mouseX > _canvas.width - 150 && mouseX < _canvas.width - 102 && mouseY > 448 
             {
                 if(Keys[18] == 1) // Enter
                 {
-                    //self.reset();
+                    // self.reset();
                 }
             }
         }
