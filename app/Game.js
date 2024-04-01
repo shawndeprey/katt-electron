@@ -250,6 +250,7 @@ function Game()
 		gco = new GameControlObject();
 		gco.Init();
         menu = new Menu();
+        menu.Init()
 		sfx.pause(1);
 		self.RefreshSoundsOnGameLoss();
 		enemyGeneration = new EnemyGeneration();
@@ -299,6 +300,10 @@ function Game()
 		){ return true;}
 		return false;
 	}
+
+    this.clamp = function(value, min, max) {
+        return Math.min(Math.max(value, min), max);
+    }
     /******************************************************/
     
     
@@ -575,12 +580,30 @@ function Game()
 
     function Menu()
     {
-        this.states = [
-            // Main Menu: New Game, Options, Story, Exit Game
-            [true, false, false, false]
-        ]
+        this.states = []
         this.timeout = 0
         this.onTick = 0
+
+        this.Init = function()
+        {
+            this.resetStates()
+        }
+
+        this.resetStates = function()
+        {
+            this.states = [
+                // Main Menu: New Game, Options, Story, Exit Game
+                [true, false, false, false],
+                [],
+                [],
+                [],
+                [],
+                [],
+                // Options: Particles, Music, SFX, Back
+                [true, false, false, false],
+                [],
+            ]
+        }
 
         this.move = function(activeMenu, direction)
         {
@@ -593,12 +616,48 @@ function Game()
             if(activeMenu == 0) { // Main Menu
                 var currentIndex = this.states[activeMenu].findIndex(value => value === true);
                 var newIndex = currentIndex;
-                // up/left = up, down/right = down, assign direction equal to this.
+                // up/left = up, down/right = down
                 newIndex += ((direction === 0 || direction === 1) && currentIndex > 0) ? -1 : ((direction === 2 || direction === 3) && currentIndex < this.states[activeMenu].length - 1) ? 1 : 0;
                 if (newIndex !== currentIndex) {
                     this.states[activeMenu][currentIndex] = false; // Disable old menu position
-                    this.states[activeMenu][newIndex] = true; // Ensable new menu position
+                    this.states[activeMenu][newIndex] = true; // Enable new menu position
                 }
+                this.timeout = 5; // 250 ms delay before next action
+            } else
+            if(activeMenu == 6) { // Options menu
+				if(direction === 0 || direction === 2) {
+                    var currentIndex = this.states[activeMenu].findIndex(value => value === true);
+                    var newIndex = currentIndex;
+                    // up = up, down = down
+                    newIndex += (direction === 0 && currentIndex > 0) ? -1 : (direction === 2 && currentIndex < this.states[activeMenu].length - 1) ? 1 : 0;
+                    if (newIndex !== currentIndex) {
+                        this.states[activeMenu][currentIndex] = false; // Disable old menu position
+                        this.states[activeMenu][newIndex] = true; // Enable new menu position
+                    }
+				}
+
+                // Custom actions for left/right on this menu
+                if(direction == 1 || direction == 3) {
+                    if(this.states[6][0]) {
+                        particleOffset = self.clamp(particleOffset + (direction == 1 ? -1 : 1), 1, 5);
+                    } else
+                    if(this.states[6][1]) {
+                        if(direction == 1) {
+                            if(gco.bgm.volume >= 0.1) gco.bgm.volume = Math.round(gco.bgm.volume * 100) / 100 - 0.1;
+                        } else {
+                            if(gco.bgm.volume < 0.91) gco.bgm.volume = Math.round(gco.bgm.volume * 100) / 100 + 0.1;
+                        }
+                        masterBGMVolume = gco.bgm.volume;
+                    } else
+                    if(this.states[6][2]) {
+                        if(direction == 1) {
+                            if(sfx.masterVolume >= 0.1) sfx.volume(Math.round(sfx.masterVolume * 100) / 100 - 0.1);sfx.play(0);
+                        } else {
+                            if(sfx.masterVolume < 0.91) sfx.volume(Math.round(sfx.masterVolume * 100) / 100 + 0.1);sfx.play(0);
+                        }
+                    }
+                }
+
                 this.timeout = 5; // 250 ms delay before next action
             }
         }
@@ -607,18 +666,28 @@ function Game()
         {
             // This function should mimic the doMouseClick functionality. If something is added there, it should be here, and visa-versa
             if(this.timeout > 0) return;
+            this.timeout = 5; // 250 ms delay before next action
             switch(currentGui) {
                 case 0:
-                {
+                { // Main Menu
                     if(!gco.playStory) {
                         if(this.states[0][0]) currentGui = 2;
                         if(this.states[0][1]) currentGui = 6; lastGui = 0;	
                         if(this.states[0][2]) gco.playStory = true;
                         if(this.states[0][3]) ipcRenderer.send('quit-app');
                     }
-                    this.timeout = 5; // 250 ms delay before next action
                     break;
                 }
+                case 1: { break; }
+                case 2: { break; }
+                case 3: { break; }
+                case 4: { break; }
+                case 5: { break; }
+                case 6: {
+                    if(this.states[6][3]) { currentGui = lastGui; lastGui = 6; }
+                    break;
+                }
+                case 7: { break; }
             }
         }
 
@@ -2509,6 +2578,7 @@ function Game()
 		gco = new GameControlObject();
 		gco.Init();
         menu = new Menu(); // State manager for all game menus to enable keyboard and gamepad navigation
+        menu.Init()
 		
 		sfx = new SFXObject();
     }
@@ -4346,14 +4416,14 @@ function Game()
 			{
                 //Options Menu
 				guiText[0] = new GUIText("Options", _canvas.width / 2, 25, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
-				guiText[1] = new GUIText("Back", 10, _canvas.height - 35, "28px Helvetica", "left", "top", "rgb(96, 150, 96)");
+				guiText[1] = new GUIText("Back", 10, _canvas.height - 35, "28px Helvetica", "left", "top", `rgb(96, ${menu.states[6][3] ? '255' : '150'}, 96)`);
 				if(mouseX > 0 && mouseX < 90 && mouseY < _canvas.height && mouseY > _canvas.height - 45)
 				{
 					guiText[1] = new GUIText("Back", 10, _canvas.height - 35, "28px Helvetica", "left", "top", "rgb(96, 255, 96)");
 				}
-                
-				// Graphics
-				guiText[2] = new GUIText("Particles", (_canvas.width / 2), 125, "20px Helvetica", "center", "top", "rgb(96, 150, 96)");
+
+                // Graphics
+                guiText[2] = new GUIText("Particles", (_canvas.width / 2), 125, "20px Helvetica", "center", "top", `rgb(96, ${menu.states[6][0] ? '255' : '150'}, 96)`);
                 
                 if(mouseX >= 200 && mouseX <= 225 && mouseY >= 150 && mouseY <= 200)
                 {
@@ -4385,7 +4455,7 @@ function Game()
 				}
 				
                 // BGM Volume
-				guiText[5] = new GUIText("BGM Volume", (_canvas.width / 2), 265, "20px Helvetica", "center", "top", "rgb(96, 150, 96)");
+				guiText[5] = new GUIText("BGM Volume", (_canvas.width / 2), 265, "20px Helvetica", "center", "top", `rgb(96, ${menu.states[6][1] ? '255' : '150'}, 96)`);
                 
                 if(mouseX >= 200 && mouseX <= 225 && mouseY >= 290 && mouseY <= 340)
                 {
@@ -4405,7 +4475,7 @@ function Game()
                 guiText[6] = new GUIText(Math.round(gco.bgm.volume * 100) + "%", _canvas.width / 2, 345, "26px Helvetica", "center", "top", "rgb(96, 255, 96)");
                 
                 // SFX Volume
-				guiText[7] = new GUIText("SFX Volume", (_canvas.width / 2), 405, "20px Helvetica", "center", "top", "rgb(96, 150, 96)");
+				guiText[7] = new GUIText("SFX Volume", (_canvas.width / 2), 405, "20px Helvetica", "center", "top", `rgb(96, ${menu.states[6][2] ? '255' : '150'}, 96)`);
                 
                 if(mouseX >= 200 && mouseX <= 225 && mouseY >= 430 && mouseY <= 480)
                 {
