@@ -88,7 +88,7 @@ function Game()
         }
 		
         var images = [];
-        for(var i = 0; i < 15; i++)
+        for(var i = 0; i < 14; i++)
         {
             images[i] = new Image();
 			images[i].addEventListener('load', self.loadedImage, false);
@@ -266,7 +266,7 @@ function Game()
 		randomItems = [];
 		totalDestroys += destroys;
 		destroys = 0;
-        if(!player.isAlive()){player.life = 100;}
+        player.life = 100;
 		initStars();
 		totalShots += player.totalMissiles;
         player.totalMissiles = 0;
@@ -469,12 +469,6 @@ function Game()
 					player.money -= this.secondaryAmmoPrice;
 					player.secondaryAmmo += 25;
 					if(player.secondaryAmmo > player.maxSecondaryAmmo){player.secondaryAmmo = player.maxSecondaryAmmo;}
-					break;
-				}
-				case 4:
-				{
-					player.money -= ((100 - player.life) * 2);
-					player.life = 100;
 					break;
 				}
 			}
@@ -3002,10 +2996,6 @@ function Game()
                 {//Buy Secondary Ammo
                     if(player.money >= gco.secondaryAmmoPrice && player.secondaryAmmo < player.maxSecondaryAmmo){gco.PurchaseExtras(3);} else {gco.notEnoughCores = 1000;}
                 }
-                if(mouseX > _canvas.width - 150 && mouseX < _canvas.width - 102 && mouseY > 448 && mouseY < 496)
-                {//Buy Fill Health
-                    if(player.money >= ((100 - player.life) * 2)){gco.PurchaseExtras(4);} else {gco.notEnoughCores = 1000;}
-                }
                 //**********************************************************************//
                 //					  END UPGRADE MENU SECTION							//
                 //**********************************************************************//
@@ -4208,7 +4198,7 @@ function Game()
                 {//Laser: Weapon ID: 9000
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[10], 160, 448, 48, 48);
+                    buffer.drawImage(images[9], 160, 448, 48, 48);
                     buffer.shadowBlur = 0;
                     if(gco.ownLaser)
                     {
@@ -4222,13 +4212,13 @@ function Game()
                 {
 					buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[10], 160, 448, 48, 48);
+                    buffer.drawImage(images[9], 160, 448, 48, 48);
 					buffer.shadowBlur = 0;
                 }
                 else
                 {
 					buffer.globalAlpha = 0.5;
-                    buffer.drawImage(images[10], 160, 448, 48, 48);
+                    buffer.drawImage(images[9], 160, 448, 48, 48);
 					buffer.globalAlpha = 1.0;
                 }
                 //END WEAPON
@@ -4316,36 +4306,6 @@ function Game()
 					buffer.globalAlpha = 1.0;
                 }
                 //END WEAPON
-				
-// NEW POWERUP Buy Fill Health
-                if(mouseX > _canvas.width - 150 && mouseX < _canvas.width - 102 && mouseY > 448 && mouseY < 496)
-                {//Buy Fill Health
-                    buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[9], _canvas.width - 150, 448, 48, 48);
-                    buffer.shadowBlur = 0;
-					if(player.life < 100)
-					{
-                    	guiText[6].text = "Hull(" + player.life + "/100) Repair Hull: " + ((100 - player.life) * 2) + " cores.";
-					} else
-					{
-						guiText[6].text = "Hull is operating at 100%";
-					}
-                }
-                if(player.life < 100)
-                {
-					buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[9], _canvas.width - 150, 448, 48, 48);
-					buffer.shadowBlur = 0;
-                }
-                else
-                {
-					buffer.globalAlpha = 0.5;
-                    buffer.drawImage(images[9], _canvas.width - 150, 448, 48, 48);
-					buffer.globalAlpha = 1.0;
-                }
-                //END WEAPON
 
 				// Options Menu Selection
 				if(mouseX > (_canvas.width - 160) && mouseX < (_canvas.width - 35) && mouseY < (55) && mouseY > (15))
@@ -4425,18 +4385,18 @@ function Game()
                 
                 if(mouseX >= 200 && mouseX <= 225 && mouseY >= 150 && mouseY <= 200)
                 {
-					buffer.drawImage(images[12], (_canvas.width / 4), 150, 400, 50);
+					buffer.drawImage(images[11], (_canvas.width / 4), 150, 400, 50);
 				}
                 else if(mouseX >= 575 && mouseX <= 600 && mouseY >= 150 && mouseY <= 200)
                 {
-                    buffer.drawImage(images[13], (_canvas.width / 4), 150, 400, 50);
+                    buffer.drawImage(images[12], (_canvas.width / 4), 150, 400, 50);
                 }
                 else
                 {
-                    buffer.drawImage(images[11], (_canvas.width / 4), 150, 400, 50);
+                    buffer.drawImage(images[10], (_canvas.width / 4), 150, 400, 50);
                 }
 				
-                buffer.drawImage(images[14], (19 + (87.5 * particleOffset) - 87.5) + (_canvas.width / 4), 161, 13, 28);
+                buffer.drawImage(images[13], (19 + (87.5 * particleOffset) - 87.5) + (_canvas.width / 4), 161, 13, 28);
                 
 				switch(particleOffset)
 				{
@@ -4457,18 +4417,18 @@ function Game()
                 
                 if(mouseX >= 200 && mouseX <= 225 && mouseY >= 290 && mouseY <= 340)
                 {
-					buffer.drawImage(images[12], (_canvas.width / 4), 290, 400, 50);
+					buffer.drawImage(images[11], (_canvas.width / 4), 290, 400, 50);
 				}
                 else if(mouseX >= 575 && mouseX <= 600 && mouseY >= 290 && mouseY <= 340)
                 {
-                    buffer.drawImage(images[13], (_canvas.width / 4), 290, 400, 50);
+                    buffer.drawImage(images[12], (_canvas.width / 4), 290, 400, 50);
                 }
                 else
                 {
-                    buffer.drawImage(images[11], (_canvas.width / 4), 290, 400, 50);
+                    buffer.drawImage(images[10], (_canvas.width / 4), 290, 400, 50);
                 }
 				
-                buffer.drawImage(images[14], (19 + (35 * Math.round(gco.bgm.volume * 10))) + (_canvas.width / 4), 301, 13, 28);
+                buffer.drawImage(images[13], (19 + (35 * Math.round(gco.bgm.volume * 10))) + (_canvas.width / 4), 301, 13, 28);
                 
                 guiText[6] = new GUIText(Math.round(gco.bgm.volume * 100) + "%", _canvas.width / 2, 345, "26px Helvetica", "center", "top", "rgb(96, 255, 96)");
                 
@@ -4477,18 +4437,18 @@ function Game()
                 
                 if(mouseX >= 200 && mouseX <= 225 && mouseY >= 430 && mouseY <= 480)
                 {
-					buffer.drawImage(images[12], (_canvas.width / 4), 430, 400, 50);
+					buffer.drawImage(images[11], (_canvas.width / 4), 430, 400, 50);
 				}
                 else if(mouseX >= 575 && mouseX <= 600 && mouseY >= 430 && mouseY <= 480)
                 {
-                    buffer.drawImage(images[13], (_canvas.width / 4), 430, 400, 50);
+                    buffer.drawImage(images[12], (_canvas.width / 4), 430, 400, 50);
                 }
                 else
                 {
-                    buffer.drawImage(images[11], (_canvas.width / 4), 430, 400, 50);
+                    buffer.drawImage(images[10], (_canvas.width / 4), 430, 400, 50);
                 }
 				
-                buffer.drawImage(images[14], (19 + (35 * Math.round(sfx.masterVolume * 10))) + (_canvas.width / 4), 441, 13, 28);
+                buffer.drawImage(images[13], (19 + (35 * Math.round(sfx.masterVolume * 10))) + (_canvas.width / 4), 441, 13, 28);
                 
                 guiText[8] = new GUIText(Math.round(sfx.masterVolume * 100) + "%", _canvas.width / 2, 485, "26px Helvetica", "center", "top", "rgb(96, 255, 96)");
                 break;
