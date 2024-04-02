@@ -14,7 +14,6 @@ function Game()
     var self = this;
     var gameState = 0;
     var levelStart = false;
-    var keyPressed;
     var debug = false;
 	var playerInfo = false;
 	var masterBGMVolume = 0.2;
@@ -234,6 +233,8 @@ function Game()
    
     this.hardReset = function()
     {
+        currentGui = 0;
+        gameState = 0;
         missiles = [];
 		enemies = [];
 		explosions = [];
@@ -313,11 +314,11 @@ function Game()
 	
 	function GameControlObject()
 	{
-		this.level = 1;//Starting at 1
+		this.level = 1; // Starting at 1
 		this.win = false;
-		this.enemiesKilled = [];//[enemyNum] = 126
-		this.weaponsOwned = [];//[weaponNum] = true
-		this.weaponPrice = [];//[weaponNum] = 486 (cores)
+		this.enemiesKilled = []; // [enemyNum] = 126
+		this.weaponsOwned = []; // [weaponNum] = true
+		this.weaponPrice = []; // [weaponNum] = 486 (cores)
 		this.ownLaser = false;
 		this.laserPrice = 1000;
 		this.levelProgress = 0.0; // Percentage
@@ -333,8 +334,8 @@ function Game()
 		this.bgm = null;
 		this.playingBossMusic = false;
 		
-		this.bossX = 0;//Final Boss X set when boss dies
-		this.bossY = 0;//Final Boss Y set when boss dies
+		this.bossX = 0; // Final Boss X set when boss dies
+		this.bossY = 0; // Final Boss Y set when boss dies
 		
 		this.credits = new Credits();
 		this.story = new Story();
@@ -3032,13 +3033,9 @@ function Game()
 			}
 			case 5:
 			{// Game Over Menu
-				if(mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 &&
-				   mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)
-				{
-					currentGui = 0;
-					gameState = 0;
-					self.hardReset();
-				}
+                if(mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10) {
+                    self.hardReset();
+                }
 				break;
 			}
 			case 6:
@@ -3091,6 +3088,7 @@ function Game()
 				{
                     // Need to figure out what to do on the submit score screen
 					// self.submitScore("http://www.blackmodulestudio.com/games/katt/update_database.php", self.buildScoresHash(), "POST");
+                    self.hardReset();
 				}
 				break;
 			}
@@ -4405,10 +4403,10 @@ function Game()
 										 
         		if(mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)
 				{
-					guiText[1] = new GUIText("Title Screen", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+					guiText[1] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
 				} else
 				{
-					guiText[1] = new GUIText("Title Screen", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
+					guiText[1] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
 				}
 				break;
 			}
@@ -4502,10 +4500,10 @@ function Game()
 										 
         		if(mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)
 				{
-					guiText[1] = new GUIText("Submit Score", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+					guiText[1] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
 				} else
 				{
-					guiText[1] = new GUIText("Submit Score", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
+					guiText[1] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
 				}
 				break;
 			}
