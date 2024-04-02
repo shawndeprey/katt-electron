@@ -233,6 +233,7 @@ function Game()
    
     this.hardReset = function()
     {
+        paused = false;
         currentGui = 0;
         gameState = 0;
         missiles = [];
@@ -2940,7 +2941,12 @@ function Game()
 			}
 			case 1:
 			{//Pause Menu
-				if(mouseX > (_canvas.width / 2 + 10) - 115 && mouseX < (_canvas.width / 2 + 10) + 100 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10){ currentGui = 6; lastGui = 1; }
+                if(mouseX > (_canvas.width / 2) - 50 && mouseX < (_canvas.width / 2) + 50 && mouseY < (_canvas.height / 2) + 30 && mouseY > (_canvas.height / 2)) {
+                    currentGui = 6; lastGui = 1;
+                }
+                if(mouseX > (_canvas.width / 2) - 70 && mouseX < (_canvas.width / 2) + 70 && mouseY < (_canvas.height / 2) + 90 && mouseY > (_canvas.height / 2) + 60) {
+                    self.hardReset();
+                }
 				break;
 			}
 			case 2:
@@ -2952,9 +2958,13 @@ function Game()
                 {//Start Level
                     if(player.weapon != 49){ gco.StartLevel(); }
                 }
-                if(mouseX > (_canvas.width - 160) && mouseX < (_canvas.width - 35) && mouseY < (55) && mouseY > (15))
+                if(mouseX > (_canvas.width - 235) && mouseX < (_canvas.width - 125) && mouseY < (55) && mouseY > (15))
                 {//Options Menu
                     currentGui = 6; lastGui = 2;
+                }
+                if(mouseX > (_canvas.width - 90) && mouseX < (_canvas.width - 25) && mouseY < (55) && mouseY > (15))
+                {//Quit
+                    self.hardReset();
                 }
                 if(mouseX > 10 && mouseX < 58 && mouseY > 280 && mouseY < 328)
                 {//Pea Shooter, Weapon ID: 0
@@ -3873,12 +3883,17 @@ function Game()
 			}
 			case 1:
 			{// Pause Menu
-				guiText[0] = new GUIText("Paused", _canvas.width / 2, _canvas.height / 2 - 100, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
-				guiText[1] = new GUIText("Options", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
-				if(mouseX > (_canvas.width / 2 + 10) - 115 && mouseX < (_canvas.width / 2 + 10) + 100 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)
-				{
-					guiText[1] = new GUIText("Options", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
-				}
+				guiText[0] = new GUIText("Paused", _canvas.width / 2, _canvas.height / 2 - 80, "32px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                guiText[1] = new GUIText("Options", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
+                if(mouseX > (_canvas.width / 2) - 50 && mouseX < (_canvas.width / 2) + 50 && mouseY < (_canvas.height / 2) + 30 && mouseY > (_canvas.height / 2))
+                {
+                    guiText[1] = new GUIText("Options", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                }
+                guiText[2] = new GUIText("Quit Game", _canvas.width / 2, (_canvas.height / 2) + 60, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
+                if(mouseX > (_canvas.width / 2) - 70 && mouseX < (_canvas.width / 2) + 70 && mouseY < (_canvas.height / 2) + 90 && mouseY > (_canvas.height / 2) + 60)
+                {
+                    guiText[2] = new GUIText("Quit Game", _canvas.width / 2, (_canvas.height / 2) + 60, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                }
 				break;
 			}
 			case 2:
@@ -3890,9 +3905,9 @@ function Game()
                 //Static Text
                 guiText[0] = new GUIText("Missions", 10, 10, 
                                     "18px Helvetica", "left", "top", "rgb(230, 230, 255)");
-                guiText[1] = new GUIText("Main Weapon [space]", 10, _canvas.height / 2 - 50, 
+                guiText[1] = new GUIText("Main Weapon", 10, _canvas.height / 2 - 50, 
                                     "18px Helvetica", "left", "top", "rgb(230, 230, 255)");
-                guiText[2] = new GUIText("Secondary Weapon [B]", 10, 420, 
+                guiText[2] = new GUIText("Secondary Weapon", 10, 420, 
                                     "18px Helvetica", "left", "top", "rgb(230, 230, 255)");
                 guiText[3] = new GUIText("Cores: " + player.money, _canvas.width - 100, _canvas.height - 53, 
                                     "18px Helvetica", "left", "top", "rgb(230, 230, 255)");
@@ -4008,7 +4023,7 @@ function Game()
                                          "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
                 }
 
-                guiText[6] = new GUIText("Click item to purchase.", _canvas.width / 2, _canvas.height - 33, 
+                guiText[6] = new GUIText("Select item to purchase.", _canvas.width / 2, _canvas.height - 33, 
                                     "12px Helvetica", "center", "top", "rgb(230, 230, 255)");
 
                 // GUI Icons
@@ -4308,15 +4323,24 @@ function Game()
                 //END WEAPON
 
 				// Options Menu Selection
-				if(mouseX > (_canvas.width - 160) && mouseX < (_canvas.width - 35) && mouseY < (55) && mouseY > (15))
+                if(mouseX > (_canvas.width - 235) && mouseX < (_canvas.width - 125) && mouseY < (55) && mouseY > (15))
                 {//Options Menu
-                    guiText[10] = new GUIText("Options", _canvas.width - 100, 20, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                    guiText[10] = new GUIText("Options", _canvas.width - 180, 20, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
                 } else
                 {
-                    guiText[10] = new GUIText("Options", _canvas.width - 100, 20, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
+                    guiText[10] = new GUIText("Options", _canvas.width - 180, 20, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
+                }
+
+                // Quit game
+                if(mouseX > (_canvas.width - 90) && mouseX < (_canvas.width - 25) && mouseY < (55) && mouseY > (15))
+                {//Quit
+                    guiText[11] = new GUIText("Quit", _canvas.width - 60, 20, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                } else
+                {
+                    guiText[11] = new GUIText("Quit", _canvas.width - 60, 20, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
                 }
 				
-				guiText[11] = new GUIText("Score: " + score, 10, _canvas.height - 53, "18px Helvetica", "left", "top", "rgb(230, 230, 255)");
+				guiText[12] = new GUIText("Score: " + score, 10, _canvas.height - 53, "18px Helvetica", "left", "top", "rgb(230, 230, 255)");
 //**********************************************************************//
 //					  END UPGRADE MENU SECTION							//
 //**********************************************************************//
@@ -4519,11 +4543,10 @@ function Game()
 				guiText[5] = new GUIText("Score: " + score, _canvas.width - 100, 20, "12px Helvetica", "left", "top", "rgb(96, 255, 96)");
 			} else
 			{
-				if(gameState == 1)
-				{
-					guiText[0] = new GUIText("[E] Player Info", 105, _canvas.height - 28, 
-											 "18px Helvetica", "left", "top", "rgb(96, 255, 96)");
-				}
+                if(gameState == 1)
+                {
+                    guiText[0] = new GUIText("[E] Ship Info", 105, _canvas.height - 28, "18px Helvetica", "left", "top", "rgb(96, 255, 96)");
+                }
 			}
 			buffer.beginPath();
 				for(var i = 0; i < guiText.length; i++)
