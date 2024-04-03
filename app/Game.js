@@ -696,6 +696,50 @@ function Game()
                 }
             }
         }
+
+        this.DrawArrow = function(direction, x, y, arrowLength = 24) {
+            buffer.beginPath();
+            buffer.fillStyle = "rgb(96, 255, 96)"; // Green fill
+            buffer.strokeStyle = "rgb(0, 128, 0)"; // Darker green stroke for the arrow's outline
+        
+            // Calculate arrowWidth as a factor of arrowLength, for example, arrowLength / 2.5
+            const arrowWidth = arrowLength / 2.5;
+        
+            switch(direction) {
+                case 0: // Up
+                    buffer.moveTo(x, y);
+                    buffer.lineTo(x - arrowWidth, y + arrowLength);
+                    buffer.lineTo(x, y + arrowLength - (arrowLength / 5));
+                    buffer.lineTo(x + arrowWidth, y + arrowLength);
+                    buffer.lineTo(x, y);
+                    break;
+                case 1: // Left
+                    buffer.moveTo(x, y);
+                    buffer.lineTo(x + arrowLength, y - arrowWidth);
+                    buffer.lineTo(x + arrowLength - (arrowLength / 5), y);
+                    buffer.lineTo(x + arrowLength, y + arrowWidth);
+                    buffer.lineTo(x, y);
+                    break;
+                case 2: // Down
+                    buffer.moveTo(x, y);
+                    buffer.lineTo(x - arrowWidth, y - arrowLength);
+                    buffer.lineTo(x, y - arrowLength + (arrowLength / 5));
+                    buffer.lineTo(x + arrowWidth, y - arrowLength);
+                    buffer.lineTo(x, y);
+                    break;
+                case 3: // Right
+                    buffer.moveTo(x, y);
+                    buffer.lineTo(x - arrowLength, y - arrowWidth);
+                    buffer.lineTo(x - arrowLength + (arrowLength / 5), y);
+                    buffer.lineTo(x - arrowLength, y + arrowWidth);
+                    buffer.lineTo(x, y);
+                    break;
+            }
+        
+            buffer.stroke();
+            buffer.fill();
+            buffer.closePath();
+        }
 	}
 	
 	function swapBGM()
@@ -3862,21 +3906,25 @@ function Game()
                 guiText[1] = new GUIText("Insert Coin(s)", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
                 if(menu.states[0][0] || (mouseX > (_canvas.width / 2 + 10) - 115 && mouseX < (_canvas.width / 2 + 10) + 100 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10))
                 {
+                    if(menu.states[0][0]) menu.DrawArrow(3, (_canvas.width / 2) - 105, _canvas.height / 2 + 12)
                     guiText[1] = new GUIText("Insert Coin(s)", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
                 }
                 guiText[2] = new GUIText("Options", _canvas.width / 2, (_canvas.height / 2) + 50, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
                 if(menu.states[0][1] || (mouseX > (_canvas.width / 2 + 10) - 65 && mouseX < (_canvas.width / 2 + 10) + 40 && mouseY < (_canvas.height / 2 + 60) + 20 && mouseY > (_canvas.height / 2 + 60) - 10))
                 {
+                    if(menu.states[0][1]) menu.DrawArrow(3, (_canvas.width / 2) - 65, _canvas.height / 2 + 62)
                     guiText[2] = new GUIText("Options", _canvas.width / 2, (_canvas.height / 2) + 50, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
                 }
                 guiText[3] = new GUIText("Story", _canvas.width / 2, (_canvas.height / 2) + 100, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
                 if(menu.states[0][2] || (mouseX > (_canvas.width / 2 + 10) - 65 && mouseX < (_canvas.width / 2 + 10) + 40 && mouseY < (_canvas.height / 2 + 110) + 20 && mouseY > (_canvas.height / 2 + 110) - 10))
                 {
+                    if(menu.states[0][2]) menu.DrawArrow(3, (_canvas.width / 2) - 50, _canvas.height / 2 + 112)
                     guiText[3] = new GUIText("Story", _canvas.width / 2, (_canvas.height / 2) + 100, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
                 }
                 guiText[4] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2) + 145, "28px Helvetica", "center", "top", "rgb(96, 145, 96)");
                 if(menu.states[0][3] || (mouseX > (_canvas.width / 2 + 10) - 80 && mouseX < (_canvas.width / 2 + 10) + 55 && mouseY < (_canvas.height / 2 + 150) + 20 && mouseY > (_canvas.height / 2 + 150) - 10))
                 {
+                    if(menu.states[0][3]) menu.DrawArrow(3, (_canvas.width / 2) - 80, _canvas.height / 2 + 157)
                     guiText[4] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2) + 145, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
                 }
 				break;
@@ -4399,6 +4447,7 @@ function Game()
                 //Options Menu
 				guiText[0] = new GUIText("Options", _canvas.width / 2, 25, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
 				guiText[1] = new GUIText("Back", 10, _canvas.height - 35, "28px Helvetica", "left", "top", `rgb(96, ${menu.states[6][3] ? '255' : '150'}, 96)`);
+                if(menu.states[6][3]) menu.DrawArrow(1, 85, _canvas.height - 20)
 				if(mouseX > 0 && mouseX < 90 && mouseY < _canvas.height && mouseY > _canvas.height - 45)
 				{
 					guiText[1] = new GUIText("Back", 10, _canvas.height - 35, "28px Helvetica", "left", "top", "rgb(96, 255, 96)");
@@ -4406,6 +4455,7 @@ function Game()
 
                 // Graphics
                 guiText[2] = new GUIText("Particles", (_canvas.width / 2), 125, "20px Helvetica", "center", "top", `rgb(96, ${menu.states[6][0] ? '255' : '150'}, 96)`);
+                if(menu.states[6][0]) menu.DrawArrow(3, _canvas.width / 2 - 55, 134)
                 
                 if(mouseX >= 200 && mouseX <= 225 && mouseY >= 150 && mouseY <= 200)
                 {
@@ -4438,6 +4488,7 @@ function Game()
 				
                 // BGM Volume
 				guiText[5] = new GUIText("BGM Volume", (_canvas.width / 2), 265, "20px Helvetica", "center", "top", `rgb(96, ${menu.states[6][1] ? '255' : '150'}, 96)`);
+                if(menu.states[6][1]) menu.DrawArrow(3, _canvas.width / 2 - 75, 274)
                 
                 if(mouseX >= 200 && mouseX <= 225 && mouseY >= 290 && mouseY <= 340)
                 {
@@ -4458,6 +4509,7 @@ function Game()
                 
                 // SFX Volume
 				guiText[7] = new GUIText("SFX Volume", (_canvas.width / 2), 405, "20px Helvetica", "center", "top", `rgb(96, ${menu.states[6][2] ? '255' : '150'}, 96)`);
+                if(menu.states[6][2]) menu.DrawArrow(3, _canvas.width / 2 - 72, 414)
                 
                 if(mouseX >= 200 && mouseX <= 225 && mouseY >= 430 && mouseY <= 480)
                 {
