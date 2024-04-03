@@ -349,19 +349,19 @@ function Game()
 		{
 			this.levelMission.GenerateObjectives();
 			
-			this.weaponsOwned[0] = false;//Pea Shooter
+			this.weaponsOwned[0] = true;//Pea Shooter
 			this.weaponsOwned[1] = false;//Pea Shooter Pro
 			this.weaponsOwned[2] = false;//Master Pea Shooter
 			this.weaponsOwned[49] = true;//Missile
-			this.weaponsOwned[50] = false;//Missile
+			this.weaponsOwned[50] = true;//Missile
 			this.weaponsOwned[51] = false;//Homing Missile
             this.weaponsOwned[52] = false;//Space Mine
 			
 			this.weaponPrice[0] = 0;//Pea Shooter
 			this.weaponPrice[1] = 150;//Pea Shooter Pro
 			this.weaponPrice[2] = 500;//Master Pea Shooter
-			this.weaponPrice[50] = 100;//Missile
-			this.weaponPrice[51] = 300;//Homing Missile
+			this.weaponPrice[50] = 0;//Missile
+			this.weaponPrice[51] = 250;//Homing Missile
             this.weaponPrice[52] = 500;//Space Mine
 		}
 		
@@ -2156,9 +2156,9 @@ function Game()
 		this.maxShield = this.shield * this.shieldLevel;
 		this.hasShield = false;
 	
-		this.weapon = 49;// 0 - 48
-		this.secondary = 49;//Starts at 50, 49 = no secondary.
-		this.secondaryAmmo = 0;
+		this.weapon = 0;// 0 - 48
+		this.secondary = 50;//Starts at 50, 49 = no secondary.
+		this.secondaryAmmo = 50;
 		this.secondaryAmmoLevel = 1;
 		this.maxSecondaryAmmo = 50 * this.secondaryAmmoLevel;
 	
