@@ -577,7 +577,7 @@ function Game()
     function Menu()
     {
         this.states = []
-        this.timeout = 0
+        this.timeout = 5
         this.onTick = 0
 
         this.Init = function()
@@ -587,11 +587,20 @@ function Game()
 
         this.resetStates = function()
         {
+            //State GUIs
+            // 0 = Main Menu
+            // 1 = Pause Menu
+            // 2 = Level Up Menu
+            // 3 = Continue Menu
+            // 4 = Level Up Menu
+            // 5 = Game Over Menu
+            // 6 = Options Menu
+            // 7 = Submit Score Menu
             this.states = [
                 // Main Menu: New Game, Options, Story, Exit Game
                 [true, false, false, false],
                 [],
-                [],
+                [[false, false], [false, false, false, true], [false, false, false, false, false, false, false]],
                 [],
                 [],
                 [],
@@ -620,8 +629,37 @@ function Game()
                 }
                 this.timeout = 5; // 250 ms delay before next action
             } else
+            if(activeMenu == 2) {
+                let [currentRow, currentCol] = this.findCurrentPosition(this.states[activeMenu]);
+                switch(direction) {
+                    case 0: // Up
+                        if (currentRow > 0) {
+                            currentRow--;
+                            currentCol = this.findClosestColumn(this.states[activeMenu][currentRow].length, currentCol, this.states[activeMenu][currentRow + 1].length);
+                        }
+                        break;
+                    case 1: // Left
+                        if (currentCol > 0) currentCol--;
+                        break;
+                    case 2: // Down
+                        if (currentRow < this.states[activeMenu].length - 1) {
+                            currentRow++;
+                            currentCol = this.findClosestColumn(this.states[activeMenu][currentRow].length, currentCol, this.states[activeMenu][currentRow - 1].length);
+                        }
+                        break;
+                    case 3: // Right
+                        if (currentCol < this.states[activeMenu][currentRow].length - 1) currentCol++;
+                        break;
+                }
+            
+                // Reset the current state to all false
+                this.resetMenuStates(this.states[activeMenu]);
+                // Set the new position to true
+                this.states[activeMenu][currentRow][currentCol] = true;
+                this.timeout = 5; // 250 ms delay before next action
+            } else
             if(activeMenu == 6) { // Options menu
-				if(direction === 0 || direction === 2) {
+                if(direction === 0 || direction === 2) {
                     var currentIndex = this.states[activeMenu].findIndex(value => value === true);
                     var newIndex = currentIndex;
                     // up = up, down = down
@@ -630,7 +668,7 @@ function Game()
                         this.states[activeMenu][currentIndex] = false; // Disable old menu position
                         this.states[activeMenu][newIndex] = true; // Enable new menu position
                     }
-				}
+                }
 
                 // Custom actions for left/right on this menu
                 if(direction == 1 || direction == 3) {
@@ -658,6 +696,31 @@ function Game()
             }
         }
 
+        this.findCurrentPosition = function(menu) {
+            for (let row = 0; row < menu.length; row++) {
+                let col = menu[row].indexOf(true);
+                if (col !== -1) return [row, col];
+            }
+            return [-1, -1]; // Not found
+        }
+        
+        this.findClosestColumn = function(targetRowLength, currentCol, currentRowLength) {
+            // Calculate the current position's relative percentage in its row
+            const relativePosition = currentCol / (currentRowLength - 1);
+            // Determine the closest column in the target row based on the relative position
+            const closestCol = Math.round((targetRowLength - 1) * relativePosition);
+            // Ensure the calculated column index stays within the bounds of the target row
+            return Math.max(0, Math.min(closestCol, targetRowLength - 1));
+        }
+        
+        this.resetMenuStates = function(menu) {
+            for (let row = 0; row < menu.length; row++) {
+                for (let col = 0; col < menu[row].length; col++) {
+                    menu[row][col] = false;
+                }
+            }
+        }
+
         this.select = function()
         {
             // This function should mimic the doMouseClick functionality. If something is added there, it should be here, and visa-versa
@@ -675,7 +738,39 @@ function Game()
                     break;
                 }
                 case 1: { break; }
-                case 2: { break; }
+                case 2: {
+                    
+                    // Options
+                    if(this.states[2][0][0]){ currentGui = 6; lastGui = 2; }
+                    // Quit
+                    if(this.states[2][0][1]){ self.hardReset(); }
+
+                    // Pea Shooter
+                    if(this.states[2][1][0]){ if(gco.weaponsOwned[0]){ gco.EquipWeapon(0); } else { if(player.money >= gco.weaponPrice[0]){ gco.PurchaseWeapon(0); } else {gco.notEnoughCores = 1000;}} }
+                    // Pea Shooter Pro
+                    if(this.states[2][1][1]){ if(gco.weaponsOwned[1]){ gco.EquipWeapon(1); } else { if(player.money >= gco.weaponPrice[1]){ gco.PurchaseWeapon(1); } else {gco.notEnoughCores = 1000;}} }
+                    // Master Pea Shooter
+                    if(this.states[2][1][2]){ if(gco.weaponsOwned[2]){ gco.EquipWeapon(2); } else { if(player.money >= gco.weaponPrice[2]){ gco.PurchaseWeapon(2); } else {gco.notEnoughCores = 1000;}} }
+                    // Start Level
+                    if(this.states[2][1][3]){ if(player.weapon != 49){ gco.StartLevel(); }}
+
+                    // Missile
+                    if(this.states[2][2][0]){ if(gco.weaponsOwned[50]){ gco.EquipWeapon(50); } else { if(player.money >= gco.weaponPrice[50]){ gco.PurchaseWeapon(50); } else {gco.notEnoughCores = 1000;}} }
+                    // Homing Missile
+                    if(this.states[2][2][1]){ if(gco.weaponsOwned[51]){ gco.EquipWeapon(51); } else { if(player.money >= gco.weaponPrice[51]){ gco.PurchaseWeapon(51); } else {gco.notEnoughCores = 1000;}} }
+                    // Space Mine
+                    if(this.states[2][2][2]){ if(gco.weaponsOwned[52]){ gco.EquipWeapon(52); } else { if(player.money >= gco.weaponPrice[52]){ gco.PurchaseWeapon(52); } else {gco.notEnoughCores = 1000;}} }
+                    // Laser
+                    if(this.states[2][2][3]){ if(gco.ownLaser){ gco.EquipWeapon(9000); } else { if(player.money >= gco.laserPrice){ gco.PurchaseWeapon(9000); } else {gco.notEnoughCores = 1000;}} }
+                    // Shield
+                    if(this.states[2][2][4]){ if(player.money >= (player.shieldLevel + 1) * 250){gco.PurchaseExtras(0);} else {gco.notEnoughCores = 1000;} }
+                    // Ammo Capacity
+                    if(this.states[2][2][5]){ if(player.money >= (player.secondaryAmmoLevel + 1) * 50){gco.PurchaseExtras(2);} else {gco.notEnoughCores = 1000;} }
+                    // Purchase Ammo
+                    if(this.states[2][2][6]){ if(player.money >= gco.secondaryAmmoPrice && player.secondaryAmmo < player.maxSecondaryAmmo){gco.PurchaseExtras(3);} else {gco.notEnoughCores = 1000;} }
+
+                    break;
+                }
                 case 3: { break; }
                 case 4: { break; }
                 case 5: { break; }
@@ -3024,7 +3119,7 @@ function Game()
                 }
                 if(mouseX > 10 && mouseX < 58 && mouseY > 448 && mouseY < 496)
                 {//Boom Bullet, Weapon ID: 50
-                    if(gco.weaponsOwned[50]){ gco.EquipWeapon(50); } else { if(player.money >= gco.weaponPrice[50]){ gco.PurchaseWeapon(50); player.secondaryAmmo += 50; } else {gco.notEnoughCores = 1000;}}
+                    if(gco.weaponsOwned[50]){ gco.EquipWeapon(50); } else { if(player.money >= gco.weaponPrice[50]){ gco.PurchaseWeapon(50); } else {gco.notEnoughCores = 1000;}}
                 }
                 if(mouseX > 60 && mouseX < 108 && mouseY > 448 && mouseY < 496)
                 {//Friendly Boom Bullet, Weapon ID: 51
@@ -4058,30 +4153,28 @@ function Game()
                         buffer.lineTo(LPM_x1, LPM_y1);
                     buffer.stroke();
                 buffer.closePath();
-                
-                if(mouseX > (_canvas.width - 175) && mouseX < (_canvas.width - 25) && mouseY < (280) && mouseY > (250))
+
+                if(menu.states[2][1][3] || (mouseX > (_canvas.width - 175) && mouseX < (_canvas.width - 25) && mouseY < (280) && mouseY > (250)))
                 {//Start Level
-                    guiText[5] = new GUIText("Start Level", _canvas.width - 100, 250, 
-                                         "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
-                    if(player.weapon == 49){guiText[12] = new GUIText("Must equip main weapon", _canvas.width - 100, 280,
-                                         "12px Helvetica", "center", "top", "rgb(255, 50, 50)");}
-                } else
-                {
-                    guiText[5] = new GUIText("Start Level", _canvas.width - 100, 250, 
-                                         "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
+                    guiText[5] = new GUIText("Start Level", _canvas.width - 100, 250, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                    menu.DrawArrow(3, _canvas.width - 175, 262);
+                    if(player.weapon == 49){guiText[12] = new GUIText("Must equip main weapon", _canvas.width - 100, 280, "12px Helvetica", "center", "top", "rgb(255, 50, 50)");}
+                } else {
+                    guiText[5] = new GUIText("Start Level", _canvas.width - 100, 250, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
                 }
 
-                guiText[6] = new GUIText("Select item to purchase.", _canvas.width / 2, _canvas.height - 33, 
-                                    "12px Helvetica", "center", "top", "rgb(230, 230, 255)");
+                // Bottom text tooltip initialization
+                guiText[6] = new GUIText("Select item to purchase.", _canvas.width / 2, _canvas.height - 33, "12px Helvetica", "center", "top", "rgb(230, 230, 255)");
 
                 // GUI Icons
 // NEW WEAPON Pea Shooter
-                if(mouseX > 10 && mouseX < 58 && mouseY > 280 && mouseY < 328)
+                if(menu.states[2][1][0] || (mouseX > 10 && mouseX < 58 && mouseY > 280 && mouseY < 328))
                 {//Pea Shooter, Weapon ID: 0
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[0], 10, 280, 48, 48);    
                     buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, 34, 336);
                     if(gco.weaponsOwned[0])
                     {
                         guiText[6].text = "You already own Pea Shooter.";
@@ -4106,12 +4199,13 @@ function Game()
                 //END WEAPON
 
 // NEW WEAPON Pea Shooter Pro
-                if(mouseX > 60 && mouseX < 108 && mouseY > 280 && mouseY < 328)
+                if(menu.states[2][1][1] || (mouseX > 60 && mouseX < 108 && mouseY > 280 && mouseY < 328))
                 {//Pea Shooter Pro, Weapon ID: 1
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[1], 60, 280, 48, 48);
                     buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, 84, 336);
                     if(gco.weaponsOwned[1])
                     {
                         guiText[6].text = "You already own Pea Shooter Pro.";
@@ -4136,12 +4230,13 @@ function Game()
                 //END WEAPON
 				
 // NEW WEAPON Master Pea Shooter
-                if(mouseX > 110 && mouseX < 158 && mouseY > 280 && mouseY < 328)
+                if(menu.states[2][1][2] || (mouseX > 110 && mouseX < 158 && mouseY > 280 && mouseY < 328))
                 {//Master Pea Shooter, Weapon ID: 2
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[7], 110, 280, 48, 48);
                     buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, 134, 336);
                     if(gco.weaponsOwned[2])
                     {
                         guiText[6].text = "You already own Master Pea Shooter.";
@@ -4166,12 +4261,13 @@ function Game()
                 //END WEAPON
 
 // NEW WEAPON Boom Bullet
-                if(mouseX > 10 && mouseX < 58 && mouseY > 448 && mouseY < 496)
+                if(menu.states[2][2][0] || (mouseX > 10 && mouseX < 58 && mouseY > 448 && mouseY < 496))
                 {//Boom Bullet, Weapon ID: 50
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[2], 10, 448, 48, 48);
                     buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, 34, 504);
                     if(gco.weaponsOwned[50])
                     {
                         guiText[6].text = "You already own Boom Bullet.";
@@ -4197,12 +4293,13 @@ function Game()
                 //END WEAPON
 
 // NEW WEAPON Friendly Boom Bullet
-                if(mouseX > 60 && mouseX < 108 && mouseY > 448 && mouseY < 496)
+                if(menu.states[2][2][1] || (mouseX > 60 && mouseX < 108 && mouseY > 448 && mouseY < 496))
                 {//Friendly Boom Bullet, Weapon ID: 51
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[3], 60, 448, 48, 48);
                     buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, 84, 504);
                     if(gco.weaponsOwned[51])
                     {
                         guiText[6].text = "You already own Friendly Boom Bullet.";
@@ -4227,12 +4324,13 @@ function Game()
                 //END WEAPON
 
 // NEW WEAPON Space Mine
-                if(mouseX > 110 && mouseX < 158 && mouseY > 448 && mouseY < 496)
+                if(menu.states[2][2][2] || (mouseX > 110 && mouseX < 158 && mouseY > 448 && mouseY < 496))
                 {//Friendly Boom Bullet, Weapon ID: 52
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[8], 110, 448, 48, 48);
                     buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, 134, 504);
                     if(gco.weaponsOwned[52])
                     {
                         guiText[6].text = "You already own Space Mine.";
@@ -4257,12 +4355,13 @@ function Game()
                 //END WEAPON
 				
 // NEW WEAPON Laser
-                if(mouseX > 160 && mouseX < 208 && mouseY > 448 && mouseY < 496)
+                if(menu.states[2][2][3] || (mouseX > 160 && mouseX < 208 && mouseY > 448 && mouseY < 496))
                 {//Laser: Weapon ID: 9000
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[9], 160, 448, 48, 48);
                     buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, 184, 504);
                     if(gco.ownLaser)
                     {
                         guiText[6].text = "You already own the Phaser Laser.";
@@ -4287,12 +4386,13 @@ function Game()
                 //END WEAPON
 				
 // NEW POWERUP Shield
-                if(mouseX > _canvas.width - 300 && mouseX < _canvas.width - 252 && mouseY > 448 && mouseY < 496)
+                if(menu.states[2][2][4] || (mouseX > _canvas.width - 300 && mouseX < _canvas.width - 252 && mouseY > 448 && mouseY < 496))
                 {//Shield
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[4], _canvas.width - 300, 448, 48, 48);
                     buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, _canvas.width - 276, 504);
                     if(player.hasShield)
                     {
                         guiText[6].text = "Your shield is level " + player.shieldLevel + ". Upgrade for " + (player.shieldLevel + 1) * 250 + " cores.";
@@ -4317,12 +4417,13 @@ function Game()
                 //END WEAPON
 
 // NEW POWERUP Max Ammo
-                if(mouseX > _canvas.width - 250 && mouseX < _canvas.width - 202 && mouseY > 448 && mouseY < 496)
+                if(menu.states[2][2][5] || (mouseX > _canvas.width - 250 && mouseX < _canvas.width - 202 && mouseY > 448 && mouseY < 496))
                 {//Max Ammo
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[5], _canvas.width - 250, 448, 48, 48);
                     buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, _canvas.width - 226, 504);
                     guiText[6].text = "Ammo Level: " + player.secondaryAmmoLevel + "  Max Secondary Ammo: " + player.maxSecondaryAmmo + ". Upgrade for " + (player.secondaryAmmoLevel + 1) * 50 + " cores.";
                 }
                 if(player.secondaryAmmoLevel > 1)
@@ -4341,12 +4442,13 @@ function Game()
                 //END WEAPON
 			
 // NEW POWERUP Buy Secondary Ammo
-                if(mouseX > _canvas.width - 200 && mouseX < _canvas.width - 152 && mouseY > 448 && mouseY < 496)
+                if(menu.states[2][2][6] || (mouseX > _canvas.width - 200 && mouseX < _canvas.width - 152 && mouseY > 448 && mouseY < 496))
                 {//Buy Secondary Ammo
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[6], _canvas.width - 200, 448, 48, 48);
                     buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, _canvas.width - 176, 504);
 					if(player.secondaryAmmo < player.maxSecondaryAmmo)
 					{
                     	guiText[6].text = "Secondary Ammo: " + player.secondaryAmmo + "  Max Secondary Ammo: " + player.maxSecondaryAmmo + ". +25 Ammo for " + gco.secondaryAmmoPrice + " cores.";
@@ -4371,18 +4473,20 @@ function Game()
                 //END WEAPON
 
 				// Options Menu Selection
-                if(mouseX > (_canvas.width - 235) && mouseX < (_canvas.width - 125) && mouseY < (55) && mouseY > (15))
+                if(menu.states[2][0][0] || (mouseX > (_canvas.width - 235) && mouseX < (_canvas.width - 125) && mouseY < (55) && mouseY > (15)))
                 {//Options Menu
                     guiText[10] = new GUIText("Options", _canvas.width - 180, 20, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                    menu.DrawArrow(3, _canvas.width - 237, 33);
                 } else
                 {
                     guiText[10] = new GUIText("Options", _canvas.width - 180, 20, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
                 }
 
                 // Quit game
-                if(mouseX > (_canvas.width - 90) && mouseX < (_canvas.width - 25) && mouseY < (55) && mouseY > (15))
+                if(menu.states[2][0][1] || (mouseX > (_canvas.width - 90) && mouseX < (_canvas.width - 25) && mouseY < (55) && mouseY > (15)))
                 {//Quit
                     guiText[11] = new GUIText("Quit", _canvas.width - 60, 20, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                    menu.DrawArrow(3, _canvas.width - 92, 33);
                 } else
                 {
                     guiText[11] = new GUIText("Quit", _canvas.width - 60, 20, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
