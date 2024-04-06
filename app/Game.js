@@ -3469,21 +3469,24 @@ function Game()
 			}
             if(player.isAlive() && gameState == 1 && !gco.win)
             {
-                if(Keys[0] >= 1) // W || Up
-                {
-                    player.y -= player.speed * delta;
-                }
-                if(Keys[1] >= 1) // A || Left
-                {
-                    player.x -= player.speed * delta;
-                }
-                if(Keys[2] >= 1) // S || Down
-                {
-                    player.y += player.speed * delta;
-                }
-                if(Keys[3] >= 1) // D || Right
-                {
-                    player.x += player.speed * delta;
+                // Player Movement
+                let moveX = 0;
+                let moveY = 0;
+                if(Keys[0] >= 1) moveY -= player.speed * delta; // W || Up
+                if(Keys[1] >= 1) moveX -= player.speed * delta; // A || Left
+                if(Keys[2] >= 1) moveY += player.speed * delta; // S || Down
+                if(Keys[3] >= 1) moveX += player.speed * delta; // D || Right
+                // Only update player position if there's movement
+                if (moveX !== 0 || moveY !== 0) {
+                    // Normalize the speed if moving diagonally
+                    if (moveX !== 0 && moveY !== 0) {
+                        const norm = Math.sqrt(moveX * moveX + moveY * moveY);
+                        moveX = (moveX / norm) * player.speed * delta;
+                        moveY = (moveY / norm) * player.speed * delta;
+                    }
+                    // Apply the calculated movement
+                    player.x += moveX;
+                    player.y += moveY;
                 }
 
 				if(ticks != player.onTick)
