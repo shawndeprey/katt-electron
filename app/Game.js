@@ -743,9 +743,14 @@ function Game()
             }
         }
 
-        this.select = function()
+        this.back = function()
         {
-            // This function should mimic the doMouseClick functionality. If something is added there, it should be here, and visa-versa
+            if(currentGui == 6){ currentGui = lastGui; lastGui = 6; }
+            if(currentGui == 1 && !gco.win){ gco.TogglePauseGame(); currentGui = NULL_GUI_STATE; }
+        }
+
+        this.select = function()
+        { // This function should mimic the doMouseClick functionality. If something is added there, it should be here, and visa-versa
             if(this.timeout > 0) return;
             this.timeout = 5; // 250 ms delay before next action
             switch(currentGui) {
@@ -3429,7 +3434,7 @@ function Game()
     
     this.getInput = function()
     {
-        if(Keys[17] == 1) // Escape
+        if(Keys[17] == 1) // Escape/Pause
         {
 			if(gameState == 1 && player.isAlive())
 			{   if(!gco.win){ if(currentGui != 6){ gco.TogglePauseGame(); } }
@@ -3445,11 +3450,10 @@ function Game()
             if(Keys[2] >= 1) menu.move(currentGui, 2) // S || Down
             if(Keys[3] >= 1) menu.move(currentGui, 3) // D || Right
             if(Keys[16] >= 1 || Keys[18] >= 1) menu.select() // Space || Enter
+            if((currentGui == 6 || currentGui == 1) && Keys[19] > 1) menu.back()
         }
-        
-
-        if(!paused)
-        {
+    
+        if(!paused) {
             if(Keys[4] == 1)
             {
 				debug = !debug;
