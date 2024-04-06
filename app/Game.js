@@ -1,4 +1,3 @@
-//Authors: Shawn Deprey, Justin Hammond, Drew Muller
 const { ipcRenderer } = require('electron');
 
 function Game()
@@ -39,6 +38,16 @@ function Game()
 	//Input Info
 	var mouseX = 0;
 	var mouseY = 0;
+    var keysDown = {};
+	var gamepads = {};
+    var hasControllerInput = false;
+    var gamepadLeft = false;
+    var gamepadRight = false;
+    var gamepadUp = false;
+    var gamepadDown = false;
+    var gamepadA = false;
+    var gamepadB = false;
+    var gamepadStart = false;
 	
 	//Options
 	var particleOffset = 5;
@@ -130,7 +139,6 @@ function Game()
     var explosions = [];
 	var money = [];
 	var randomItems = [];
-    var keysDown = {};
     
 	var NUM_OF_RANDOM_ITEMS = 4;
 	//0 = Health
@@ -190,6 +198,20 @@ function Game()
 	document.querySelector("#bgm_dorian").addEventListener("error",swapBGM,false);
 	document.querySelector("#bgm_euphoria").addEventListener("error",swapBGM,false);
 	document.querySelector("#bgm_energy").addEventListener("error",swapBGM,false);
+
+    // Event listener for gamepad connection
+    window.addEventListener("gamepadconnected", (e) => {
+        console.log(`Gamepad connected at index ${e.gamepad.index}: ${e.gamepad.id}.`);
+        gamepads[e.gamepad.index] = e.gamepad;
+        hasControllerInput = true;
+    });
+
+    // Event listener for gamepad disconnection
+    window.addEventListener("gamepaddisconnected", (e) => {
+        console.log(`Gamepad disconnected from index ${e.gamepad.index}: ${e.gamepad.id}.`);
+        delete gamepads[e.gamepad.index];
+        hasControllerInput = false;
+    });
     
     /******************************************************/
     // Global Functions
@@ -721,9 +743,14 @@ function Game()
             }
         }
 
-        this.select = function()
+        this.back = function()
         {
-            // This function should mimic the doMouseClick functionality. If something is added there, it should be here, and visa-versa
+            if(currentGui == 6){ currentGui = lastGui; lastGui = 6; }
+            if(currentGui == 1 && !gco.win){ gco.TogglePauseGame(); currentGui = NULL_GUI_STATE; }
+        }
+
+        this.select = function()
+        { // This function should mimic the doMouseClick functionality. If something is added there, it should be here, and visa-versa
             if(this.timeout > 0) return;
             this.timeout = 5; // 250 ms delay before next action
             switch(currentGui) {
@@ -3250,73 +3277,164 @@ function Game()
         mouseY = (evt.clientY - rect.top) * scaleY;
     }
 
+    this.doGamepadInput = function() {
+        // Xbox One Controller Mapping:
+        // 0: A button
+        // 1: B button
+        // 2: X button
+        // 3: Y button
+        // 4: Left bumper (LB)
+        // 5: Right bumper (RB)
+        // 6: Left trigger (LT) - value between 0 and 1
+        // 7: Right trigger (RT) - value between 0 and 1
+        // 8: Back/View button
+        // 9: Start/Menu button
+        // 10: Left stick press
+        // 11: Right stick press
+        // 12: D-pad up
+        // 13: D-pad down
+        // 14: D-pad left
+        // 15: D-pad right
+        // 16: Home/Guide button
+
+        // PlayStation Controllers:
+        // PlayStation controllers generally follow a similar mapping, with the main difference being the symbols on the buttons:
+        // 0: Cross (X) button
+        // 1: Circle (O) button
+        // 2: Square ([]) button
+        // 3: Triangle (∆) button
+        // The rest of the mappings like bumpers, triggers, and D-pad directions correspond closely to the Xbox layout.
+
+        // Reset all gamepad input states
+        gamepadLeft = false;
+        gamepadRight = false;
+        gamepadUp = false;
+        gamepadDown = false;
+        gamepadA = false;
+        gamepadB = false;
+        gamepadStart = false;
+
+        // Do Gamepad Input
+        const detectedGamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+        for (let gamepad of detectedGamepads) {
+            if (gamepad) {
+                gamepads[gamepad.index] = gamepad;
+            }
+        }
+        for (let index in gamepads) {
+            const gamepad = gamepads[index];
+            if (gamepad) {
+                const joystickThreshold = 0.10;
+                const triggerThreshold = 0.30;
+                const leftTriggerPressed = gamepad.buttons[6].value > triggerThreshold;
+                const rightTriggerPressed = gamepad.buttons[7].value > triggerThreshold;
+                if(gamepad.axes[0] < -joystickThreshold || gamepad.buttons[14].pressed) { gamepadLeft = true; }
+                if(gamepad.axes[0] > joystickThreshold || gamepad.buttons[15].pressed) { gamepadRight = true; }
+                if(gamepad.axes[1] < -joystickThreshold || gamepad.buttons[12].pressed) { gamepadUp = true; }
+                if(gamepad.axes[1] > joystickThreshold || gamepad.buttons[13].pressed) { gamepadDown = true; }
+                if(gamepad.buttons[0].pressed || leftTriggerPressed || rightTriggerPressed) { gamepadA = true; }
+                if(gamepad.buttons[1].pressed || gamepad.buttons[4].pressed || gamepad.buttons[5].pressed) { gamepadB = true; }
+                if(gamepad.buttons[9].pressed) { gamepadStart = true; }
+            }
+        }
+    }
+
     this.doInput = function()
     {
-		//Do Keyboard Input
-        if(keysDown[38] == true || keysDown[87] == true) // W || Up
-        {if(Keys[0] == 0){Keys[0] = 1;}else if(Keys[0] == 1 || Keys[0] == 2){Keys[0] = 2;}}else if(keysDown[38] == false || keysDown[87] == false){if(Keys[0] == 1 || Keys[0] == 2){Keys[0] = 0;}}
-        
-        if(keysDown[37] == true || keysDown[65] == true) // A || Left
-        {if(Keys[1] == 0){Keys[1] = 1;}else if(Keys[1] == 1 || Keys[1] == 2){Keys[1] = 2;}}else if(keysDown[37] == false || keysDown[65] == false){if(Keys[1] == 1 || Keys[1] == 2){Keys[1] = 0;}}
+        // Do Gamepad Input
+        this.doGamepadInput();
+        if(hasControllerInput) {
+            // Do Keyboard Input
+            if(gamepadUp) // W || Up
+            {if(Keys[0] == 0){Keys[0] = 1;}else if(Keys[0] == 1 || Keys[0] == 2){Keys[0] = 2;}}else if(!gamepadUp){if(Keys[0] == 1 || Keys[0] == 2){Keys[0] = 0;}}
 
-        if(keysDown[40] == true || keysDown[83] == true) // S || Down
-        {if(Keys[2] == 0){Keys[2] = 1;}else if(Keys[2] == 1 || Keys[2] == 2){Keys[2] = 2;}}else if(keysDown[40] == false || keysDown[83] == false){if(Keys[2] == 1 || Keys[2] == 2){Keys[2] = 0;}}
+            if(gamepadLeft) // A || Left
+            {if(Keys[1] == 0){Keys[1] = 1;}else if(Keys[1] == 1 || Keys[1] == 2){Keys[1] = 2;}}else if(!gamepadLeft){if(Keys[1] == 1 || Keys[1] == 2){Keys[1] = 0;}}
 
-        if(keysDown[39] == true || keysDown[68] == true) // D || Right
-        {if(Keys[3] == 0){Keys[3] = 1;}else if(Keys[3] == 1 || Keys[3] == 2){Keys[3] = 2;}}else if(keysDown[39] == false || keysDown[68] == false){if(Keys[3] == 1 || Keys[3] == 2){Keys[3] = 0;}}
+            if(gamepadDown) // S || Down
+            {if(Keys[2] == 0){Keys[2] = 1;}else if(Keys[2] == 1 || Keys[2] == 2){Keys[2] = 2;}}else if(!gamepadDown){if(Keys[2] == 1 || Keys[2] == 2){Keys[2] = 0;}}
 
-        if(keysDown[81] == true) // Q
-        {if(Keys[4] == 0){Keys[4] = 1;}else if(Keys[4] == 1 || Keys[4] == 2){Keys[4] = 2;}}else if(keysDown[81] == false){if(Keys[4] == 1 || Keys[4] == 2){Keys[4] = 0;}}
-        
-        if(keysDown[69] == true) // E
-        {if(Keys[5] == 0){Keys[5] = 1;}else if(Keys[5] == 1 || Keys[5] == 2){Keys[5] = 2;}}else if(keysDown[69] == false){if(Keys[5] == 1 || Keys[5] == 2){Keys[5] = 0;}}
+            if(gamepadRight) // D || Right
+            {if(Keys[3] == 0){Keys[3] = 1;}else if(Keys[3] == 1 || Keys[3] == 2){Keys[3] = 2;}}else if(!gamepadRight){if(Keys[3] == 1 || Keys[3] == 2){Keys[3] = 0;}}
 
-        if(keysDown[48] == true) // 0
-        {if(Keys[6] == 0){Keys[6] = 1;}else if(Keys[6] == 1 || Keys[6] == 2){Keys[6] = 2;}}else if(keysDown[48] == false){if(Keys[6] == 1 || Keys[6] == 2){Keys[6] = 0;}}
+            if(gamepadA) // Space
+            {if(Keys[16] == 0){Keys[16] = 1;}else if(Keys[16] == 1 || Keys[16] == 2){Keys[16] = 2;}}else if(!gamepadA){if(Keys[16] == 1 || Keys[16] == 2){Keys[16] = 0;}}
 
-        if(keysDown[49] == true) // 1
-        {if(Keys[7] == 0){Keys[7] = 1;}else if(Keys[7] == 1 || Keys[7] == 2){Keys[7] = 2;}}else if(keysDown[49] == false){if(Keys[7] == 1 || Keys[7] == 2){Keys[7] = 0;}}
+            if(gamepadStart) // Escape
+            {if(Keys[17] == 0){Keys[17] = 1;}else if(Keys[17] == 1 || Keys[17] == 2){Keys[17] = 2;}}else if(!gamepadStart){if(Keys[17] == 1 || Keys[17] == 2){Keys[17] = 0;}}
+            
+            if(gamepadA) // Enter
+            {if(Keys[18] == 0){Keys[18] = 1;}else if(Keys[18] == 1 || Keys[18] == 2){Keys[18] = 2;}}else if(!gamepadA){if(Keys[18] == 1 || Keys[18] == 2){Keys[18] = 0;}}
 
-        if(keysDown[50] == true) // 2
-        {if(Keys[8] == 0){Keys[8] = 1;}else if(Keys[8] == 1 || Keys[8] == 2){Keys[8] = 2;}}else if(keysDown[50] == false){if(Keys[8] == 1 || Keys[8] == 2){Keys[8] = 0;}}
+            if(gamepadB) // B
+            {if(Keys[19] == 0){Keys[19] = 1;}else if(Keys[19] == 1 || Keys[19] == 2){Keys[19] = 2;}}else if(!gamepadB){if(Keys[19] == 1 || Keys[19] == 2){Keys[19] = 0;}}
+        } else {
+            // Do Keyboard Input
+            if(keysDown[38] == true || keysDown[87] == true) // W || Up
+            {if(Keys[0] == 0){Keys[0] = 1;}else if(Keys[0] == 1 || Keys[0] == 2){Keys[0] = 2;}}else if(keysDown[38] == false || keysDown[87] == false){if(Keys[0] == 1 || Keys[0] == 2){Keys[0] = 0;}}
 
-        if(keysDown[51] == true) // 3
-        {if(Keys[9] == 0){Keys[9] = 1;}else if(Keys[9] == 1 || Keys[9] == 2){Keys[9] = 2;}}else if(keysDown[51] == false){if(Keys[9] == 1 || Keys[9] == 2){Keys[9] = 0;}}
+            if(keysDown[37] == true || keysDown[65] == true) // A || Left
+            {if(Keys[1] == 0){Keys[1] = 1;}else if(Keys[1] == 1 || Keys[1] == 2){Keys[1] = 2;}}else if(keysDown[37] == false || keysDown[65] == false){if(Keys[1] == 1 || Keys[1] == 2){Keys[1] = 0;}}
 
-        if(keysDown[52] == true) // 4
-        {if(Keys[10] == 0){Keys[10] = 1;}else if(Keys[10] == 1 || Keys[10] == 2){Keys[10] = 2;}}else if(keysDown[52] == false){if(Keys[10] == 1 || Keys[10] == 2){Keys[10] = 0;}}
+            if(keysDown[40] == true || keysDown[83] == true) // S || Down
+            {if(Keys[2] == 0){Keys[2] = 1;}else if(Keys[2] == 1 || Keys[2] == 2){Keys[2] = 2;}}else if(keysDown[40] == false || keysDown[83] == false){if(Keys[2] == 1 || Keys[2] == 2){Keys[2] = 0;}}
 
-        if(keysDown[53] == true) // 5
-        {if(Keys[11] == 0){Keys[11] = 1;}else if(Keys[11] == 1 || Keys[11] == 2){Keys[11] = 2;}}else if(keysDown[53] == false){if(Keys[11] == 1 || Keys[11] == 2){Keys[11] = 0;}}
+            if(keysDown[39] == true || keysDown[68] == true) // D || Right
+            {if(Keys[3] == 0){Keys[3] = 1;}else if(Keys[3] == 1 || Keys[3] == 2){Keys[3] = 2;}}else if(keysDown[39] == false || keysDown[68] == false){if(Keys[3] == 1 || Keys[3] == 2){Keys[3] = 0;}}
 
-        if(keysDown[54] == true) // 6
-        {if(Keys[12] == 0){Keys[12] = 1;}else if(Keys[12] == 1 || Keys[12] == 2){Keys[12] = 2;}}else if(keysDown[54] == false){if(Keys[12] == 1 || Keys[12] == 2){Keys[12] = 0;}}
+            if(keysDown[81] == true) // Q
+            {if(Keys[4] == 0){Keys[4] = 1;}else if(Keys[4] == 1 || Keys[4] == 2){Keys[4] = 2;}}else if(keysDown[81] == false){if(Keys[4] == 1 || Keys[4] == 2){Keys[4] = 0;}}
+            
+            if(keysDown[69] == true) // E
+            {if(Keys[5] == 0){Keys[5] = 1;}else if(Keys[5] == 1 || Keys[5] == 2){Keys[5] = 2;}}else if(keysDown[69] == false){if(Keys[5] == 1 || Keys[5] == 2){Keys[5] = 0;}}
 
-        if(keysDown[55] == true) // 7
-        {if(Keys[13] == 0){Keys[13] = 1;}else if(Keys[13] == 1 || Keys[13] == 2){Keys[13] = 2;}}else if(keysDown[55] == false){if(Keys[13] == 1 || Keys[13] == 2){Keys[13] = 0;}}
+            if(keysDown[48] == true) // 0
+            {if(Keys[6] == 0){Keys[6] = 1;}else if(Keys[6] == 1 || Keys[6] == 2){Keys[6] = 2;}}else if(keysDown[48] == false){if(Keys[6] == 1 || Keys[6] == 2){Keys[6] = 0;}}
 
-        if(keysDown[56] == true) // 8
-        {if(Keys[14] == 0){Keys[14] = 1;}else if(Keys[14] == 1 || Keys[14] == 2){Keys[14] = 2;}}else if(keysDown[56] == false){if(Keys[14] == 1 || Keys[14] == 2){Keys[14] = 0;}}
+            if(keysDown[49] == true) // 1
+            {if(Keys[7] == 0){Keys[7] = 1;}else if(Keys[7] == 1 || Keys[7] == 2){Keys[7] = 2;}}else if(keysDown[49] == false){if(Keys[7] == 1 || Keys[7] == 2){Keys[7] = 0;}}
 
-        if(keysDown[57] == true) // 9
-        {if(Keys[15] == 0){Keys[15] = 1;}else if(Keys[15] == 1 || Keys[15] == 2){Keys[15] = 2;}}else if(keysDown[57] == false){if(Keys[15] == 1 || Keys[15] == 2){Keys[15] = 0;}}
+            if(keysDown[50] == true) // 2
+            {if(Keys[8] == 0){Keys[8] = 1;}else if(Keys[8] == 1 || Keys[8] == 2){Keys[8] = 2;}}else if(keysDown[50] == false){if(Keys[8] == 1 || Keys[8] == 2){Keys[8] = 0;}}
 
-        if(keysDown[32] == true) // Space
-        {if(Keys[16] == 0){Keys[16] = 1;}else if(Keys[16] == 1 || Keys[16] == 2){Keys[16] = 2;}}else if(keysDown[32] == false){if(Keys[16] == 1 || Keys[16] == 2){Keys[16] = 0;}}
-        
-        if(keysDown[27] == true) // Escape
-        {if(Keys[17] == 0){Keys[17] = 1;}else if(Keys[17] == 1 || Keys[17] == 2){Keys[17] = 2;}}else if(keysDown[27] == false){if(Keys[17] == 1 || Keys[17] == 2){Keys[17] = 0;}}
-        
-        if(keysDown[13] == true) // Enter
-        {if(Keys[18] == 0){Keys[18] = 1;}else if(Keys[18] == 1 || Keys[18] == 2){Keys[18] = 2;}}else if(keysDown[13] == false){if(Keys[18] == 1 || Keys[18] == 2){Keys[18] = 0;}}
-		
-        if(keysDown[66] == true) // B
-        {if(Keys[19] == 0){Keys[19] = 1;}else if(Keys[19] == 1 || Keys[19] == 2){Keys[19] = 2;}}else if(keysDown[66] == false){if(Keys[19] == 1 || Keys[19] == 2){Keys[19] = 0;}}
+            if(keysDown[51] == true) // 3
+            {if(Keys[9] == 0){Keys[9] = 1;}else if(Keys[9] == 1 || Keys[9] == 2){Keys[9] = 2;}}else if(keysDown[51] == false){if(Keys[9] == 1 || Keys[9] == 2){Keys[9] = 0;}}
+
+            if(keysDown[52] == true) // 4
+            {if(Keys[10] == 0){Keys[10] = 1;}else if(Keys[10] == 1 || Keys[10] == 2){Keys[10] = 2;}}else if(keysDown[52] == false){if(Keys[10] == 1 || Keys[10] == 2){Keys[10] = 0;}}
+
+            if(keysDown[53] == true) // 5
+            {if(Keys[11] == 0){Keys[11] = 1;}else if(Keys[11] == 1 || Keys[11] == 2){Keys[11] = 2;}}else if(keysDown[53] == false){if(Keys[11] == 1 || Keys[11] == 2){Keys[11] = 0;}}
+
+            if(keysDown[54] == true) // 6
+            {if(Keys[12] == 0){Keys[12] = 1;}else if(Keys[12] == 1 || Keys[12] == 2){Keys[12] = 2;}}else if(keysDown[54] == false){if(Keys[12] == 1 || Keys[12] == 2){Keys[12] = 0;}}
+
+            if(keysDown[55] == true) // 7
+            {if(Keys[13] == 0){Keys[13] = 1;}else if(Keys[13] == 1 || Keys[13] == 2){Keys[13] = 2;}}else if(keysDown[55] == false){if(Keys[13] == 1 || Keys[13] == 2){Keys[13] = 0;}}
+
+            if(keysDown[56] == true) // 8
+            {if(Keys[14] == 0){Keys[14] = 1;}else if(Keys[14] == 1 || Keys[14] == 2){Keys[14] = 2;}}else if(keysDown[56] == false){if(Keys[14] == 1 || Keys[14] == 2){Keys[14] = 0;}}
+
+            if(keysDown[57] == true) // 9
+            {if(Keys[15] == 0){Keys[15] = 1;}else if(Keys[15] == 1 || Keys[15] == 2){Keys[15] = 2;}}else if(keysDown[57] == false){if(Keys[15] == 1 || Keys[15] == 2){Keys[15] = 0;}}
+
+            if(keysDown[32] == true) // Space
+            {if(Keys[16] == 0){Keys[16] = 1;}else if(Keys[16] == 1 || Keys[16] == 2){Keys[16] = 2;}}else if(keysDown[32] == false){if(Keys[16] == 1 || Keys[16] == 2){Keys[16] = 0;}}
+
+            if(keysDown[27] == true) // Escape
+            {if(Keys[17] == 0){Keys[17] = 1;}else if(Keys[17] == 1 || Keys[17] == 2){Keys[17] = 2;}}else if(keysDown[27] == false){if(Keys[17] == 1 || Keys[17] == 2){Keys[17] = 0;}}
+            
+            if(keysDown[13] == true) // Enter
+            {if(Keys[18] == 0){Keys[18] = 1;}else if(Keys[18] == 1 || Keys[18] == 2){Keys[18] = 2;}}else if(keysDown[13] == false){if(Keys[18] == 1 || Keys[18] == 2){Keys[18] = 0;}}
+
+            if(keysDown[66] == true) // B
+            {if(Keys[19] == 0){Keys[19] = 1;}else if(Keys[19] == 1 || Keys[19] == 2){Keys[19] = 2;}}else if(keysDown[66] == false){if(Keys[19] == 1 || Keys[19] == 2){Keys[19] = 0;}}
+        }
     }
     
     this.getInput = function()
     {
-        if(Keys[17] == 1) // Escape
+        if(Keys[17] == 1) // Escape/Pause
         {
 			if(gameState == 1 && player.isAlive())
 			{   if(!gco.win){ if(currentGui != 6){ gco.TogglePauseGame(); } }
@@ -3332,11 +3450,10 @@ function Game()
             if(Keys[2] >= 1) menu.move(currentGui, 2) // S || Down
             if(Keys[3] >= 1) menu.move(currentGui, 3) // D || Right
             if(Keys[16] >= 1 || Keys[18] >= 1) menu.select() // Space || Enter
+            if((currentGui == 6 || currentGui == 1) && Keys[19] > 1) menu.back()
         }
-        
-
-        if(!paused)
-        {
+    
+        if(!paused) {
             if(Keys[4] == 1)
             {
 				debug = !debug;
@@ -3356,21 +3473,24 @@ function Game()
 			}
             if(player.isAlive() && gameState == 1 && !gco.win)
             {
-                if(Keys[0] >= 1) // W || Up
-                {
-                    player.y -= player.speed * delta;
-                }
-                if(Keys[1] >= 1) // A || Left
-                {
-                    player.x -= player.speed * delta;
-                }
-                if(Keys[2] >= 1) // S || Down
-                {
-                    player.y += player.speed * delta;
-                }
-                if(Keys[3] >= 1) // D || Right
-                {
-                    player.x += player.speed * delta;
+                // Player Movement
+                let moveX = 0;
+                let moveY = 0;
+                if(Keys[0] >= 1) moveY -= player.speed * delta; // W || Up
+                if(Keys[1] >= 1) moveX -= player.speed * delta; // A || Left
+                if(Keys[2] >= 1) moveY += player.speed * delta; // S || Down
+                if(Keys[3] >= 1) moveX += player.speed * delta; // D || Right
+                // Only update player position if there's movement
+                if (moveX !== 0 || moveY !== 0) {
+                    // Normalize the speed if moving diagonally
+                    if (moveX !== 0 && moveY !== 0) {
+                        const norm = Math.sqrt(moveX * moveX + moveY * moveY);
+                        moveX = (moveX / norm) * player.speed * delta;
+                        moveY = (moveY / norm) * player.speed * delta;
+                    }
+                    // Apply the calculated movement
+                    player.x += moveX;
+                    player.y += moveY;
                 }
 
 				if(ticks != player.onTick)
