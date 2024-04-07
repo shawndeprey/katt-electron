@@ -372,8 +372,8 @@ function Game()
 			this.levelMission.GenerateObjectives();
 			
 			this.weaponsOwned[0] = true;//Pea Shooter
-			this.weaponsOwned[1] = false;//Pea Shooter Pro
-			this.weaponsOwned[2] = false;//Master Pea Shooter
+			this.weaponsOwned[1] = true;//Pea Shooter Pro
+			this.weaponsOwned[2] = true;//Master Pea Shooter
 			this.weaponsOwned[49] = true;//Missile
 			this.weaponsOwned[50] = true;//Missile
 			this.weaponsOwned[51] = false;//Homing Missile
@@ -2315,7 +2315,7 @@ function Game()
 		this.height = Height;
 		this.totalMissiles = 0;
 		this.life = 100;
-		this.lives = 3;
+		this.lives = 1;
 		this.maxLife = 100;
 		this.shieldLevel = 0;
 		this.shield = 100;
@@ -2543,22 +2543,22 @@ function Game()
 		{
 			switch(i)
 			{
-				case 0:{out = "In the year 3280, humans and Drones clashed for control of the universe."; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 1:{out = "After decades of fierce conflict, humanity's presence in international"; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 2:{out = "space began to dwindle, and, the Drones overran all major human civilization."; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
+				case 0:{out = "In the year 3280, humans and Drones clashed for control of the universe."; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
+				case 1:{out = "After decades of fierce conflict, humanity's presence in international"; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
+				case 2:{out = "space began to dwindle, and, the Drones overran all major human civilization."; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
 				case 3:{out = " "; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
 				case 4:{out = " "; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 5:{out = "It was a total loss. International Space Command HQ was reduced to ash."; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 6:{out = "Whatever was left of the fleet scattered across the far reaches of"; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 7:{out = "space to hide from the dreaded armies of the Drones."; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
+				case 5:{out = "It was a total loss. International Space Command HQ was reduced to ash."; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
+				case 6:{out = "Whatever was left of the fleet scattered across the far reaches of"; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
+				case 7:{out = "space to hide from the dreaded armies of the Drones."; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
 				case 8:{out = " "; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
 				case 9:{out = " "; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 10:{out = "Although the future of humanity is left bleak by the Drone bombardment,"; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 11:{out = "an ace pilot now races through space towards the heart of the Drone army."; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 12:{out = "There is only one mission to complete now: "; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
+				case 10:{out = "Although the future of humanity is left bleak by the Drone bombardment,"; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
+				case 11:{out = "an ace pilot now races through space towards the heart of the Drone army."; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
+				case 12:{out = "There is only one mission to complete now: "; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
 				case 13:{out = " "; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 14:{out = "Kill all the Things"; size = "32px Helvetica"; color = "rgb(255, 127, 255)"; break;}
-				default:{out = "Line not added."; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
+				case 14:{out = "Kill all the Things"; size = "32px Thunderstrike"; color = "rgb(255, 127, 255)"; break;}
+				default:{out = "Line not added."; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
 			}
 			this.credits[i] = new GUIText(out, this.center, _buffer.height + (this.lineHeight * i), size, "center", "top", color);
 		}
@@ -2626,35 +2626,31 @@ function Game()
 		{
 			switch(i)
 			{
-				case 0:{out = "Humanity is Saved"; size = "32px Helvetica"; color = "rgb(255, 127, 255)"; break;}
-				case 1:{out = "Our ace pilot has defeated the drone core in enough time to save humanity."; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 2:{out = "The task of rebuilding civilization, however difficult, can still never"; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 3:{out = "match the devotion and courage it took for our ace pilot to..."; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 4:{out = " "; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 5:{out = "Kill all the Things"; size = "32px Helvetica"; color = "rgb(255, 127, 255)"; break;}
-				case 6:{out = "Produced by Blackmodule Studio"; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 7:{out = "Program Managers"; size = "26px Helvetica"; color = "rgb(255, 127, 255)"; break;}
-				case 8:{out = "Shawn Deprey"; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 9:{out = "Justin Hammond"; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 10:{out = "Lead Game System Designers"; size = "26px Helvetica"; color = "rgb(255, 127, 255)"; break;}
-				case 11:{out = "Shawn Deprey"; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 12:{out = "Justin Hammond"; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 13:{out = "Lead Software Engineers"; size = "26px Helvetica"; color = "rgb(255, 127, 255)"; break;}
-				case 14:{out = "Shawn Deprey"; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 15:{out = "Justin Hammond"; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 16:{out = "Programmers in Test"; size = "26px Helvetica"; color = "rgb(255, 127, 255)"; break;}
-				case 17:{out = "Andrew Muller"; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 18:{out = "Graphic Designers"; size = "26px Helvetica"; color = "rgb(255, 127, 255)"; break;}
-				case 19:{out = "David Van Laar-Veth"; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 20:{out = "Mico Picache"; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 21:{out = "Tyler Madden"; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 22:{out = "Sound Artists"; size = "26px Helvetica"; color = "rgb(255, 127, 255)"; break;}
-				case 23:{out = "David Van Laar-Veth (The Badass)"; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 24:{out = "Story"; size = "26px Helvetica"; color = "rgb(255, 127, 255)"; break;}
-				case 25:{out = "Mico Picache"; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 26:{out = " "; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				case 27:{out = "Thanks for playing!"; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
-				default:{out = "Line not added."; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
+				case 0:{out = "Humanity is Saved"; size = "32px Thunderstrike"; color = "rgb(255, 127, 255)"; break;}
+				case 1:{out = "Our ace pilot has defeated the drone core in enough time to save humanity."; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
+				case 2:{out = "The task of rebuilding civilization, however difficult, can still never"; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
+				case 3:{out = "match the devotion and courage it took for our ace pilot to..."; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
+				case 4:{out = " "; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
+				case 5:{out = "Kill all the Things"; size = "32px Thunderstrike Halftone"; color = "rgb(255, 127, 255)"; break;}
+				case 6:{out = "Produced by Last Bonfire"; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
+				case 7:{out = "Program Managers"; size = "26px Return of Ganon"; color = "rgb(255, 127, 255)"; break;}
+				case 8:{out = "Shawn Deprey"; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
+				case 9:{out = "Lead Game System Designers"; size = "26px Return of Ganon"; color = "rgb(255, 127, 255)"; break;}
+				case 10:{out = "Shawn Deprey"; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
+				case 11:{out = "Lead Software Engineers"; size = "26px Return of Ganon"; color = "rgb(255, 127, 255)"; break;}
+				case 12:{out = "Shawn Deprey"; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
+				case 13:{out = "Software Engineers"; size = "26px Return of Ganon"; color = "rgb(255, 127, 255)"; break;}
+				case 14:{out = "Drew Muller"; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
+				case 15:{out = "Graphic Designers"; size = "26px Return of Ganon"; color = "rgb(255, 127, 255)"; break;}
+				case 16:{out = "Shawn Deprey"; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
+				case 17:{out = "Drew Muller"; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
+				case 18:{out = "Sound Artists"; size = "26px Return of Ganon"; color = "rgb(255, 127, 255)"; break;}
+				case 19:{out = "David Van Laar-Veth (The Badass)"; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
+				case 20:{out = "Story"; size = "26px Return of Ganon"; color = "rgb(255, 127, 255)"; break;}
+				case 21:{out = "Mico Picache"; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
+				case 22:{out = " "; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
+				case 23:{out = "Thanks for playing!"; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
+				default:{out = "Line not added."; size = "18px Return of Ganon"; color = "rgb(96, 255, 96)"; break;}
 			}
 			this.credits[i] = new GUIText(out, this.center, _buffer.height + (this.lineHeight * i), size, "center", "top", color);
 		}
@@ -3120,7 +3116,7 @@ function Game()
                 //**********************************************************************//
                 //						UPGRADE MENU SECTION							//
                 //**********************************************************************//
-                if(mouseX > (_canvas.width - 175) && mouseX < (_canvas.width - 25) && mouseY < (280) && mouseY > (250))
+                if(mouseX > (_canvas.width - 210) && mouseX < (_canvas.width - 10) && mouseY < (278) && mouseY > (250))
                 {//Start Level
                     if(player.weapon != 49){ gco.StartLevel(); }
                 }
@@ -3185,6 +3181,10 @@ function Game()
 					currentGui = NULL_GUI_STATE;
 					self.softReset();
 				}
+				if(mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 && mouseY < (_canvas.height / 2 + 30) + 20 && mouseY > (_canvas.height / 2 + 30) - 10)
+                {
+                        ipcRenderer.send('quit-app');
+                }
 				break;
 			}
 			case 4:
@@ -4117,45 +4117,45 @@ function Game()
 		{
 			case 0:
 			{// Main Menu
-                guiText[0] = new GUIText("Kill All the Things", _canvas.width / 2, _canvas.height / 2 - 100, "48px Helvetica", "center", "top", "rgb(255, 0, 255)");
-                guiText[1] = new GUIText("Insert Coin(s)", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
-                if(menu.states[0][0] || (mouseX > (_canvas.width / 2 + 10) - 115 && mouseX < (_canvas.width / 2 + 10) + 100 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10))
+                guiText[0] = new GUIText("Kill All The Things", _canvas.width / 2, _canvas.height / 2 - 100, "48px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 255)");
+                guiText[1] = new GUIText("Insert Coin", _canvas.width / 2, _canvas.height / 2, "28px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
+                if(menu.states[0][0] || (mouseX > (_canvas.width / 2 + 10) - 105 && mouseX < (_canvas.width / 2 + 10) + 90 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10))
                 {
-                    if(menu.states[0][0]) menu.DrawArrow(3, (_canvas.width / 2) - 105, _canvas.height / 2 + 12)
-                    guiText[1] = new GUIText("Insert Coin(s)", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                    if(menu.states[0][0]) menu.DrawArrow(3, (_canvas.width / 2) - 125, _canvas.height / 2 + 12)
+                    guiText[1] = new GUIText("Insert Coin", _canvas.width / 2, _canvas.height / 2, "28px Thunderstrike", "center", "top", "rgb(96, 255, 96)");
                 }
-                guiText[2] = new GUIText("Options", _canvas.width / 2, (_canvas.height / 2) + 50, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
-                if(menu.states[0][1] || (mouseX > (_canvas.width / 2 + 10) - 65 && mouseX < (_canvas.width / 2 + 10) + 40 && mouseY < (_canvas.height / 2 + 60) + 20 && mouseY > (_canvas.height / 2 + 60) - 10))
+                guiText[2] = new GUIText("Options", _canvas.width / 2, (_canvas.height / 2) + 50, "28px Return of Ganon", "center", "top", "rgb(210, 210, 210)");
+                if(menu.states[0][1] || (mouseX > (_canvas.width / 2 + 10) - 45 && mouseX < (_canvas.width / 2 + 10) + 20 && mouseY < (_canvas.height / 2 + 60) + 17 && mouseY > (_canvas.height / 2 + 60) - 10))
                 {
                     if(menu.states[0][1]) menu.DrawArrow(3, (_canvas.width / 2) - 65, _canvas.height / 2 + 62)
-                    guiText[2] = new GUIText("Options", _canvas.width / 2, (_canvas.height / 2) + 50, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                    guiText[2] = new GUIText("Options", _canvas.width / 2, (_canvas.height / 2) + 50, "28px Return of Ganon", "center", "top", "rgb(255, 255, 255)");
                 }
-                guiText[3] = new GUIText("Story", _canvas.width / 2, (_canvas.height / 2) + 100, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
-                if(menu.states[0][2] || (mouseX > (_canvas.width / 2 + 10) - 65 && mouseX < (_canvas.width / 2 + 10) + 40 && mouseY < (_canvas.height / 2 + 110) + 20 && mouseY > (_canvas.height / 2 + 110) - 10))
+                guiText[3] = new GUIText("Story", _canvas.width / 2, (_canvas.height / 2) + 100, "28px Return of Ganon", "center", "top", "rgb(210, 210, 210)");
+                if(menu.states[0][2] || (mouseX > (_canvas.width / 2 + 10) - 38 && mouseX < (_canvas.width / 2 + 10) + 17 && mouseY < (_canvas.height / 2 + 110) + 17 && mouseY > (_canvas.height / 2 + 110) - 10))
                 {
                     if(menu.states[0][2]) menu.DrawArrow(3, (_canvas.width / 2) - 50, _canvas.height / 2 + 112)
-                    guiText[3] = new GUIText("Story", _canvas.width / 2, (_canvas.height / 2) + 100, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                    guiText[3] = new GUIText("Story", _canvas.width / 2, (_canvas.height / 2) + 100, "28px Return of Ganon", "center", "top", "rgb(255, 255, 255)");
                 }
-                guiText[4] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2) + 145, "28px Helvetica", "center", "top", "rgb(96, 145, 96)");
-                if(menu.states[0][3] || (mouseX > (_canvas.width / 2 + 10) - 80 && mouseX < (_canvas.width / 2 + 10) + 55 && mouseY < (_canvas.height / 2 + 150) + 20 && mouseY > (_canvas.height / 2 + 150) - 10))
+                guiText[4] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2) + 145, "28px Return of Ganon", "center", "top", "rgb(210, 210, 210)");
+                if(menu.states[0][3] || (mouseX > (_canvas.width / 2 + 10) - 57 && mouseX < (_canvas.width / 2 + 10) + 35 && mouseY < (_canvas.height / 2 + 150) + 17 && mouseY > (_canvas.height / 2 + 150) - 8))
                 {
                     if(menu.states[0][3]) menu.DrawArrow(3, (_canvas.width / 2) - 80, _canvas.height / 2 + 157)
-                    guiText[4] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2) + 145, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                    guiText[4] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2) + 145, "28px Return of Ganon", "center", "top", "rgb(255, 255, 255)");
                 }
 				break;
 			}
 			case 1:
 			{// Pause Menu
-				guiText[0] = new GUIText("Paused", _canvas.width / 2, _canvas.height / 2 - 80, "32px Helvetica", "center", "top", "rgb(96, 255, 96)");
-                guiText[1] = new GUIText("Options", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
+				guiText[0] = new GUIText("Paused", _canvas.width / 2, _canvas.height / 2 - 80, "40px Thunderstrike", "center", "top", "rgb(96, 255, 96)");
+                guiText[1] = new GUIText("Options", _canvas.width / 2, _canvas.height / 2, "28px Return of Ganon", "center", "top", "rgb(210, 210, 210)");
                 if(mouseX > (_canvas.width / 2) - 50 && mouseX < (_canvas.width / 2) + 50 && mouseY < (_canvas.height / 2) + 30 && mouseY > (_canvas.height / 2))
                 {
-                    guiText[1] = new GUIText("Options", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                    guiText[1] = new GUIText("Options", _canvas.width / 2, _canvas.height / 2, "28px Return of Ganon", "center", "top", "rgb(255, 255, 255)");
                 }
-                guiText[2] = new GUIText("Quit Game", _canvas.width / 2, (_canvas.height / 2) + 60, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
+                guiText[2] = new GUIText("Quit Game", _canvas.width / 2, (_canvas.height / 2) + 60, "28px Return of Ganon", "center", "top", "rgb(210, 210, 210)");
                 if(mouseX > (_canvas.width / 2) - 70 && mouseX < (_canvas.width / 2) + 70 && mouseY < (_canvas.height / 2) + 90 && mouseY > (_canvas.height / 2) + 60)
                 {
-                    guiText[2] = new GUIText("Quit Game", _canvas.width / 2, (_canvas.height / 2) + 60, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                    guiText[2] = new GUIText("Quit Game", _canvas.width / 2, (_canvas.height / 2) + 60, "28px Return of Ganon", "center", "top", "rgb(255, 255, 255)");
                 }
 				break;
 			}
@@ -4167,21 +4167,21 @@ function Game()
 
                 //Static Text
                 guiText[0] = new GUIText("Missions", 10, 10, 
-                                    "18px Helvetica", "left", "top", "rgb(230, 230, 255)");
+                                    "20px Return of Ganon", "left", "top", "rgb(230, 230, 255)");
                 guiText[1] = new GUIText("Main Weapon", 10, _canvas.height / 2 - 50, 
-                                    "18px Helvetica", "left", "top", "rgb(230, 230, 255)");
+                                    "20px Return of Ganon", "left", "top", "rgb(230, 230, 255)");
                 guiText[2] = new GUIText("Secondary Weapon", 10, 420, 
-                                    "18px Helvetica", "left", "top", "rgb(230, 230, 255)");
+                                    "20px Return of Ganon", "left", "top", "rgb(230, 230, 255)");
                 guiText[3] = new GUIText("Cores: " + player.money, _canvas.width - 100, _canvas.height - 53, 
-                                    "18px Helvetica", "left", "top", "rgb(230, 230, 255)");
+                                    "20px Return of Ganon", "left", "top", "rgb(230, 230, 255)");
                 guiText[4] = new GUIText("Extra Items", _canvas.width - 300, 420, 
-                                    "18px Helvetica", "left", "top", "rgb(230, 230, 255)");
-                guiText[7] = new GUIText("Level " + gco.level, 5, _buffer.height / 2 - 75, 
-                                    "18px Helvetica", "left", "top", "rgb(230, 230, 255)");
+                                    "20px Return of Ganon", "left", "top", "rgb(230, 230, 255)");
+                guiText[7] = new GUIText("Level " + gco.level, 5, _buffer.height / 2 - 73, 
+                                    "20px Return of Ganon", "left", "top", "rgb(230, 230, 255)");
 				guiText[8] = new GUIText(player.shieldLevel, _canvas.width - 271, 448, 
-                                    "18px Helvetica", "left", "top", "rgb(0, 0, 0)");
+                                    "20px Return of Ganon", "left", "top", "rgb(0, 0, 0)");
 				guiText[9] = new GUIText(player.secondaryAmmoLevel, _canvas.width - 221, 448, 
-                                    "18px Helvetica", "left", "top", "rgb(0, 0, 0)");
+                                    "20px Return of Ganon", "left", "top", "rgb(0, 0, 0)");
 
 
 //**********************************************************************//
@@ -4207,10 +4207,10 @@ function Game()
 					if(i != 5)
 					{
 						gco.missionText[i] = new GUIText(outText + gco.levelMission.progress[i] + "/" + gco.levelMission.objectives[i],
-                                        drawX, drawY, "16px Helvetica", "left", "top", "rgb(230, 230, 255)");
+                                        drawX, drawY, "16px Return of Ganon", "left", "top", "rgb(230, 230, 255)");
 					} else
 					{
-						gco.missionText[i] = new GUIText(outText, drawX, drawY, "16px Helvetica", "left", "top", "rgb(230, 230, 255)");
+						gco.missionText[i] = new GUIText(outText, drawX, drawY, "16px Return of Ganon", "left", "top", "rgb(230, 230, 255)");
 					}
                     if(j == 4)
                     {
@@ -4273,14 +4273,15 @@ function Game()
                         buffer.lineTo(LPM_x1, LPM_y1);
                     buffer.stroke();
                 buffer.closePath();
-
-                if(menu.states[2][1][3] || (mouseX > (_canvas.width - 175) && mouseX < (_canvas.width - 25) && mouseY < (280) && mouseY > (250)))
+                
+                if(menu.states[2][1][3] || (mouseX > (_canvas.width - 210) && mouseX < (_canvas.width - 10) && mouseY < (278) && mouseY > (250)))
                 {//Start Level
-                    guiText[5] = new GUIText("Start Level", _canvas.width - 100, 250, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
-                    menu.DrawArrow(3, _canvas.width - 175, 262);
+                    guiText[5] = new GUIText("Start Level", _canvas.width - 110, 250, "28px Thunderstrike", "center", "top", "rgb(96, 255, 96)");
+					menu.DrawArrow(3, _canvas.width - 175, 262);
                     if(player.weapon == 49){guiText[12] = new GUIText("Must equip main weapon", _canvas.width - 100, 280, "12px Helvetica", "center", "top", "rgb(255, 50, 50)");}
-                } else {
-                    guiText[5] = new GUIText("Start Level", _canvas.width - 100, 250, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
+                } else
+                {
+                    guiText[5] = new GUIText("Start Level", _canvas.width - 110, 250, "28px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
                 }
 
                 // Bottom text tooltip initialization
@@ -4595,24 +4596,24 @@ function Game()
 				// Options Menu Selection
                 if(menu.states[2][0][0] || (mouseX > (_canvas.width - 235) && mouseX < (_canvas.width - 125) && mouseY < (55) && mouseY > (15)))
                 {//Options Menu
-                    guiText[10] = new GUIText("Options", _canvas.width - 180, 20, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
-                    menu.DrawArrow(3, _canvas.width - 237, 33);
+                    guiText[10] = new GUIText("Options", _canvas.width - 180, 20, "28px Return of Ganon", "center", "top", "rgb(96, 255, 96)");
+					menu.DrawArrow(3, _canvas.width - 237, 33);
                 } else
                 {
-                    guiText[10] = new GUIText("Options", _canvas.width - 180, 20, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
+                    guiText[10] = new GUIText("Options", _canvas.width - 180, 20, "28px Return of Ganon", "center", "top", "rgb(96, 150, 96)");
                 }
 
                 // Quit game
                 if(menu.states[2][0][1] || (mouseX > (_canvas.width - 90) && mouseX < (_canvas.width - 25) && mouseY < (55) && mouseY > (15)))
                 {//Quit
-                    guiText[11] = new GUIText("Quit", _canvas.width - 60, 20, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
-                    menu.DrawArrow(3, _canvas.width - 92, 33);
+                    guiText[11] = new GUIText("Quit", _canvas.width - 60, 20, "28px Return of Ganon", "center", "top", "rgb(96, 255, 96)");
+					menu.DrawArrow(3, _canvas.width - 92, 33);
                 } else
                 {
-                    guiText[11] = new GUIText("Quit", _canvas.width - 60, 20, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
+                    guiText[11] = new GUIText("Quit", _canvas.width - 60, 20, "28px Return of Ganon", "center", "top", "rgb(96, 150, 96)");
                 }
 				
-				guiText[12] = new GUIText("Score: " + score, 10, _canvas.height - 53, "18px Helvetica", "left", "top", "rgb(230, 230, 255)");
+				guiText[12] = new GUIText("Score: " + score, 10, _canvas.height - 53, "18px Return of Ganon", "left", "top", "rgb(230, 230, 255)");
 //**********************************************************************//
 //					  END UPGRADE MENU SECTION							//
 //**********************************************************************//
@@ -4620,66 +4621,72 @@ function Game()
 			}
 			case 3:
 			{// Continue Menu
-				guiText[0] = new GUIText("You Died", _canvas.width / 2, _canvas.height / 2 - 100, 
-										 "28px Helvetica", "center", "top", "rgb(255, 0, 0)");
+				guiText[0] = new GUIText("You Died", _canvas.width / 2, _canvas.height / 2 - 100, "42px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
 										 
-        		if(mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 &&
-				   mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)
+        		if(mouseX > (_canvas.width / 2 + 10) - 54 && mouseX < (_canvas.width / 2 + 10) + 31 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)
 				{
-					guiText[1] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, 
-										 "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+					guiText[1] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, "28px Return of Ganon", "center", "top", "rgb(255, 255, 255)");
 				} else
 				{
-					guiText[1] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, 
-										 "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
+					guiText[1] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, "28px Return of Ganon", "center", "top", "rgb(210, 210, 210)");
+				}
+				if(mouseX > (_canvas.width / 2 + 10) - 57 && mouseX < (_canvas.width / 2 + 10) + 34 && mouseY < (_canvas.height / 2 + 30) + 20 && mouseY > (_canvas.height / 2 + 30) )
+				{
+					guiText[2] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2 + 30), "28px Return of Ganon", "center", "top", "rgb(255, 255, 255)");
+				} else
+				{
+					guiText[2] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2 + 30), "28px Return of Ganon", "center", "top", "rgb(210, 210, 210)");
 				}
 				break;
 			}
 			case 4:
 			{// Level Up Menu
-				guiText[0] = new GUIText("Level Up! Now on level: " + (gco.level + 1), _canvas.width / 2, _canvas.height / 2 - 100, 
-										 "28px Helvetica", "center", "top", "rgb(255, 0, 0)");
+				guiText[0] = new GUIText("Level Up!", _canvas.width / 2, _canvas.height / 2 - 150, 
+										 "44px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 255)");
+
+				guiText[1] = new GUIText("Now on level: " + (gco.level + 1), _canvas.width / 2, _canvas.height / 2 - 100, 
+										 "28px Return of Ganon", "center", "top", "rgb(255, 0, 255)");						 
 										 
         		if(mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 &&
 				   mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)
 				{
-					guiText[1] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, 
-										 "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+					guiText[2] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, 
+										 "28px Return of Ganon", "center", "top", "rgb(96, 255, 96)");
 				} else
 				{
-					guiText[1] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, 
-										 "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
+					guiText[2] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, 
+										 "28px Return of Ganon", "center", "top", "rgb(96, 150, 96)");
 				}
 				break;
 			}
 			case 5:
 			{// Game Over Menu
 				guiText[0] = new GUIText("Game Over", _canvas.width / 2, _canvas.height / 2 - 100, 
-										 "28px Helvetica", "center", "top", "rgb(255, 0, 0)");
+										 "44px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
 										 
         		if(mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)
 				{
-					guiText[1] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+					guiText[1] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px Thunderstrike", "center", "top", "rgb(96, 255, 96)");
 				} else
 				{
-					guiText[1] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
+					guiText[1] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
 				}
 				break;
 			}
 			case 6:
 			{
                 //Options Menu
-				guiText[0] = new GUIText("Options", _canvas.width / 2, 25, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
-				guiText[1] = new GUIText("Back", 10, _canvas.height - 35, "28px Helvetica", "left", "top", `rgb(96, ${menu.states[6][3] ? '255' : '150'}, 96)`);
-                if(menu.states[6][3]) menu.DrawArrow(1, 85, _canvas.height - 20)
+				guiText[0] = new GUIText("Options", _canvas.width / 2, 25, "36px Thunderstrike Halftone", "center", "top", "rgb(96, 150, 96)");
+				guiText[1] = new GUIText("Back", 10, _canvas.height - 35, "28px Thunderstrike", "left", "top", `rgb(96, ${menu.states[6][3] ? '255' : '150'}, 96)`);
+                if(menu.states[6][3]) menu.DrawArrow(1, 105, _canvas.height - 20)
 				if(mouseX > 0 && mouseX < 90 && mouseY < _canvas.height && mouseY > _canvas.height - 45)
 				{
-					guiText[1] = new GUIText("Back", 10, _canvas.height - 35, "28px Helvetica", "left", "top", "rgb(96, 255, 96)");
+					guiText[1] = new GUIText("Back", 10, _canvas.height - 35, "28px Thunderstrike", "left", "top", "rgb(96, 255, 96)");
 				}
 
                 // Graphics
-                guiText[2] = new GUIText("Particles", (_canvas.width / 2), 125, "20px Helvetica", "center", "top", `rgb(96, ${menu.states[6][0] ? '255' : '150'}, 96)`);
-                if(menu.states[6][0]) menu.DrawArrow(3, _canvas.width / 2 - 55, 134)
+                guiText[2] = new GUIText("Particles", (_canvas.width / 2), 125, "20px Thunderstrike", "center", "top", `rgb(96, ${menu.states[6][0] ? '255' : '150'}, 96)`);
+                if(menu.states[6][0]) menu.DrawArrow(3, _canvas.width / 2 - 75, 134)
                 
                 if(mouseX >= 200 && mouseX <= 225 && mouseY >= 150 && mouseY <= 200)
                 {
@@ -4698,21 +4705,21 @@ function Game()
                 
 				switch(particleOffset)
 				{
-					case 1:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px Helvetica", "center", "top", "rgb(96, 255, 96)");
+					case 1:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px Return of Ganon", "center", "top", "rgb(96, 255, 96)");
 							guiText[4] = new GUIText("Need new computer...", _canvas.width / 2, 235, "10px Helvetica", "center", "top", "rgb(96, 255, 96)");break;}
-					case 2:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px Helvetica", "center", "top", "rgb(120, 200, 60)");
+					case 2:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px Return of Ganon", "center", "top", "rgb(120, 200, 60)");
 							guiText[4] = new GUIText("Needs Shinies :(", _canvas.width / 2, 235, "10px Helvetica", "center", "top", "rgb(120, 200, 60)");break;}
-					case 3:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px Helvetica", "center", "top", "rgb(150, 100, 20)");
+					case 3:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px Return of Ganon", "center", "top", "rgb(150, 100, 20)");
 							guiText[4] = new GUIText("Less Shinies.", _canvas.width / 2, 235, "10px Helvetica", "center", "top", "rgb(150, 100, 20)");break;}
-					case 4:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px Helvetica", "center", "top", "rgb(200, 25, 0)");
+					case 4:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px Return of Ganon", "center", "top", "rgb(200, 25, 0)");
 							guiText[4] = new GUIText("Shinies!", _canvas.width / 2, 235, "10px Helvetica", "center", "top", "rgb(200, 55, 0)");break;}
-					case 5:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px Helvetica", "center", "top", "rgb(255, 0, 0)");
+					case 5:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px Return of Ganon", "center", "top", "rgb(255, 0, 0)");
 							guiText[4] = new GUIText("OMFG SPARKLES!", _canvas.width / 2, 235, "10px Helvetica", "center", "top", "rgb(255, 0, 0)");break;}
 				}
 				
                 // BGM Volume
-				guiText[5] = new GUIText("BGM Volume", (_canvas.width / 2), 265, "20px Helvetica", "center", "top", `rgb(96, ${menu.states[6][1] ? '255' : '150'}, 96)`);
-                if(menu.states[6][1]) menu.DrawArrow(3, _canvas.width / 2 - 75, 274)
+				guiText[5] = new GUIText("BGM Volume", (_canvas.width / 2), 265, "20px Thunderstrike", "center", "top", `rgb(96, ${menu.states[6][1] ? '255' : '150'}, 96)`);
+                if(menu.states[6][1]) menu.DrawArrow(3, _canvas.width / 2 - 95, 274)
                 
                 if(mouseX >= 200 && mouseX <= 225 && mouseY >= 290 && mouseY <= 340)
                 {
@@ -4729,11 +4736,11 @@ function Game()
 				
                 buffer.drawImage(images[13], (19 + (35 * Math.round(gco.bgm.volume * 10))) + (_canvas.width / 4), 301, 13, 28);
                 
-                guiText[6] = new GUIText(Math.round(gco.bgm.volume * 100) + "%", _canvas.width / 2, 345, "26px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                guiText[6] = new GUIText(Math.round(gco.bgm.volume * 100) + "%", _canvas.width / 2, 345, "26px Return of Ganon", "center", "top", "rgb(96, 255, 96)");
                 
                 // SFX Volume
-				guiText[7] = new GUIText("SFX Volume", (_canvas.width / 2), 405, "20px Helvetica", "center", "top", `rgb(96, ${menu.states[6][2] ? '255' : '150'}, 96)`);
-                if(menu.states[6][2]) menu.DrawArrow(3, _canvas.width / 2 - 72, 414)
+				guiText[7] = new GUIText("SFX Volume", (_canvas.width / 2), 405, "20px Thunderstrike", "center", "top", `rgb(96, ${menu.states[6][2] ? '255' : '150'}, 96)`);
+                if(menu.states[6][2]) menu.DrawArrow(3, _canvas.width / 2 - 92, 414)
                 
                 if(mouseX >= 200 && mouseX <= 225 && mouseY >= 430 && mouseY <= 480)
                 {
@@ -4750,20 +4757,20 @@ function Game()
 				
                 buffer.drawImage(images[13], (19 + (35 * Math.round(sfx.masterVolume * 10))) + (_canvas.width / 4), 441, 13, 28);
                 
-                guiText[8] = new GUIText(Math.round(sfx.masterVolume * 100) + "%", _canvas.width / 2, 485, "26px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                guiText[8] = new GUIText(Math.round(sfx.masterVolume * 100) + "%", _canvas.width / 2, 485, "26px Return of Ganon", "center", "top", "rgb(96, 255, 96)");
                 break;
 			}
 			case 7:
 			{// Submit Score Menu
 				guiText[0] = new GUIText("Score: " + score + "  Kills: " + enemiesKilled + "  Cores: " + totalCores + "  Items Used: " + itemsUsed, _canvas.width / 2, _canvas.height / 2 - 100, 
-										 "20px Helvetica", "center", "top", "rgb(255, 0, 0)");
+										 "20px Return of Ganon", "center", "top", "rgb(255, 0, 0)");
 										 
         		if(mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)
 				{
-					guiText[1] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+					guiText[1] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px Return of Ganon", "center", "top", "rgb(96, 255, 96)");
 				} else
 				{
-					guiText[1] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
+					guiText[1] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px Return of Ganon", "center", "top", "rgb(96, 150, 96)");
 				}
 				break;
 			}
@@ -4811,17 +4818,17 @@ function Game()
 			var guiText = [];
 			if(playerInfo)
 			{
-				guiText[0] = new GUIText("Fuel: " + player.currentFuel, 105, _canvas.height - 78, "18px Helvetica", "left", "top", "rgb(96, 255, 96)");
-				guiText[1] = new GUIText(player.hasShield ? "Shield: " + Math.floor(player.shield) : "" , 105, _canvas.height - 53, "18px Helvetica", "left", "top", "rgb(96, 255, 96)");
-				guiText[2] = new GUIText("Hull: " + player.life, 105, _canvas.height - 28, "18px Helvetica", "left", "top", "rgb(96, 255, 96)");
-				guiText[3] = new GUIText("Destroyed: " + destroys, _canvas.width / 2, _canvas.height - 32, "18px Helvetica", "left", "top", "rgb(96, 255, 96)");
-				guiText[4] = new GUIText("Cores: " + player.money, _canvas.width / 2, _canvas.height - 53, "18px Helvetica", "left", "top", "rgb(96, 255, 96)");
-				guiText[5] = new GUIText("Score: " + score, _canvas.width - 100, 20, "12px Helvetica", "left", "top", "rgb(96, 255, 96)");
+				guiText[0] = new GUIText("Fuel: " + player.currentFuel, 105, _canvas.height - 78, "18px Return of Ganon", "left", "top", "rgb(96, 255, 96)");
+				guiText[1] = new GUIText(player.hasShield ? "Shield: " + Math.floor(player.shield) : "" , 105, _canvas.height - 53, "18px Return of Ganon", "left", "top", "rgb(96, 255, 96)");
+				guiText[2] = new GUIText("Hull: " + player.life, 105, _canvas.height - 28, "18px Return of Ganon", "left", "top", "rgb(96, 255, 96)");
+				guiText[3] = new GUIText("Destroyed: " + destroys, _canvas.width / 2, _canvas.height - 32, "18px Return of Ganon", "left", "top", "rgb(96, 255, 96)");
+				guiText[4] = new GUIText("Cores: " + player.money, _canvas.width / 2, _canvas.height - 53, "18px Return of Ganon", "left", "top", "rgb(96, 255, 96)");
+				guiText[5] = new GUIText("Score: " + score, _canvas.width - 100, 20, "12px Return of Ganon", "left", "top", "rgb(96, 255, 96)");
 			} else
 			{
                 if(gameState == 1)
                 {
-                    guiText[0] = new GUIText("[E] Ship Info", 105, _canvas.height - 28, "18px Helvetica", "left", "top", "rgb(96, 255, 96)");
+                    guiText[0] = new GUIText("[E] Ship Info", 105, _canvas.height - 28, "18px Return of Ganon", "left", "top", "rgb(96, 255, 96)");
                 }
 			}
 			buffer.beginPath();
