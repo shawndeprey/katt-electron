@@ -4273,28 +4273,15 @@ function Game()
                         buffer.lineTo(LPM_x1, LPM_y1);
                     buffer.stroke();
                 buffer.closePath();
-<<<<<<< HEAD
                 
-                if(mouseX > (_canvas.width - 210) && mouseX < (_canvas.width - 10) && mouseY < (278) && mouseY > (250))
+                if(menu.states[2][1][3] || (mouseX > (_canvas.width - 210) && mouseX < (_canvas.width - 10) && mouseY < (278) && mouseY > (250)))
                 {//Start Level
-                    guiText[5] = new GUIText("Start Level", _canvas.width - 110, 250, 
-                                         "28px Thunderstrike", "center", "top", "rgb(96, 255, 96)");
-                    if(player.weapon == 49){guiText[12] = new GUIText("Must equip main weapon", _canvas.width - 100, 280,
-                                         "12px Helvetica", "center", "top", "rgb(255, 50, 50)");}
+                    guiText[5] = new GUIText("Start Level", _canvas.width - 110, 250, "28px Thunderstrike", "center", "top", "rgb(96, 255, 96)");
+					menu.DrawArrow(3, _canvas.width - 175, 262);
+                    if(player.weapon == 49){guiText[12] = new GUIText("Must equip main weapon", _canvas.width - 100, 280, "12px Helvetica", "center", "top", "rgb(255, 50, 50)");}
                 } else
                 {
-                    guiText[5] = new GUIText("Start Level", _canvas.width - 110, 250, 
-                                         "28px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
-=======
-
-                if(menu.states[2][1][3] || (mouseX > (_canvas.width - 175) && mouseX < (_canvas.width - 25) && mouseY < (280) && mouseY > (250)))
-                {//Start Level
-                    guiText[5] = new GUIText("Start Level", _canvas.width - 100, 250, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
-                    menu.DrawArrow(3, _canvas.width - 175, 262);
-                    if(player.weapon == 49){guiText[12] = new GUIText("Must equip main weapon", _canvas.width - 100, 280, "12px Helvetica", "center", "top", "rgb(255, 50, 50)");}
-                } else {
-                    guiText[5] = new GUIText("Start Level", _canvas.width - 100, 250, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
->>>>>>> master
+                    guiText[5] = new GUIText("Start Level", _canvas.width - 110, 250, "28px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
                 }
 
                 // Bottom text tooltip initialization
@@ -4609,12 +4596,8 @@ function Game()
 				// Options Menu Selection
                 if(menu.states[2][0][0] || (mouseX > (_canvas.width - 235) && mouseX < (_canvas.width - 125) && mouseY < (55) && mouseY > (15)))
                 {//Options Menu
-<<<<<<< HEAD
                     guiText[10] = new GUIText("Options", _canvas.width - 180, 20, "28px Return of Ganon", "center", "top", "rgb(96, 255, 96)");
-=======
-                    guiText[10] = new GUIText("Options", _canvas.width - 180, 20, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
-                    menu.DrawArrow(3, _canvas.width - 237, 33);
->>>>>>> master
+					menu.DrawArrow(3, _canvas.width - 237, 33);
                 } else
                 {
                     guiText[10] = new GUIText("Options", _canvas.width - 180, 20, "28px Return of Ganon", "center", "top", "rgb(96, 150, 96)");
@@ -4623,12 +4606,8 @@ function Game()
                 // Quit game
                 if(menu.states[2][0][1] || (mouseX > (_canvas.width - 90) && mouseX < (_canvas.width - 25) && mouseY < (55) && mouseY > (15)))
                 {//Quit
-<<<<<<< HEAD
                     guiText[11] = new GUIText("Quit", _canvas.width - 60, 20, "28px Return of Ganon", "center", "top", "rgb(96, 255, 96)");
-=======
-                    guiText[11] = new GUIText("Quit", _canvas.width - 60, 20, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
-                    menu.DrawArrow(3, _canvas.width - 92, 33);
->>>>>>> master
+					menu.DrawArrow(3, _canvas.width - 92, 33);
                 } else
                 {
                     guiText[11] = new GUIText("Quit", _canvas.width - 60, 20, "28px Return of Ganon", "center", "top", "rgb(96, 150, 96)");
