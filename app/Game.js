@@ -1,4 +1,3 @@
-//Authors: Shawn Deprey, Justin Hammond, Drew Muller
 const { ipcRenderer } = require('electron');
 
 function Game()
@@ -39,6 +38,16 @@ function Game()
 	//Input Info
 	var mouseX = 0;
 	var mouseY = 0;
+    var keysDown = {};
+	var gamepads = {};
+    var hasControllerInput = false;
+    var gamepadLeft = false;
+    var gamepadRight = false;
+    var gamepadUp = false;
+    var gamepadDown = false;
+    var gamepadA = false;
+    var gamepadB = false;
+    var gamepadStart = false;
 	
 	//Options
 	var particleOffset = 5;
@@ -130,7 +139,6 @@ function Game()
     var explosions = [];
 	var money = [];
 	var randomItems = [];
-    var keysDown = {};
     
 	var NUM_OF_RANDOM_ITEMS = 4;
 	//0 = Health
@@ -190,6 +198,20 @@ function Game()
 	document.querySelector("#bgm_dorian").addEventListener("error",swapBGM,false);
 	document.querySelector("#bgm_euphoria").addEventListener("error",swapBGM,false);
 	document.querySelector("#bgm_energy").addEventListener("error",swapBGM,false);
+
+    // Event listener for gamepad connection
+    window.addEventListener("gamepadconnected", (e) => {
+        console.log(`Gamepad connected at index ${e.gamepad.index}: ${e.gamepad.id}.`);
+        gamepads[e.gamepad.index] = e.gamepad;
+        hasControllerInput = true;
+    });
+
+    // Event listener for gamepad disconnection
+    window.addEventListener("gamepaddisconnected", (e) => {
+        console.log(`Gamepad disconnected from index ${e.gamepad.index}: ${e.gamepad.id}.`);
+        delete gamepads[e.gamepad.index];
+        hasControllerInput = false;
+    });
     
     /******************************************************/
     // Global Functions
@@ -577,7 +599,7 @@ function Game()
     function Menu()
     {
         this.states = []
-        this.timeout = 0
+        this.timeout = 5
         this.onTick = 0
 
         this.Init = function()
@@ -587,11 +609,20 @@ function Game()
 
         this.resetStates = function()
         {
+            //State GUIs
+            // 0 = Main Menu
+            // 1 = Pause Menu
+            // 2 = Level Up Menu
+            // 3 = Continue Menu
+            // 4 = Level Up Menu
+            // 5 = Game Over Menu
+            // 6 = Options Menu
+            // 7 = Submit Score Menu
             this.states = [
                 // Main Menu: New Game, Options, Story, Exit Game
                 [true, false, false, false],
                 [],
-                [],
+                [[false, false], [false, false, false, true], [false, false, false, false, false, false, false]],
                 [],
                 [],
                 [],
@@ -620,8 +651,37 @@ function Game()
                 }
                 this.timeout = 5; // 250 ms delay before next action
             } else
+            if(activeMenu == 2) {
+                let [currentRow, currentCol] = this.findCurrentPosition(this.states[activeMenu]);
+                switch(direction) {
+                    case 0: // Up
+                        if (currentRow > 0) {
+                            currentRow--;
+                            currentCol = this.findClosestColumn(this.states[activeMenu][currentRow].length, currentCol, this.states[activeMenu][currentRow + 1].length);
+                        }
+                        break;
+                    case 1: // Left
+                        if (currentCol > 0) currentCol--;
+                        break;
+                    case 2: // Down
+                        if (currentRow < this.states[activeMenu].length - 1) {
+                            currentRow++;
+                            currentCol = this.findClosestColumn(this.states[activeMenu][currentRow].length, currentCol, this.states[activeMenu][currentRow - 1].length);
+                        }
+                        break;
+                    case 3: // Right
+                        if (currentCol < this.states[activeMenu][currentRow].length - 1) currentCol++;
+                        break;
+                }
+            
+                // Reset the current state to all false
+                this.resetMenuStates(this.states[activeMenu]);
+                // Set the new position to true
+                this.states[activeMenu][currentRow][currentCol] = true;
+                this.timeout = 5; // 250 ms delay before next action
+            } else
             if(activeMenu == 6) { // Options menu
-				if(direction === 0 || direction === 2) {
+                if(direction === 0 || direction === 2) {
                     var currentIndex = this.states[activeMenu].findIndex(value => value === true);
                     var newIndex = currentIndex;
                     // up = up, down = down
@@ -630,7 +690,7 @@ function Game()
                         this.states[activeMenu][currentIndex] = false; // Disable old menu position
                         this.states[activeMenu][newIndex] = true; // Enable new menu position
                     }
-				}
+                }
 
                 // Custom actions for left/right on this menu
                 if(direction == 1 || direction == 3) {
@@ -658,9 +718,39 @@ function Game()
             }
         }
 
-        this.select = function()
+        this.findCurrentPosition = function(menu) {
+            for (let row = 0; row < menu.length; row++) {
+                let col = menu[row].indexOf(true);
+                if (col !== -1) return [row, col];
+            }
+            return [-1, -1]; // Not found
+        }
+        
+        this.findClosestColumn = function(targetRowLength, currentCol, currentRowLength) {
+            // Calculate the current position's relative percentage in its row
+            const relativePosition = currentCol / (currentRowLength - 1);
+            // Determine the closest column in the target row based on the relative position
+            const closestCol = Math.round((targetRowLength - 1) * relativePosition);
+            // Ensure the calculated column index stays within the bounds of the target row
+            return Math.max(0, Math.min(closestCol, targetRowLength - 1));
+        }
+        
+        this.resetMenuStates = function(menu) {
+            for (let row = 0; row < menu.length; row++) {
+                for (let col = 0; col < menu[row].length; col++) {
+                    menu[row][col] = false;
+                }
+            }
+        }
+
+        this.back = function()
         {
-            // This function should mimic the doMouseClick functionality. If something is added there, it should be here, and visa-versa
+            if(currentGui == 6){ currentGui = lastGui; lastGui = 6; }
+            if(currentGui == 1 && !gco.win){ gco.TogglePauseGame(); currentGui = NULL_GUI_STATE; }
+        }
+
+        this.select = function()
+        { // This function should mimic the doMouseClick functionality. If something is added there, it should be here, and visa-versa
             if(this.timeout > 0) return;
             this.timeout = 5; // 250 ms delay before next action
             switch(currentGui) {
@@ -675,7 +765,39 @@ function Game()
                     break;
                 }
                 case 1: { break; }
-                case 2: { break; }
+                case 2: {
+                    
+                    // Options
+                    if(this.states[2][0][0]){ currentGui = 6; lastGui = 2; }
+                    // Quit
+                    if(this.states[2][0][1]){ self.hardReset(); }
+
+                    // Pea Shooter
+                    if(this.states[2][1][0]){ if(gco.weaponsOwned[0]){ gco.EquipWeapon(0); } else { if(player.money >= gco.weaponPrice[0]){ gco.PurchaseWeapon(0); } else {gco.notEnoughCores = 1000;}} }
+                    // Pea Shooter Pro
+                    if(this.states[2][1][1]){ if(gco.weaponsOwned[1]){ gco.EquipWeapon(1); } else { if(player.money >= gco.weaponPrice[1]){ gco.PurchaseWeapon(1); } else {gco.notEnoughCores = 1000;}} }
+                    // Master Pea Shooter
+                    if(this.states[2][1][2]){ if(gco.weaponsOwned[2]){ gco.EquipWeapon(2); } else { if(player.money >= gco.weaponPrice[2]){ gco.PurchaseWeapon(2); } else {gco.notEnoughCores = 1000;}} }
+                    // Start Level
+                    if(this.states[2][1][3]){ if(player.weapon != 49){ gco.StartLevel(); }}
+
+                    // Missile
+                    if(this.states[2][2][0]){ if(gco.weaponsOwned[50]){ gco.EquipWeapon(50); } else { if(player.money >= gco.weaponPrice[50]){ gco.PurchaseWeapon(50); } else {gco.notEnoughCores = 1000;}} }
+                    // Homing Missile
+                    if(this.states[2][2][1]){ if(gco.weaponsOwned[51]){ gco.EquipWeapon(51); } else { if(player.money >= gco.weaponPrice[51]){ gco.PurchaseWeapon(51); } else {gco.notEnoughCores = 1000;}} }
+                    // Space Mine
+                    if(this.states[2][2][2]){ if(gco.weaponsOwned[52]){ gco.EquipWeapon(52); } else { if(player.money >= gco.weaponPrice[52]){ gco.PurchaseWeapon(52); } else {gco.notEnoughCores = 1000;}} }
+                    // Laser
+                    if(this.states[2][2][3]){ if(gco.ownLaser){ gco.EquipWeapon(9000); } else { if(player.money >= gco.laserPrice){ gco.PurchaseWeapon(9000); } else {gco.notEnoughCores = 1000;}} }
+                    // Shield
+                    if(this.states[2][2][4]){ if(player.money >= (player.shieldLevel + 1) * 250){gco.PurchaseExtras(0);} else {gco.notEnoughCores = 1000;} }
+                    // Ammo Capacity
+                    if(this.states[2][2][5]){ if(player.money >= (player.secondaryAmmoLevel + 1) * 50){gco.PurchaseExtras(2);} else {gco.notEnoughCores = 1000;} }
+                    // Purchase Ammo
+                    if(this.states[2][2][6]){ if(player.money >= gco.secondaryAmmoPrice && player.secondaryAmmo < player.maxSecondaryAmmo){gco.PurchaseExtras(3);} else {gco.notEnoughCores = 1000;} }
+
+                    break;
+                }
                 case 3: { break; }
                 case 4: { break; }
                 case 5: { break; }
@@ -3020,7 +3142,7 @@ function Game()
                 }
                 if(mouseX > 10 && mouseX < 58 && mouseY > 448 && mouseY < 496)
                 {//Boom Bullet, Weapon ID: 50
-                    if(gco.weaponsOwned[50]){ gco.EquipWeapon(50); } else { if(player.money >= gco.weaponPrice[50]){ gco.PurchaseWeapon(50); player.secondaryAmmo += 50; } else {gco.notEnoughCores = 1000;}}
+                    if(gco.weaponsOwned[50]){ gco.EquipWeapon(50); } else { if(player.money >= gco.weaponPrice[50]){ gco.PurchaseWeapon(50); } else {gco.notEnoughCores = 1000;}}
                 }
                 if(mouseX > 60 && mouseX < 108 && mouseY > 448 && mouseY < 496)
                 {//Friendly Boom Bullet, Weapon ID: 51
@@ -3155,73 +3277,164 @@ function Game()
         mouseY = (evt.clientY - rect.top) * scaleY;
     }
 
+    this.doGamepadInput = function() {
+        // Xbox One Controller Mapping:
+        // 0: A button
+        // 1: B button
+        // 2: X button
+        // 3: Y button
+        // 4: Left bumper (LB)
+        // 5: Right bumper (RB)
+        // 6: Left trigger (LT) - value between 0 and 1
+        // 7: Right trigger (RT) - value between 0 and 1
+        // 8: Back/View button
+        // 9: Start/Menu button
+        // 10: Left stick press
+        // 11: Right stick press
+        // 12: D-pad up
+        // 13: D-pad down
+        // 14: D-pad left
+        // 15: D-pad right
+        // 16: Home/Guide button
+
+        // PlayStation Controllers:
+        // PlayStation controllers generally follow a similar mapping, with the main difference being the symbols on the buttons:
+        // 0: Cross (X) button
+        // 1: Circle (O) button
+        // 2: Square ([]) button
+        // 3: Triangle (∆) button
+        // The rest of the mappings like bumpers, triggers, and D-pad directions correspond closely to the Xbox layout.
+
+        // Reset all gamepad input states
+        gamepadLeft = false;
+        gamepadRight = false;
+        gamepadUp = false;
+        gamepadDown = false;
+        gamepadA = false;
+        gamepadB = false;
+        gamepadStart = false;
+
+        // Do Gamepad Input
+        const detectedGamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+        for (let gamepad of detectedGamepads) {
+            if (gamepad) {
+                gamepads[gamepad.index] = gamepad;
+            }
+        }
+        for (let index in gamepads) {
+            const gamepad = gamepads[index];
+            if (gamepad) {
+                const joystickThreshold = 0.10;
+                const triggerThreshold = 0.30;
+                const leftTriggerPressed = gamepad.buttons[6].value > triggerThreshold;
+                const rightTriggerPressed = gamepad.buttons[7].value > triggerThreshold;
+                if(gamepad.axes[0] < -joystickThreshold || gamepad.buttons[14].pressed) { gamepadLeft = true; }
+                if(gamepad.axes[0] > joystickThreshold || gamepad.buttons[15].pressed) { gamepadRight = true; }
+                if(gamepad.axes[1] < -joystickThreshold || gamepad.buttons[12].pressed) { gamepadUp = true; }
+                if(gamepad.axes[1] > joystickThreshold || gamepad.buttons[13].pressed) { gamepadDown = true; }
+                if(gamepad.buttons[0].pressed || leftTriggerPressed || rightTriggerPressed) { gamepadA = true; }
+                if(gamepad.buttons[1].pressed || gamepad.buttons[4].pressed || gamepad.buttons[5].pressed) { gamepadB = true; }
+                if(gamepad.buttons[9].pressed) { gamepadStart = true; }
+            }
+        }
+    }
+
     this.doInput = function()
     {
-		//Do Keyboard Input
-        if(keysDown[38] == true || keysDown[87] == true) // W || Up
-        {if(Keys[0] == 0){Keys[0] = 1;}else if(Keys[0] == 1 || Keys[0] == 2){Keys[0] = 2;}}else if(keysDown[38] == false || keysDown[87] == false){if(Keys[0] == 1 || Keys[0] == 2){Keys[0] = 0;}}
-        
-        if(keysDown[37] == true || keysDown[65] == true) // A || Left
-        {if(Keys[1] == 0){Keys[1] = 1;}else if(Keys[1] == 1 || Keys[1] == 2){Keys[1] = 2;}}else if(keysDown[37] == false || keysDown[65] == false){if(Keys[1] == 1 || Keys[1] == 2){Keys[1] = 0;}}
+        // Do Gamepad Input
+        this.doGamepadInput();
+        if(hasControllerInput) {
+            // Do Keyboard Input
+            if(gamepadUp) // W || Up
+            {if(Keys[0] == 0){Keys[0] = 1;}else if(Keys[0] == 1 || Keys[0] == 2){Keys[0] = 2;}}else if(!gamepadUp){if(Keys[0] == 1 || Keys[0] == 2){Keys[0] = 0;}}
 
-        if(keysDown[40] == true || keysDown[83] == true) // S || Down
-        {if(Keys[2] == 0){Keys[2] = 1;}else if(Keys[2] == 1 || Keys[2] == 2){Keys[2] = 2;}}else if(keysDown[40] == false || keysDown[83] == false){if(Keys[2] == 1 || Keys[2] == 2){Keys[2] = 0;}}
+            if(gamepadLeft) // A || Left
+            {if(Keys[1] == 0){Keys[1] = 1;}else if(Keys[1] == 1 || Keys[1] == 2){Keys[1] = 2;}}else if(!gamepadLeft){if(Keys[1] == 1 || Keys[1] == 2){Keys[1] = 0;}}
 
-        if(keysDown[39] == true || keysDown[68] == true) // D || Right
-        {if(Keys[3] == 0){Keys[3] = 1;}else if(Keys[3] == 1 || Keys[3] == 2){Keys[3] = 2;}}else if(keysDown[39] == false || keysDown[68] == false){if(Keys[3] == 1 || Keys[3] == 2){Keys[3] = 0;}}
+            if(gamepadDown) // S || Down
+            {if(Keys[2] == 0){Keys[2] = 1;}else if(Keys[2] == 1 || Keys[2] == 2){Keys[2] = 2;}}else if(!gamepadDown){if(Keys[2] == 1 || Keys[2] == 2){Keys[2] = 0;}}
 
-        if(keysDown[81] == true) // Q
-        {if(Keys[4] == 0){Keys[4] = 1;}else if(Keys[4] == 1 || Keys[4] == 2){Keys[4] = 2;}}else if(keysDown[81] == false){if(Keys[4] == 1 || Keys[4] == 2){Keys[4] = 0;}}
-        
-        if(keysDown[69] == true) // E
-        {if(Keys[5] == 0){Keys[5] = 1;}else if(Keys[5] == 1 || Keys[5] == 2){Keys[5] = 2;}}else if(keysDown[69] == false){if(Keys[5] == 1 || Keys[5] == 2){Keys[5] = 0;}}
+            if(gamepadRight) // D || Right
+            {if(Keys[3] == 0){Keys[3] = 1;}else if(Keys[3] == 1 || Keys[3] == 2){Keys[3] = 2;}}else if(!gamepadRight){if(Keys[3] == 1 || Keys[3] == 2){Keys[3] = 0;}}
 
-        if(keysDown[48] == true) // 0
-        {if(Keys[6] == 0){Keys[6] = 1;}else if(Keys[6] == 1 || Keys[6] == 2){Keys[6] = 2;}}else if(keysDown[48] == false){if(Keys[6] == 1 || Keys[6] == 2){Keys[6] = 0;}}
+            if(gamepadA) // Space
+            {if(Keys[16] == 0){Keys[16] = 1;}else if(Keys[16] == 1 || Keys[16] == 2){Keys[16] = 2;}}else if(!gamepadA){if(Keys[16] == 1 || Keys[16] == 2){Keys[16] = 0;}}
 
-        if(keysDown[49] == true) // 1
-        {if(Keys[7] == 0){Keys[7] = 1;}else if(Keys[7] == 1 || Keys[7] == 2){Keys[7] = 2;}}else if(keysDown[49] == false){if(Keys[7] == 1 || Keys[7] == 2){Keys[7] = 0;}}
+            if(gamepadStart) // Escape
+            {if(Keys[17] == 0){Keys[17] = 1;}else if(Keys[17] == 1 || Keys[17] == 2){Keys[17] = 2;}}else if(!gamepadStart){if(Keys[17] == 1 || Keys[17] == 2){Keys[17] = 0;}}
+            
+            if(gamepadA) // Enter
+            {if(Keys[18] == 0){Keys[18] = 1;}else if(Keys[18] == 1 || Keys[18] == 2){Keys[18] = 2;}}else if(!gamepadA){if(Keys[18] == 1 || Keys[18] == 2){Keys[18] = 0;}}
 
-        if(keysDown[50] == true) // 2
-        {if(Keys[8] == 0){Keys[8] = 1;}else if(Keys[8] == 1 || Keys[8] == 2){Keys[8] = 2;}}else if(keysDown[50] == false){if(Keys[8] == 1 || Keys[8] == 2){Keys[8] = 0;}}
+            if(gamepadB) // B
+            {if(Keys[19] == 0){Keys[19] = 1;}else if(Keys[19] == 1 || Keys[19] == 2){Keys[19] = 2;}}else if(!gamepadB){if(Keys[19] == 1 || Keys[19] == 2){Keys[19] = 0;}}
+        } else {
+            // Do Keyboard Input
+            if(keysDown[38] == true || keysDown[87] == true) // W || Up
+            {if(Keys[0] == 0){Keys[0] = 1;}else if(Keys[0] == 1 || Keys[0] == 2){Keys[0] = 2;}}else if(keysDown[38] == false || keysDown[87] == false){if(Keys[0] == 1 || Keys[0] == 2){Keys[0] = 0;}}
 
-        if(keysDown[51] == true) // 3
-        {if(Keys[9] == 0){Keys[9] = 1;}else if(Keys[9] == 1 || Keys[9] == 2){Keys[9] = 2;}}else if(keysDown[51] == false){if(Keys[9] == 1 || Keys[9] == 2){Keys[9] = 0;}}
+            if(keysDown[37] == true || keysDown[65] == true) // A || Left
+            {if(Keys[1] == 0){Keys[1] = 1;}else if(Keys[1] == 1 || Keys[1] == 2){Keys[1] = 2;}}else if(keysDown[37] == false || keysDown[65] == false){if(Keys[1] == 1 || Keys[1] == 2){Keys[1] = 0;}}
 
-        if(keysDown[52] == true) // 4
-        {if(Keys[10] == 0){Keys[10] = 1;}else if(Keys[10] == 1 || Keys[10] == 2){Keys[10] = 2;}}else if(keysDown[52] == false){if(Keys[10] == 1 || Keys[10] == 2){Keys[10] = 0;}}
+            if(keysDown[40] == true || keysDown[83] == true) // S || Down
+            {if(Keys[2] == 0){Keys[2] = 1;}else if(Keys[2] == 1 || Keys[2] == 2){Keys[2] = 2;}}else if(keysDown[40] == false || keysDown[83] == false){if(Keys[2] == 1 || Keys[2] == 2){Keys[2] = 0;}}
 
-        if(keysDown[53] == true) // 5
-        {if(Keys[11] == 0){Keys[11] = 1;}else if(Keys[11] == 1 || Keys[11] == 2){Keys[11] = 2;}}else if(keysDown[53] == false){if(Keys[11] == 1 || Keys[11] == 2){Keys[11] = 0;}}
+            if(keysDown[39] == true || keysDown[68] == true) // D || Right
+            {if(Keys[3] == 0){Keys[3] = 1;}else if(Keys[3] == 1 || Keys[3] == 2){Keys[3] = 2;}}else if(keysDown[39] == false || keysDown[68] == false){if(Keys[3] == 1 || Keys[3] == 2){Keys[3] = 0;}}
 
-        if(keysDown[54] == true) // 6
-        {if(Keys[12] == 0){Keys[12] = 1;}else if(Keys[12] == 1 || Keys[12] == 2){Keys[12] = 2;}}else if(keysDown[54] == false){if(Keys[12] == 1 || Keys[12] == 2){Keys[12] = 0;}}
+            if(keysDown[81] == true) // Q
+            {if(Keys[4] == 0){Keys[4] = 1;}else if(Keys[4] == 1 || Keys[4] == 2){Keys[4] = 2;}}else if(keysDown[81] == false){if(Keys[4] == 1 || Keys[4] == 2){Keys[4] = 0;}}
+            
+            if(keysDown[69] == true) // E
+            {if(Keys[5] == 0){Keys[5] = 1;}else if(Keys[5] == 1 || Keys[5] == 2){Keys[5] = 2;}}else if(keysDown[69] == false){if(Keys[5] == 1 || Keys[5] == 2){Keys[5] = 0;}}
 
-        if(keysDown[55] == true) // 7
-        {if(Keys[13] == 0){Keys[13] = 1;}else if(Keys[13] == 1 || Keys[13] == 2){Keys[13] = 2;}}else if(keysDown[55] == false){if(Keys[13] == 1 || Keys[13] == 2){Keys[13] = 0;}}
+            if(keysDown[48] == true) // 0
+            {if(Keys[6] == 0){Keys[6] = 1;}else if(Keys[6] == 1 || Keys[6] == 2){Keys[6] = 2;}}else if(keysDown[48] == false){if(Keys[6] == 1 || Keys[6] == 2){Keys[6] = 0;}}
 
-        if(keysDown[56] == true) // 8
-        {if(Keys[14] == 0){Keys[14] = 1;}else if(Keys[14] == 1 || Keys[14] == 2){Keys[14] = 2;}}else if(keysDown[56] == false){if(Keys[14] == 1 || Keys[14] == 2){Keys[14] = 0;}}
+            if(keysDown[49] == true) // 1
+            {if(Keys[7] == 0){Keys[7] = 1;}else if(Keys[7] == 1 || Keys[7] == 2){Keys[7] = 2;}}else if(keysDown[49] == false){if(Keys[7] == 1 || Keys[7] == 2){Keys[7] = 0;}}
 
-        if(keysDown[57] == true) // 9
-        {if(Keys[15] == 0){Keys[15] = 1;}else if(Keys[15] == 1 || Keys[15] == 2){Keys[15] = 2;}}else if(keysDown[57] == false){if(Keys[15] == 1 || Keys[15] == 2){Keys[15] = 0;}}
+            if(keysDown[50] == true) // 2
+            {if(Keys[8] == 0){Keys[8] = 1;}else if(Keys[8] == 1 || Keys[8] == 2){Keys[8] = 2;}}else if(keysDown[50] == false){if(Keys[8] == 1 || Keys[8] == 2){Keys[8] = 0;}}
 
-        if(keysDown[32] == true) // Space
-        {if(Keys[16] == 0){Keys[16] = 1;}else if(Keys[16] == 1 || Keys[16] == 2){Keys[16] = 2;}}else if(keysDown[32] == false){if(Keys[16] == 1 || Keys[16] == 2){Keys[16] = 0;}}
-        
-        if(keysDown[27] == true) // Escape
-        {if(Keys[17] == 0){Keys[17] = 1;}else if(Keys[17] == 1 || Keys[17] == 2){Keys[17] = 2;}}else if(keysDown[27] == false){if(Keys[17] == 1 || Keys[17] == 2){Keys[17] = 0;}}
-        
-        if(keysDown[13] == true) // Enter
-        {if(Keys[18] == 0){Keys[18] = 1;}else if(Keys[18] == 1 || Keys[18] == 2){Keys[18] = 2;}}else if(keysDown[13] == false){if(Keys[18] == 1 || Keys[18] == 2){Keys[18] = 0;}}
-		
-        if(keysDown[66] == true) // B
-        {if(Keys[19] == 0){Keys[19] = 1;}else if(Keys[19] == 1 || Keys[19] == 2){Keys[19] = 2;}}else if(keysDown[66] == false){if(Keys[19] == 1 || Keys[19] == 2){Keys[19] = 0;}}
+            if(keysDown[51] == true) // 3
+            {if(Keys[9] == 0){Keys[9] = 1;}else if(Keys[9] == 1 || Keys[9] == 2){Keys[9] = 2;}}else if(keysDown[51] == false){if(Keys[9] == 1 || Keys[9] == 2){Keys[9] = 0;}}
+
+            if(keysDown[52] == true) // 4
+            {if(Keys[10] == 0){Keys[10] = 1;}else if(Keys[10] == 1 || Keys[10] == 2){Keys[10] = 2;}}else if(keysDown[52] == false){if(Keys[10] == 1 || Keys[10] == 2){Keys[10] = 0;}}
+
+            if(keysDown[53] == true) // 5
+            {if(Keys[11] == 0){Keys[11] = 1;}else if(Keys[11] == 1 || Keys[11] == 2){Keys[11] = 2;}}else if(keysDown[53] == false){if(Keys[11] == 1 || Keys[11] == 2){Keys[11] = 0;}}
+
+            if(keysDown[54] == true) // 6
+            {if(Keys[12] == 0){Keys[12] = 1;}else if(Keys[12] == 1 || Keys[12] == 2){Keys[12] = 2;}}else if(keysDown[54] == false){if(Keys[12] == 1 || Keys[12] == 2){Keys[12] = 0;}}
+
+            if(keysDown[55] == true) // 7
+            {if(Keys[13] == 0){Keys[13] = 1;}else if(Keys[13] == 1 || Keys[13] == 2){Keys[13] = 2;}}else if(keysDown[55] == false){if(Keys[13] == 1 || Keys[13] == 2){Keys[13] = 0;}}
+
+            if(keysDown[56] == true) // 8
+            {if(Keys[14] == 0){Keys[14] = 1;}else if(Keys[14] == 1 || Keys[14] == 2){Keys[14] = 2;}}else if(keysDown[56] == false){if(Keys[14] == 1 || Keys[14] == 2){Keys[14] = 0;}}
+
+            if(keysDown[57] == true) // 9
+            {if(Keys[15] == 0){Keys[15] = 1;}else if(Keys[15] == 1 || Keys[15] == 2){Keys[15] = 2;}}else if(keysDown[57] == false){if(Keys[15] == 1 || Keys[15] == 2){Keys[15] = 0;}}
+
+            if(keysDown[32] == true) // Space
+            {if(Keys[16] == 0){Keys[16] = 1;}else if(Keys[16] == 1 || Keys[16] == 2){Keys[16] = 2;}}else if(keysDown[32] == false){if(Keys[16] == 1 || Keys[16] == 2){Keys[16] = 0;}}
+
+            if(keysDown[27] == true) // Escape
+            {if(Keys[17] == 0){Keys[17] = 1;}else if(Keys[17] == 1 || Keys[17] == 2){Keys[17] = 2;}}else if(keysDown[27] == false){if(Keys[17] == 1 || Keys[17] == 2){Keys[17] = 0;}}
+            
+            if(keysDown[13] == true) // Enter
+            {if(Keys[18] == 0){Keys[18] = 1;}else if(Keys[18] == 1 || Keys[18] == 2){Keys[18] = 2;}}else if(keysDown[13] == false){if(Keys[18] == 1 || Keys[18] == 2){Keys[18] = 0;}}
+
+            if(keysDown[66] == true) // B
+            {if(Keys[19] == 0){Keys[19] = 1;}else if(Keys[19] == 1 || Keys[19] == 2){Keys[19] = 2;}}else if(keysDown[66] == false){if(Keys[19] == 1 || Keys[19] == 2){Keys[19] = 0;}}
+        }
     }
     
     this.getInput = function()
     {
-        if(Keys[17] == 1) // Escape
+        if(Keys[17] == 1) // Escape/Pause
         {
 			if(gameState == 1 && player.isAlive())
 			{   if(!gco.win){ if(currentGui != 6){ gco.TogglePauseGame(); } }
@@ -3237,11 +3450,10 @@ function Game()
             if(Keys[2] >= 1) menu.move(currentGui, 2) // S || Down
             if(Keys[3] >= 1) menu.move(currentGui, 3) // D || Right
             if(Keys[16] >= 1 || Keys[18] >= 1) menu.select() // Space || Enter
+            if((currentGui == 6 || currentGui == 1) && Keys[19] > 1) menu.back()
         }
-        
-
-        if(!paused)
-        {
+    
+        if(!paused) {
             if(Keys[4] == 1)
             {
 				debug = !debug;
@@ -3261,21 +3473,24 @@ function Game()
 			}
             if(player.isAlive() && gameState == 1 && !gco.win)
             {
-                if(Keys[0] >= 1) // W || Up
-                {
-                    player.y -= player.speed * delta;
-                }
-                if(Keys[1] >= 1) // A || Left
-                {
-                    player.x -= player.speed * delta;
-                }
-                if(Keys[2] >= 1) // S || Down
-                {
-                    player.y += player.speed * delta;
-                }
-                if(Keys[3] >= 1) // D || Right
-                {
-                    player.x += player.speed * delta;
+                // Player Movement
+                let moveX = 0;
+                let moveY = 0;
+                if(Keys[0] >= 1) moveY -= player.speed * delta; // W || Up
+                if(Keys[1] >= 1) moveX -= player.speed * delta; // A || Left
+                if(Keys[2] >= 1) moveY += player.speed * delta; // S || Down
+                if(Keys[3] >= 1) moveX += player.speed * delta; // D || Right
+                // Only update player position if there's movement
+                if (moveX !== 0 || moveY !== 0) {
+                    // Normalize the speed if moving diagonally
+                    if (moveX !== 0 && moveY !== 0) {
+                        const norm = Math.sqrt(moveX * moveX + moveY * moveY);
+                        moveX = (moveX / norm) * player.speed * delta;
+                        moveY = (moveY / norm) * player.speed * delta;
+                    }
+                    // Apply the calculated movement
+                    player.x += moveX;
+                    player.y += moveY;
                 }
 
 				if(ticks != player.onTick)
@@ -4058,6 +4273,7 @@ function Game()
                         buffer.lineTo(LPM_x1, LPM_y1);
                     buffer.stroke();
                 buffer.closePath();
+<<<<<<< HEAD
                 
                 if(mouseX > (_canvas.width - 210) && mouseX < (_canvas.width - 10) && mouseY < (278) && mouseY > (250))
                 {//Start Level
@@ -4069,19 +4285,30 @@ function Game()
                 {
                     guiText[5] = new GUIText("Start Level", _canvas.width - 110, 250, 
                                          "28px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
+=======
+
+                if(menu.states[2][1][3] || (mouseX > (_canvas.width - 175) && mouseX < (_canvas.width - 25) && mouseY < (280) && mouseY > (250)))
+                {//Start Level
+                    guiText[5] = new GUIText("Start Level", _canvas.width - 100, 250, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                    menu.DrawArrow(3, _canvas.width - 175, 262);
+                    if(player.weapon == 49){guiText[12] = new GUIText("Must equip main weapon", _canvas.width - 100, 280, "12px Helvetica", "center", "top", "rgb(255, 50, 50)");}
+                } else {
+                    guiText[5] = new GUIText("Start Level", _canvas.width - 100, 250, "28px Helvetica", "center", "top", "rgb(96, 150, 96)");
+>>>>>>> master
                 }
 
-                guiText[6] = new GUIText("Select item to purchase.", _canvas.width / 2, _canvas.height - 33, 
-                                    "12px Helvetica", "center", "top", "rgb(230, 230, 255)");
+                // Bottom text tooltip initialization
+                guiText[6] = new GUIText("Select item to purchase.", _canvas.width / 2, _canvas.height - 33, "12px Helvetica", "center", "top", "rgb(230, 230, 255)");
 
                 // GUI Icons
 // NEW WEAPON Pea Shooter
-                if(mouseX > 10 && mouseX < 58 && mouseY > 280 && mouseY < 328)
+                if(menu.states[2][1][0] || (mouseX > 10 && mouseX < 58 && mouseY > 280 && mouseY < 328))
                 {//Pea Shooter, Weapon ID: 0
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[0], 10, 280, 48, 48);    
                     buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, 34, 336);
                     if(gco.weaponsOwned[0])
                     {
                         guiText[6].text = "You already own Pea Shooter.";
@@ -4106,12 +4333,13 @@ function Game()
                 //END WEAPON
 
 // NEW WEAPON Pea Shooter Pro
-                if(mouseX > 60 && mouseX < 108 && mouseY > 280 && mouseY < 328)
+                if(menu.states[2][1][1] || (mouseX > 60 && mouseX < 108 && mouseY > 280 && mouseY < 328))
                 {//Pea Shooter Pro, Weapon ID: 1
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[1], 60, 280, 48, 48);
                     buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, 84, 336);
                     if(gco.weaponsOwned[1])
                     {
                         guiText[6].text = "You already own Pea Shooter Pro.";
@@ -4136,12 +4364,13 @@ function Game()
                 //END WEAPON
 				
 // NEW WEAPON Master Pea Shooter
-                if(mouseX > 110 && mouseX < 158 && mouseY > 280 && mouseY < 328)
+                if(menu.states[2][1][2] || (mouseX > 110 && mouseX < 158 && mouseY > 280 && mouseY < 328))
                 {//Master Pea Shooter, Weapon ID: 2
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[7], 110, 280, 48, 48);
                     buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, 134, 336);
                     if(gco.weaponsOwned[2])
                     {
                         guiText[6].text = "You already own Master Pea Shooter.";
@@ -4166,12 +4395,13 @@ function Game()
                 //END WEAPON
 
 // NEW WEAPON Boom Bullet
-                if(mouseX > 10 && mouseX < 58 && mouseY > 448 && mouseY < 496)
+                if(menu.states[2][2][0] || (mouseX > 10 && mouseX < 58 && mouseY > 448 && mouseY < 496))
                 {//Boom Bullet, Weapon ID: 50
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[2], 10, 448, 48, 48);
                     buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, 34, 504);
                     if(gco.weaponsOwned[50])
                     {
                         guiText[6].text = "You already own Boom Bullet.";
@@ -4197,12 +4427,13 @@ function Game()
                 //END WEAPON
 
 // NEW WEAPON Friendly Boom Bullet
-                if(mouseX > 60 && mouseX < 108 && mouseY > 448 && mouseY < 496)
+                if(menu.states[2][2][1] || (mouseX > 60 && mouseX < 108 && mouseY > 448 && mouseY < 496))
                 {//Friendly Boom Bullet, Weapon ID: 51
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[3], 60, 448, 48, 48);
                     buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, 84, 504);
                     if(gco.weaponsOwned[51])
                     {
                         guiText[6].text = "You already own Friendly Boom Bullet.";
@@ -4227,12 +4458,13 @@ function Game()
                 //END WEAPON
 
 // NEW WEAPON Space Mine
-                if(mouseX > 110 && mouseX < 158 && mouseY > 448 && mouseY < 496)
+                if(menu.states[2][2][2] || (mouseX > 110 && mouseX < 158 && mouseY > 448 && mouseY < 496))
                 {//Friendly Boom Bullet, Weapon ID: 52
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[8], 110, 448, 48, 48);
                     buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, 134, 504);
                     if(gco.weaponsOwned[52])
                     {
                         guiText[6].text = "You already own Space Mine.";
@@ -4257,12 +4489,13 @@ function Game()
                 //END WEAPON
 				
 // NEW WEAPON Laser
-                if(mouseX > 160 && mouseX < 208 && mouseY > 448 && mouseY < 496)
+                if(menu.states[2][2][3] || (mouseX > 160 && mouseX < 208 && mouseY > 448 && mouseY < 496))
                 {//Laser: Weapon ID: 9000
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[9], 160, 448, 48, 48);
                     buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, 184, 504);
                     if(gco.ownLaser)
                     {
                         guiText[6].text = "You already own the Phaser Laser.";
@@ -4287,12 +4520,13 @@ function Game()
                 //END WEAPON
 				
 // NEW POWERUP Shield
-                if(mouseX > _canvas.width - 300 && mouseX < _canvas.width - 252 && mouseY > 448 && mouseY < 496)
+                if(menu.states[2][2][4] || (mouseX > _canvas.width - 300 && mouseX < _canvas.width - 252 && mouseY > 448 && mouseY < 496))
                 {//Shield
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[4], _canvas.width - 300, 448, 48, 48);
                     buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, _canvas.width - 276, 504);
                     if(player.hasShield)
                     {
                         guiText[6].text = "Your shield is level " + player.shieldLevel + ". Upgrade for " + (player.shieldLevel + 1) * 250 + " cores.";
@@ -4317,12 +4551,13 @@ function Game()
                 //END WEAPON
 
 // NEW POWERUP Max Ammo
-                if(mouseX > _canvas.width - 250 && mouseX < _canvas.width - 202 && mouseY > 448 && mouseY < 496)
+                if(menu.states[2][2][5] || (mouseX > _canvas.width - 250 && mouseX < _canvas.width - 202 && mouseY > 448 && mouseY < 496))
                 {//Max Ammo
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[5], _canvas.width - 250, 448, 48, 48);
                     buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, _canvas.width - 226, 504);
                     guiText[6].text = "Ammo Level: " + player.secondaryAmmoLevel + "  Max Secondary Ammo: " + player.maxSecondaryAmmo + ". Upgrade for " + (player.secondaryAmmoLevel + 1) * 50 + " cores.";
                 }
                 if(player.secondaryAmmoLevel > 1)
@@ -4341,12 +4576,13 @@ function Game()
                 //END WEAPON
 			
 // NEW POWERUP Buy Secondary Ammo
-                if(mouseX > _canvas.width - 200 && mouseX < _canvas.width - 152 && mouseY > 448 && mouseY < 496)
+                if(menu.states[2][2][6] || (mouseX > _canvas.width - 200 && mouseX < _canvas.width - 152 && mouseY > 448 && mouseY < 496))
                 {//Buy Secondary Ammo
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[6], _canvas.width - 200, 448, 48, 48);
                     buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, _canvas.width - 176, 504);
 					if(player.secondaryAmmo < player.maxSecondaryAmmo)
 					{
                     	guiText[6].text = "Secondary Ammo: " + player.secondaryAmmo + "  Max Secondary Ammo: " + player.maxSecondaryAmmo + ". +25 Ammo for " + gco.secondaryAmmoPrice + " cores.";
@@ -4371,18 +4607,28 @@ function Game()
                 //END WEAPON
 
 				// Options Menu Selection
-                if(mouseX > (_canvas.width - 235) && mouseX < (_canvas.width - 125) && mouseY < (55) && mouseY > (15))
+                if(menu.states[2][0][0] || (mouseX > (_canvas.width - 235) && mouseX < (_canvas.width - 125) && mouseY < (55) && mouseY > (15)))
                 {//Options Menu
+<<<<<<< HEAD
                     guiText[10] = new GUIText("Options", _canvas.width - 180, 20, "28px Return of Ganon", "center", "top", "rgb(96, 255, 96)");
+=======
+                    guiText[10] = new GUIText("Options", _canvas.width - 180, 20, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                    menu.DrawArrow(3, _canvas.width - 237, 33);
+>>>>>>> master
                 } else
                 {
                     guiText[10] = new GUIText("Options", _canvas.width - 180, 20, "28px Return of Ganon", "center", "top", "rgb(96, 150, 96)");
                 }
 
                 // Quit game
-                if(mouseX > (_canvas.width - 90) && mouseX < (_canvas.width - 25) && mouseY < (55) && mouseY > (15))
+                if(menu.states[2][0][1] || (mouseX > (_canvas.width - 90) && mouseX < (_canvas.width - 25) && mouseY < (55) && mouseY > (15)))
                 {//Quit
+<<<<<<< HEAD
                     guiText[11] = new GUIText("Quit", _canvas.width - 60, 20, "28px Return of Ganon", "center", "top", "rgb(96, 255, 96)");
+=======
+                    guiText[11] = new GUIText("Quit", _canvas.width - 60, 20, "28px Helvetica", "center", "top", "rgb(96, 255, 96)");
+                    menu.DrawArrow(3, _canvas.width - 92, 33);
+>>>>>>> master
                 } else
                 {
                     guiText[11] = new GUIText("Quit", _canvas.width - 60, 20, "28px Return of Ganon", "center", "top", "rgb(96, 150, 96)");
