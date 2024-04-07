@@ -372,9 +372,9 @@ function Game()
 			this.levelMission.GenerateObjectives();
 			
 			this.weaponsOwned[0] = true;//Pea Shooter
-			this.weaponsOwned[1] = true;//Pea Shooter Pro
-			this.weaponsOwned[2] = true;//Master Pea Shooter
-			this.weaponsOwned[49] = true;//Missile
+			this.weaponsOwned[1] = false;//Pea Shooter Pro
+			this.weaponsOwned[2] = false;//Master Pea Shooter
+			this.weaponsOwned[49] = true;//Null Weapon
 			this.weaponsOwned[50] = true;//Missile
 			this.weaponsOwned[51] = false;//Homing Missile
             this.weaponsOwned[52] = false;//Space Mine
@@ -2315,7 +2315,7 @@ function Game()
 		this.height = Height;
 		this.totalMissiles = 0;
 		this.life = 100;
-		this.lives = 1;
+		this.lives = 3;
 		this.maxLife = 100;
 		this.shieldLevel = 0;
 		this.shield = 100;
