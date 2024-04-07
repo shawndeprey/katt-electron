@@ -37,7 +37,8 @@
       "uninstallerIcon": "app/KATT.ico",
       "installerHeaderIcon": "app/KATT.ico",
       "license": "license.txt"
-    }
+    },
+    "postbuild": "copyfiles -u 1 app/fonts/* build/fonts"
   },
   "keywords": [],
   "license": "ISC",
