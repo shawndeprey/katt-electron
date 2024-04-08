@@ -19,7 +19,7 @@ function Game()
 	var bossPhase = -1;
 	
 	//GUI Info
-	var currentGui = 7;
+	var currentGui = 0;
 	var lastGui = 0;
 	var NULL_GUI_STATE = 8;// Should always be above current state limit
 	//State GUIs
@@ -639,7 +639,7 @@ function Game()
                 [],
             ]
         }
-		gco.win = true;
+		
         this.move = function(activeMenu, direction)
         {
             // activeMenu - is whatever currentGui is active, which correlates to the index of states.
@@ -2323,8 +2323,7 @@ function Game()
 		this.height = Height;
 		this.totalMissiles = 0;
 		this.life = 100;
-		//this.lives = 3;
-		this.lives = 0; //For Drew Testing You Died Screen
+		this.lives = 3;
 		this.maxLife = 100;
 		this.shieldLevel = 0;
 		this.shield = 100;
