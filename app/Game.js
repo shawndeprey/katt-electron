@@ -629,7 +629,7 @@ function Game()
             this.states = [
                 // Main Menu: New Game, Options, Story, Exit Game
                 [true, false, false, false],
-                [],
+                [true, false, false],
                 [[false, false], [false, false, false, true], [false, false, false, false, false, false, false]],
                 [],
                 [],
@@ -648,7 +648,7 @@ function Game()
             // Escape this function if a menu option was moved within the last n milliseconds
             if(this.timeout > 0) return;
 
-            if(activeMenu == 0) { // Main Menu
+            if(activeMenu == 0 || activeMenu == 1) { // Main Menu
                 var currentIndex = this.states[activeMenu].findIndex(value => value === true);
                 var newIndex = currentIndex;
                 // up/left = up, down/right = down
@@ -772,7 +772,12 @@ function Game()
                     }
                     break;
                 }
-                case 1: { break; }
+                case 1: {
+                    if(this.states[1][0]){ currentGui = 6; lastGui = 1; }
+                    if(this.states[1][1]){ self.hardReset(); }
+                    if(this.states[1][2]){ ipcRenderer.send('quit-app'); }
+                    break;
+                }
                 case 2: {
                     
                     // Options
@@ -3117,23 +3122,19 @@ function Game()
                 }
                 break;
 			}
-			case 1:
-			{//Pause Menu
+            case 1:
+            {//Pause Menu
                 if(mouseX > (_canvas.width / 2) - 50 && mouseX < (_canvas.width / 2) + 50 && mouseY < (_canvas.height / 2) + 30 && mouseY > (_canvas.height / 2)) {
                     currentGui = 6; lastGui = 1;
                 }
-				if(mouseX > (_canvas.width / 2) - 54 && mouseX < (_canvas.width / 2) + 54 && mouseY < (_canvas.height / 2) + 70 && mouseY > (_canvas.height / 2) + 45) {
+                if(mouseX > (_canvas.width / 2) - 54 && mouseX < (_canvas.width / 2) + 54 && mouseY < (_canvas.height / 2) + 70 && mouseY > (_canvas.height / 2) + 45) {
                     self.hardReset();
                 }
-				if(mouseX > (_canvas.width / 2 + 10) - 80 && mouseX < (_canvas.width / 2 + 10) + 55 && mouseY < (_canvas.height / 2 + 150) + 20 && mouseY > (_canvas.height / 2 + 150) - 10) {
-					ipcRenderer.send('quit-app');
-				}
-				if(mouseX > (_canvas.width / 2 ) - 52 && mouseX < (_canvas.width / 2 + 20) + 35 && mouseY < (_canvas.height / 2 + 110) - 3 && mouseY > (_canvas.height / 2 + 80) ) {
-					ipcRenderer.send('quit-app');
-					ipcRenderer.send('quit-app');
-				}
-				break;
-			}
+                if(mouseX > (_canvas.width / 2 ) - 52 && mouseX < (_canvas.width / 2 + 20) + 35 && mouseY < (_canvas.height / 2 + 110) - 3 && mouseY > (_canvas.height / 2 + 80) ) {
+                    ipcRenderer.send('quit-app');
+                }
+                break;
+            }
 			case 2:
 			{//Level up Menu
                 //**********************************************************************//
@@ -4176,26 +4177,25 @@ function Game()
                 }
 				break;
 			}
-			case 1:
-			{// Pause Menu
-				guiText[0] = new GUIText("Paused", _canvas.width / 2, _canvas.height / 2 - 80, "40px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
+            case 1:
+            {// Pause Menu
+                guiText[0] = new GUIText("Paused", _canvas.width / 2, _canvas.height / 2 - 80, "40px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
                 guiText[1] = new GUIText("Options", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(210, 210, 210)");
-                if(mouseX > (_canvas.width / 2) - 50 && mouseX < (_canvas.width / 2) + 50 && mouseY < (_canvas.height / 2) + 30 && mouseY > (_canvas.height / 2))
-                {
+                if(menu.states[1][0] || (mouseX > (_canvas.width / 2) - 50 && mouseX < (_canvas.width / 2) + 50 && mouseY < (_canvas.height / 2) + 30 && mouseY > (_canvas.height / 2))) {
+                    if(menu.states[1][0]) menu.DrawArrow(3, (_canvas.width / 2) - 50, (_canvas.height / 2) + 15)
                     guiText[1] = new GUIText("Options", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(255, 255, 255)");
                 }
                 guiText[2] = new GUIText("Main Menu", _canvas.width / 2, (_canvas.height / 2) + 40, "28px VT323", "center", "top", "rgb(210, 210, 210)");
-                if(mouseX > (_canvas.width / 2) - 54 && mouseX < (_canvas.width / 2) + 54 && mouseY < (_canvas.height / 2) + 70 && mouseY > (_canvas.height / 2) + 45)
-                {
+                if(menu.states[1][1] || (mouseX > (_canvas.width / 2) - 54 && mouseX < (_canvas.width / 2) + 54 && mouseY < (_canvas.height / 2) + 70 && mouseY > (_canvas.height / 2) + 45)) {
+                    if(menu.states[1][1]) menu.DrawArrow(3, (_canvas.width / 2) - 60, (_canvas.height / 2) + 55)
                     guiText[2] = new GUIText("Main Menu", _canvas.width / 2, (_canvas.height / 2) + 40, "28px VT323", "center", "top", "rgb(255, 255, 255)");
                 }
-				guiText[3] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2) + 80, "28px VT323", "center", "top", "rgb(210, 210, 210)");
-				if(mouseX > (_canvas.width / 2 ) - 52 && mouseX < (_canvas.width / 2 + 20) + 35 && mouseY < (_canvas.height / 2 + 110) - 3 && mouseY > (_canvas.height / 2 + 80) )
-                {
+                guiText[3] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2) + 80, "28px VT323", "center", "top", "rgb(210, 210, 210)");
+                if(menu.states[1][2] || (mouseX > (_canvas.width / 2 ) - 52 && mouseX < (_canvas.width / 2 + 20) + 35 && mouseY < (_canvas.height / 2 + 107) && mouseY > (_canvas.height / 2 + 80))) {
+                    if(menu.states[1][2]) menu.DrawArrow(3, (_canvas.width / 2) - 58, (_canvas.height / 2) + 95)
                     guiText[3] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2) + 80, "28px VT323", "center", "top", "rgb(255, 255, 255)");
                 }
-				break;
-				break;
+                break;
 			}
 			case 2:
 			{// Upgrade Menu
