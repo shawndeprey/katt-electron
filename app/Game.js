@@ -2332,8 +2332,8 @@ function Game()
 		this.width = Width;
 		this.height = Height;
 		this.totalMissiles = 0;
-		this.life = 10;
-		this.lives = 1;
+		this.life = 100;
+		this.lives = 3;
 		this.maxLife = 100;
 		this.shieldLevel = 0;
 		this.shield = 100;
