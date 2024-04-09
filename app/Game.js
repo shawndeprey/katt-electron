@@ -633,7 +633,7 @@ function Game()
                 [[false, false], [false, false, false, true], [false, false, false, false, false, false, false]],
                 [true, false, false],
                 [],
-                [],
+                [true, false],
                 // Options: Particles, Music, SFX, Back
                 [true, false, false, false],
                 [],
@@ -648,7 +648,7 @@ function Game()
             // Escape this function if a menu option was moved within the last n milliseconds
             if(this.timeout > 0) return;
 
-            if(activeMenu == 0 || activeMenu == 1 || activeMenu == 3) { // Main Menu
+            if(activeMenu == 0 || activeMenu == 1 || activeMenu == 3 || activeMenu == 5) { // Linear Navigation Support
                 var currentIndex = this.states[activeMenu].findIndex(value => value === true);
                 var newIndex = currentIndex;
                 // up/left = up, down/right = down
@@ -659,7 +659,7 @@ function Game()
                 }
                 this.timeout = 5; // 250 ms delay before next action
             } else
-            if(activeMenu == 2) {
+            if(activeMenu == 2) { // 2D Navigation Support
                 let [currentRow, currentCol] = this.findCurrentPosition(this.states[activeMenu]);
                 switch(direction) {
                     case 0: // Up
@@ -688,7 +688,7 @@ function Game()
                 this.states[activeMenu][currentRow][currentCol] = true;
                 this.timeout = 5; // 250 ms delay before next action
             } else
-            if(activeMenu == 6) { // Options menu
+            if(activeMenu == 6) { // Options menu - Custom event states for left/Right inputs
                 if(direction === 0 || direction === 2) {
                     var currentIndex = this.states[activeMenu].findIndex(value => value === true);
                     var newIndex = currentIndex;
@@ -818,7 +818,11 @@ function Game()
                     break;
                 }
                 case 4: { break; }
-                case 5: { break; }
+                case 5: {
+                    if(this.states[5][0]) self.hardReset();
+                    if(this.states[5][1]) ipcRenderer.send('quit-app');
+                    break;
+                }
                 case 6: {
                     if(this.states[6][3]) { currentGui = lastGui; lastGui = 6; }
                     break;
@@ -3232,12 +3236,12 @@ function Game()
 			}
 			case 5:
 			{// Game Over Menu
-                if(mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10) {
+                if(mouseX > (_canvas.width / 2 - 65) && mouseX < (_canvas.width / 2 + 70) && mouseY < (_canvas.height / 2 + 30) && mouseY > (_canvas.height / 2)) {
                     self.hardReset();
                 }
-				if(mouseX > (_canvas.width / 2 + 10) - 93 && mouseX < (_canvas.width / 2 + 10) + 78 && mouseY < (_canvas.height / 2 + 60) + 20 && mouseY > (_canvas.height / 2 + 58) - 10) {
-					ipcRenderer.send('quit-app');
-				}
+                if(mouseX > (_canvas.width / 2 - 65) && mouseX < (_canvas.width / 2 + 70) && mouseY < (_canvas.height / 2 + 80) && mouseY > (_canvas.height / 2 + 48)) {
+                    ipcRenderer.send('quit-app');
+                }
 				break;
 			}
 			case 6:
@@ -4699,20 +4703,20 @@ function Game()
 			}
 			case 5:
 			{// Game Over Menu
-				guiText[0] = new GUIText("Game Over", _canvas.width / 2, _canvas.height / 2 - 100, 
-										 "44px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
-										 
-        		if(mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10) {
-					guiText[1] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px Thunderstrike", "center", "top", "rgb(96, 255, 96)");
-				} else {
-					guiText[1] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
-				}
-				if(mouseX > (_canvas.width / 2 + 10) - 93 && mouseX < (_canvas.width / 2 + 10) + 78 && mouseY < (_canvas.height / 2 + 60) + 20 && mouseY > (_canvas.height / 2 + 58) - 10) {
-					guiText[2] = new GUIText("Exit Game", _canvas.width / 2, _canvas.height / 2 + 50, "28px Thunderstrike", "center", "top", "rgb(96, 255, 96)");
-				} else {
-					guiText[2] = new GUIText("Exit Game", _canvas.width / 2, _canvas.height / 2 + 50, "28px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
-				}
-				break;
+                guiText[0] = new GUIText("Game Over", _canvas.width / 2, _canvas.height / 2 - 100, "44px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
+                if(menu.states[5][0] || (mouseX > (_canvas.width / 2 - 65) && mouseX < (_canvas.width / 2 + 70) && mouseY < (_canvas.height / 2 + 30) && mouseY > (_canvas.height / 2))) {
+                    if(menu.states[5][0]) menu.DrawArrow(3, _canvas.width / 2 - 65, _canvas.height / 2 + 15);
+                    guiText[1] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(255, 255, 255)");
+                } else {
+                    guiText[1] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(210, 210, 210)");
+                }
+                if(menu.states[5][1] || (mouseX > (_canvas.width / 2 - 65) && mouseX < (_canvas.width / 2 + 70) && mouseY < (_canvas.height / 2 + 80) && mouseY > (_canvas.height / 2 + 48))) {
+                    if(menu.states[5][1]) menu.DrawArrow(3, _canvas.width / 2 - 65, _canvas.height / 2 + 65);
+                    guiText[2] = new GUIText("Exit Game", _canvas.width / 2, _canvas.height / 2 + 50, "28px VT323", "center", "top", "rgb(255, 255, 255)");
+                } else {
+                    guiText[2] = new GUIText("Exit Game", _canvas.width / 2, _canvas.height / 2 + 50, "28px VT323", "center", "top", "rgb(210, 210, 210)");
+                }
+                break;
 			}
 			case 6:
 			{
