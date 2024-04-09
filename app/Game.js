@@ -631,7 +631,7 @@ function Game()
                 [true, false, false, false],
                 [true, false, false],
                 [[false, false], [false, false, false, true], [false, false, false, false, false, false, false]],
-                [],
+                [true, false, false],
                 [],
                 [],
                 // Options: Particles, Music, SFX, Back
@@ -648,7 +648,7 @@ function Game()
             // Escape this function if a menu option was moved within the last n milliseconds
             if(this.timeout > 0) return;
 
-            if(activeMenu == 0 || activeMenu == 1) { // Main Menu
+            if(activeMenu == 0 || activeMenu == 1 || activeMenu == 3) { // Main Menu
                 var currentIndex = this.states[activeMenu].findIndex(value => value === true);
                 var newIndex = currentIndex;
                 // up/left = up, down/right = down
@@ -811,7 +811,12 @@ function Game()
 
                     break;
                 }
-                case 3: { break; }
+                case 3: {
+                    if(this.states[3][0]){ currentGui = NULL_GUI_STATE; self.softReset(); }
+                    if(this.states[3][1]){ self.hardReset(); }
+                    if(this.states[3][2]){ ipcRenderer.send('quit-app'); }
+                    break;
+                }
                 case 4: { break; }
                 case 5: { break; }
                 case 6: {
@@ -2327,8 +2332,8 @@ function Game()
 		this.width = Width;
 		this.height = Height;
 		this.totalMissiles = 0;
-		this.life = 100;
-		this.lives = 3;
+		this.life = 10;
+		this.lives = 1;
 		this.maxLife = 100;
 		this.shieldLevel = 0;
 		this.shield = 100;
@@ -4322,7 +4327,7 @@ function Game()
                 {//Pea Shooter, Weapon ID: 0
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(logo[0], 10, 280, 48, 48);    
+                    buffer.drawImage(images[0], 10, 280, 48, 48);    
                     buffer.shadowBlur = 0;
                     menu.DrawArrow(0, 34, 336);
                     if(gco.weaponsOwned[0])
@@ -4652,17 +4657,20 @@ function Game()
 			{// Continue Menu
 				guiText[0] = new GUIText("You Died", _canvas.width / 2, _canvas.height / 2 - 100, "42px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
 										 
-        		if(mouseX > (_canvas.width / 2 + 15) - 65 && mouseX < (_canvas.width / 2 + 15) + 36 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 14)	{
+        		if(menu.states[3][0] || (mouseX > (_canvas.width / 2 + 15) - 65 && mouseX < (_canvas.width / 2 + 15) + 36 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 14)) {
+                    if(menu.states[3][0]) menu.DrawArrow(3, _canvas.width / 2 - 56, _canvas.height / 2 + 15);
 					guiText[1] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(255, 255, 255)");
 				} else {
 					guiText[1] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(210, 210, 210)");
 				}
-				if(mouseX > (_canvas.width / 2 + 10) - 61 && mouseX < (_canvas.width / 2 + 10) + 43 && mouseY < (_canvas.height / 2 + 53) + 20 && mouseY > (_canvas.height / 2 + 50) )	{
+				if(menu.states[3][1] || (mouseX > (_canvas.width / 2 + 10) - 63 && mouseX < (_canvas.width / 2 + 10) + 43 && mouseY < (_canvas.height / 2 + 53) + 20 && mouseY > (_canvas.height / 2 + 50)))	{
+                    if(menu.states[3][1]) menu.DrawArrow(3, _canvas.width / 2 - 60, _canvas.height / 2 + 66);
 					guiText[2] = new GUIText("Main Menu", _canvas.width / 2, (_canvas.height / 2 + 50), "28px VT323", "center", "top", "rgb(255, 255, 255)");
 				} else {
 					guiText[2] = new GUIText("Main Menu", _canvas.width / 2, (_canvas.height / 2 + 50), "28px VT323", "center", "top", "rgb(210, 210, 210)");
 				}
-				if(mouseX > (_canvas.width / 2 + 10) - 61 && mouseX < (_canvas.width / 2 + 10) + 43 && mouseY < (_canvas.height / 2 + 106) + 20 && mouseY > (_canvas.height / 2 + 100) ) {
+				if(menu.states[3][2] || (mouseX > (_canvas.width / 2 + 10) - 63 && mouseX < (_canvas.width / 2 + 10) + 43 && mouseY < (_canvas.height / 2 + 106) + 20 && mouseY > (_canvas.height / 2 + 100))) {
+                    if(menu.states[3][2]) menu.DrawArrow(3, _canvas.width / 2 - 60, _canvas.height / 2 + 115);
 					guiText[3] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2 + 100), "28px VT323", "center", "top", "rgb(255, 255, 255)");
 				} else {
 					guiText[3] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2 + 100), "28px VT323", "center", "top", "rgb(210, 210, 210)");
