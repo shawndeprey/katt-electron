@@ -636,14 +636,12 @@ function Game()
             // 6 = Options Menu
             // 7 = Submit Score Menu
             this.states = [
-                // Main Menu: New Game, Options, Story, Exit Game
                 [true, false, false, false],
                 [true, false, false],
                 [[false, false], [false, false, false, true], [false, false, false, false, false, false, false]],
                 [true, false, false],
                 [true],
                 [true, false],
-                // Options: Particles, Music, SFX, Back
                 [true, false, false, false],
                 [true, false],
             ]
