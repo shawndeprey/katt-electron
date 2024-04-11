@@ -379,20 +379,20 @@ function Game()
 		{
 			this.levelMission.GenerateObjectives();
 			
-			this.weaponsOwned[0] = true;//Pea Shooter
-			this.weaponsOwned[1] = false;//Pea Shooter Pro
-			this.weaponsOwned[2] = false;//Master Pea Shooter
+			this.weaponsOwned[0] = true;//Primary Assult
+			this.weaponsOwned[1] = false;//Rapid Fire Assult
+			this.weaponsOwned[2] = false;//Rapid Fire Cyclone
 			this.weaponsOwned[49] = true;//Null Weapon
-			this.weaponsOwned[50] = true;//Missile
-			this.weaponsOwned[51] = false;//Homing Missile
-            this.weaponsOwned[52] = false;//Space Mine
+			this.weaponsOwned[50] = true;//SD-15 Sidewinder
+			this.weaponsOwned[51] = false;//DM-21 Auto Strike
+            this.weaponsOwned[52] = false;//Impact Burst Mine
 			
-			this.weaponPrice[0] = 0;//Pea Shooter
-			this.weaponPrice[1] = 150;//Pea Shooter Pro
-			this.weaponPrice[2] = 500;//Master Pea Shooter
-			this.weaponPrice[50] = 0;//Missile
-			this.weaponPrice[51] = 250;//Homing Missile
-            this.weaponPrice[52] = 500;//Space Mine
+			this.weaponPrice[0] = 0;//Primary Assult
+			this.weaponPrice[1] = 150;//Rapid Fire Assult
+			this.weaponPrice[2] = 500;//Rapid Fire Cyclone
+			this.weaponPrice[50] = 0;//SD-15 Sidewinder
+			this.weaponPrice[51] = 250;//DM-21 Auto Strike
+            this.weaponPrice[52] = 500;//Impact Burst Mine
 		}
 		
 		this.init_audio = function()
@@ -780,20 +780,20 @@ function Game()
                     // Quit
                     if(this.states[2][0][1]){ self.hardReset(); }
 
-                    // Pea Shooter
+                    // Primary Assult
                     if(this.states[2][1][0]){ if(gco.weaponsOwned[0]){ gco.EquipWeapon(0); } else { if(player.money >= gco.weaponPrice[0]){ gco.PurchaseWeapon(0); } else {gco.notEnoughCores = 1000;}} }
-                    // Pea Shooter Pro
+                    // Rapid Fire Assult
                     if(this.states[2][1][1]){ if(gco.weaponsOwned[1]){ gco.EquipWeapon(1); } else { if(player.money >= gco.weaponPrice[1]){ gco.PurchaseWeapon(1); } else {gco.notEnoughCores = 1000;}} }
-                    // Master Pea Shooter
+                    // Rapid Fire Cyclone
                     if(this.states[2][1][2]){ if(gco.weaponsOwned[2]){ gco.EquipWeapon(2); } else { if(player.money >= gco.weaponPrice[2]){ gco.PurchaseWeapon(2); } else {gco.notEnoughCores = 1000;}} }
                     // Start Level
                     if(this.states[2][1][3]){ if(player.weapon != 49){ gco.StartLevel(); }}
 
                     // Missile
                     if(this.states[2][2][0]){ if(gco.weaponsOwned[50]){ gco.EquipWeapon(50); } else { if(player.money >= gco.weaponPrice[50]){ gco.PurchaseWeapon(50); } else {gco.notEnoughCores = 1000;}} }
-                    // Homing Missile
+                    // DM-21 Auto Strike
                     if(this.states[2][2][1]){ if(gco.weaponsOwned[51]){ gco.EquipWeapon(51); } else { if(player.money >= gco.weaponPrice[51]){ gco.PurchaseWeapon(51); } else {gco.notEnoughCores = 1000;}} }
-                    // Space Mine
+                    // Impact Burst Mine
                     if(this.states[2][2][2]){ if(gco.weaponsOwned[52]){ gco.EquipWeapon(52); } else { if(player.money >= gco.weaponPrice[52]){ gco.PurchaseWeapon(52); } else {gco.notEnoughCores = 1000;}} }
                     // Laser
                     if(this.states[2][2][3]){ if(gco.ownLaser){ gco.EquipWeapon(9000); } else { if(player.money >= gco.laserPrice){ gco.PurchaseWeapon(9000); } else {gco.notEnoughCores = 1000;}} }
@@ -2162,28 +2162,28 @@ function Game()
 			switch(this.missileType)
 			{
 				case 0:
-				{//Pea Shooter
+				{//Primary Assult
 					this.y -= this.speed * delta;
 					break;
 				}
 				case 1:
-				{//Pea Shooter pro
+				{//Rapid Fire Assult
 					this.y -= this.speed * delta;
 					break;
 				}
 				case 2:
-				{//Master Pea Shooter
+				{//Rapid Fire Cyclone
 					this.x = this.startX + (30 * Math.sin(30 * 3.14 * 100 * (this.timeAlive / 1000))) * this.sinOffset;
 					this.y -= this.speed * delta;
 					break;
 				}
 				case 50:
-				{//Boom Bullet
+				{//SD-15 Sidewinder
 					this.y -= this.speed * delta;
 					break;
 				}
 				case 51:
-				{//Friendly Boom Bullet
+				{//DM-21 Auto Strike
 					this.y -= this.speed * delta;
 					if(this.missileTarget != 1000)
 					{
@@ -2206,7 +2206,7 @@ function Game()
 					break;
 				}
                 case 52:
-				{//Space Mine
+				{//Impact Burst Mine
 					break;
 				}
 				case 100:
@@ -3152,27 +3152,27 @@ function Game()
                     self.hardReset();
                 }
                 if(mouseX > 10 && mouseX < 58 && mouseY > 280 && mouseY < 328)
-                {//Pea Shooter, Weapon ID: 0
+                {//Primary Assult, Weapon ID: 0
                     if(gco.weaponsOwned[0]){ gco.EquipWeapon(0); } else { if(player.money >= gco.weaponPrice[0]){ gco.PurchaseWeapon(0); } else {gco.notEnoughCores = 1000;}}
                 }
                 if(mouseX > 60 && mouseX < 108 && mouseY > 280 && mouseY < 328)
-                {//Pea Shooter Pro, Weapon ID: 1
+                {//Rapid Fire Assult, Weapon ID: 1
                     if(gco.weaponsOwned[1]){ gco.EquipWeapon(1); } else { if(player.money >= gco.weaponPrice[1]){ gco.PurchaseWeapon(1); } else {gco.notEnoughCores = 1000;}}
                 }
                 if(mouseX > 110 && mouseX < 158 && mouseY > 280 && mouseY < 328)
-                {//Master Pea Shooter, Weapon ID: 2
+                {//Rapid Fire Cyclone, Weapon ID: 2
                     if(gco.weaponsOwned[2]){ gco.EquipWeapon(2); } else { if(player.money >= gco.weaponPrice[2]){ gco.PurchaseWeapon(2); } else {gco.notEnoughCores = 1000;}}
                 }
                 if(mouseX > 10 && mouseX < 58 && mouseY > 448 && mouseY < 496)
-                {//Boom Bullet, Weapon ID: 50
+                {//SD-15 Sidewinder, Weapon ID: 50
                     if(gco.weaponsOwned[50]){ gco.EquipWeapon(50); } else { if(player.money >= gco.weaponPrice[50]){ gco.PurchaseWeapon(50); } else {gco.notEnoughCores = 1000;}}
                 }
                 if(mouseX > 60 && mouseX < 108 && mouseY > 448 && mouseY < 496)
-                {//Friendly Boom Bullet, Weapon ID: 51
+                {//DM-21 Auto Strike, Weapon ID: 51
                     if(gco.weaponsOwned[51]){ gco.EquipWeapon(51); } else { if(player.money >= gco.weaponPrice[51]){ gco.PurchaseWeapon(51); } else {gco.notEnoughCores = 1000;}}
                 }
                 if(mouseX > 110 && mouseX < 158 && mouseY > 448 && mouseY < 496)
-                {//Space Mine, Weapon ID: 52
+                {//Impact Burst Mine, Weapon ID: 52
                     if(gco.weaponsOwned[52]){ gco.EquipWeapon(52); } else { if(player.money >= gco.weaponPrice[52]){ gco.PurchaseWeapon(52); } else {gco.notEnoughCores = 1000;}}
                 }
                 if(mouseX > 160 && mouseX < 208 && mouseY > 448 && mouseY < 496)
@@ -3845,7 +3845,7 @@ function Game()
 				case 0:
 				case 1:
 				case 2:
-				{//Pea Shooter Ultra
+				{//Primary Assult Ultra
 					buffer.drawImage(itemImages[1], missiles[i].x - (missiles[i].width / 2), missiles[i].y - (missiles[i].height / 2), missiles[i].width, missiles[i].height);
 					break;
 				}
@@ -4205,8 +4205,8 @@ function Game()
 
                 //Static Text
                 guiText[0] = new GUIText("Missions", 10, 10, "20px VT323", "left", "top", "rgb(230, 230, 255)");
-                guiText[1] = new GUIText("Main Weapon", 10, _canvas.height / 2 - 50, "20px VT323", "left", "top", "rgb(230, 230, 255)");
-                guiText[2] = new GUIText("Secondary Weapon", 10, 420, "20px VT323", "left", "top", "rgb(230, 230, 255)");
+                guiText[1] = new GUIText("Primary Fire", 10, _canvas.height / 2 - 50, "20px VT323", "left", "top", "rgb(230, 230, 255)");
+                guiText[2] = new GUIText("Artillery", 10, 420, "20px VT323", "left", "top", "rgb(230, 230, 255)");
                 guiText[3] = new GUIText("Cores: " + player.money, _canvas.width - 100, _canvas.height - 53, "20px VT323", "left", "top", "rgb(230, 230, 255)");
                 guiText[4] = new GUIText("Extra Items", _canvas.width - 300, 420, "20px VT323", "left", "top", "rgb(230, 230, 255)");
                 guiText[7] = new GUIText("Level " + gco.level, 5, _buffer.height / 2 - 76, "20px VT323", "left", "top", "rgb(230, 230, 255)");
@@ -4314,24 +4314,30 @@ function Game()
                 }
 
                 // Bottom text tooltip initialization
-                guiText[6] = new GUIText("Select item to purchase.", _canvas.width / 2, _canvas.height - 33, "12px VT323", "center", "top", "rgb(230, 230, 255)");
+                //guiText[6] = new GUIText("Select item to purchase.", _canvas.width / 2, _canvas.height - 33, "16px VT323", "center", "top", "rgb(230, 230, 255)");
+				guiText[6] = new GUIText("", _canvas.width / 2, _canvas.height - 53, "18px VT323", "center", "top", "rgb(230, 230, 255)");
+				guiText[10] = new GUIText("", _canvas.width / 2, _canvas.height - 303, "16px VT323", "center", "top", "rgb(230, 230, 255)");
+				guiText[11] = new GUIText("", _canvas.width / 2, _canvas.height - 303, "16px VT323", "center", "top", "rgb(230, 230, 255)");
+				guiText[12] = new GUIText("", _canvas.width / 2, _canvas.height - 303, "16px VT323", "center", "top", "rgb(230, 230, 255)");
+				guiText[13] = new GUIText("", _canvas.width / 2, _canvas.height - 33, "14px VT323", "center", "top", "rgb(230, 230, 255)");
+				guiText[14] = new GUIText("", _canvas.width / 2, _canvas.height - 23, "14px VT323", "center", "top", "rgb(230, 230, 255)");
 
                 // GUI Icons
-// NEW WEAPON Pea Shooter
+// NEW WEAPON Primary Assult
                 if(menu.states[2][1][0] || (mouseX > 10 && mouseX < 58 && mouseY > 280 && mouseY < 328))
-                {//Pea Shooter, Weapon ID: 0
+                {//Primary Assult, Weapon ID: 0
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(logo[0], 10, 280, 48, 48);    
+                    buffer.drawImage(images[0], 10, 280, 48, 48);    
                     buffer.shadowBlur = 0;
-                    menu.DrawArrow(0, 34, 336);
-                    if(gco.weaponsOwned[0])
-                    {
-                        guiText[6].text = "You already own Pea Shooter.";
-                    } else
-                    {
-                        guiText[6].text = "Pea Shooter costs " + gco.weaponPrice[0] + " cores.";
-                    }
+                    menu.DrawArrow(0, 34, 336);					
+					guiText[6].text = "Primary Assult";
+					if(player.weapon == 0){
+						guiText[13].text = "Equipped";
+					}else{
+						guiText[13].text = "Select to Equip";
+					}
+					
                 }
                 if(gco.weaponsOwned[0] && player.weapon == 0)
                 {
@@ -4348,20 +4354,25 @@ function Game()
                 } 
                 //END WEAPON
 
-// NEW WEAPON Pea Shooter Pro
+// NEW WEAPON Rapid Fire Assult
                 if(menu.states[2][1][1] || (mouseX > 60 && mouseX < 108 && mouseY > 280 && mouseY < 328))
-                {//Pea Shooter Pro, Weapon ID: 1
+                {//Rapid Fire Assult, Weapon ID: 1
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[1], 60, 280, 48, 48);
                     buffer.shadowBlur = 0;
                     menu.DrawArrow(0, 84, 336);
+					guiText[6].text = "Rapid Fire Assult";
                     if(gco.weaponsOwned[1])
                     {
-                        guiText[6].text = "You already own Pea Shooter Pro.";
+						if(player.weapon == 1){
+							guiText[13].text = "Equipped";
+						}else{
+							guiText[13].text = "Select to Equip";
+						}
                     } else
                     {
-                        guiText[6].text = "Pea Shooter Pro costs " + gco.weaponPrice[1] + " cores.";
+						guiText[13].text = gco.weaponPrice[1] + " Cores";
                     }
                 }
                 if(gco.weaponsOwned[1] && player.weapon == 1)
@@ -4379,20 +4390,25 @@ function Game()
                 }
                 //END WEAPON
 				
-// NEW WEAPON Master Pea Shooter
+// NEW WEAPON Rapid Fire Cyclone
                 if(menu.states[2][1][2] || (mouseX > 110 && mouseX < 158 && mouseY > 280 && mouseY < 328))
-                {//Master Pea Shooter, Weapon ID: 2
+                {//Rapid Fire Cyclone, Weapon ID: 2
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[7], 110, 280, 48, 48);
                     buffer.shadowBlur = 0;
                     menu.DrawArrow(0, 134, 336);
+					guiText[6].text = "Rapid Fire Cyclone";
                     if(gco.weaponsOwned[2])
                     {
-                        guiText[6].text = "You already own Master Pea Shooter.";
+						if(player.weapon == 2){
+							guiText[13].text = "Equipped";
+						}else{
+							guiText[13].text = "Select to Equip";
+						}
                     } else
                     {
-                        guiText[6].text = "Master Pea Shooter costs " + gco.weaponPrice[2] + " cores.";
+                        guiText[13].text = gco.weaponPrice[2] + " Cores";
                     }
                 }
                 if(gco.weaponsOwned[2] && player.weapon == 2)
@@ -4410,21 +4426,21 @@ function Game()
                 }
                 //END WEAPON
 
-// NEW WEAPON Boom Bullet
+// NEW WEAPON SD-15 Sidewinder
                 if(menu.states[2][2][0] || (mouseX > 10 && mouseX < 58 && mouseY > 448 && mouseY < 496))
-                {//Boom Bullet, Weapon ID: 50
+                {//SD-15 Sidewinder, Weapon ID: 50
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[2], 10, 448, 48, 48);
                     buffer.shadowBlur = 0;
                     menu.DrawArrow(0, 34, 504);
-                    if(gco.weaponsOwned[50])
-                    {
-                        guiText[6].text = "You already own Boom Bullet.";
-                    } else
-                    {
-                        guiText[6].text = "Boom Bullet costs " + gco.weaponPrice[50] + " cores.";
-                    }
+                    guiText[6].text = "SD-15 Sidewinder";
+					if(player.secondary == 50){
+						guiText[13].text = "Equipped";
+					}else{
+						guiText[13].text = "Select to Equip";
+					}
+                    
                 }
                 if(gco.weaponsOwned[50] && player.secondary == 50)
                 {
@@ -4442,20 +4458,25 @@ function Game()
 
                 //END WEAPON
 
-// NEW WEAPON Friendly Boom Bullet
+// NEW WEAPON DM-21 Auto Strike
                 if(menu.states[2][2][1] || (mouseX > 60 && mouseX < 108 && mouseY > 448 && mouseY < 496))
-                {//Friendly Boom Bullet, Weapon ID: 51
+                {//DM-21 Auto Strike, Weapon ID: 51
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[3], 60, 448, 48, 48);
                     buffer.shadowBlur = 0;
                     menu.DrawArrow(0, 84, 504);
+					guiText[6].text = "DM-21 Auto Strike";
                     if(gco.weaponsOwned[51])
                     {
-                        guiText[6].text = "You already own Friendly Boom Bullet.";
+						if(player.secondary == 51){
+							guiText[13].text = "Equipped";
+						}else{
+							guiText[13].text = "Select to Equip";
+						}
                     } else
                     {
-                        guiText[6].text = "Friendly Boom Bullet costs " + gco.weaponPrice[51] + " cores.";
+                        guiText[13].text = gco.weaponPrice[51] + " Cores";
                     }
                 }
                 if(gco.weaponsOwned[51] && player.secondary == 51)
@@ -4473,20 +4494,25 @@ function Game()
                 }
                 //END WEAPON
 
-// NEW WEAPON Space Mine
+// NEW WEAPON Impact Burst Mine
                 if(menu.states[2][2][2] || (mouseX > 110 && mouseX < 158 && mouseY > 448 && mouseY < 496))
-                {//Friendly Boom Bullet, Weapon ID: 52
+                {//Impact Burst Mine, Weapon ID: 52
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[8], 110, 448, 48, 48);
                     buffer.shadowBlur = 0;
                     menu.DrawArrow(0, 134, 504);
+					guiText[6].text = "Impact Burst Mine";
                     if(gco.weaponsOwned[52])
                     {
-                        guiText[6].text = "You already own Space Mine.";
+						if(player.secondary == 52){
+							guiText[13].text = "Equipped";
+						}else{
+							guiText[13].text = "Select to Equip";
+						}
                     } else
                     {
-                        guiText[6].text = "Space Mine costs " + gco.weaponPrice[52] + " cores.";
+                        guiText[13].text = gco.weaponPrice[52] + " Cores";
                     }
                 }
                 if(gco.weaponsOwned[52] && player.secondary == 52)
@@ -4512,12 +4538,17 @@ function Game()
                     buffer.drawImage(images[9], 160, 448, 48, 48);
                     buffer.shadowBlur = 0;
                     menu.DrawArrow(0, 184, 504);
+					guiText[6].text = "LB-24 Ultima Laser";
                     if(gco.ownLaser)
                     {
-                        guiText[6].text = "You already own the Phaser Laser.";
+						if(player.secondary == 9000){
+							guiText[13].text = "Equipped";
+						}else{
+							guiText[13].text = "Select to Equip";
+						}
                     } else
                     {
-                        guiText[6].text = "Phaser Laser costs " + gco.laserPrice + " cores.";
+                        guiText[13].text = gco.laserPrice + " Cores";
                     }
                 }
                 if(gco.ownLaser && player.secondary == 9000)
@@ -4543,13 +4574,17 @@ function Game()
                     buffer.drawImage(images[4], _canvas.width - 300, 448, 48, 48);
                     buffer.shadowBlur = 0;
                     menu.DrawArrow(0, _canvas.width - 276, 504);
+					guiText[6].text = "Shield"
+					guiText[6].y = _canvas.height - 65
+					guiText[6].fontStyle = "20px VT323"
                     if(player.hasShield)
-                    {
-                        guiText[6].text = "Your shield is level " + player.shieldLevel + ". Upgrade for " + (player.shieldLevel + 1) * 250 + " cores.";
-                    } else
-                    {
-                        guiText[6].text = "A Shield costs 250 cores.";
-                    }
+                     {
+						guiText[14] = new GUIText("Upgrade: " + (player.shieldLevel + 1) * 250 + " Cores", _canvas.width / 2, _canvas.height - 23, "14px VT323", "center", "top", "rgb(230, 230, 255)");
+						guiText[13].text = "Level: " + player.shieldLevel
+						guiText[13].y = _canvas.height - 43
+                     } else {
+						guiText[14] = new GUIText("250 Cores", _canvas.width / 2, _canvas.height - 33, "14px VT323", "center", "top", "rgb(230, 230, 255)");
+					 }
                 }
                 if(player.hasShield)
                 {
@@ -4574,17 +4609,22 @@ function Game()
                     buffer.drawImage(images[5], _canvas.width - 250, 448, 48, 48);
                     buffer.shadowBlur = 0;
                     menu.DrawArrow(0, _canvas.width - 226, 504);
-                    guiText[6].text = "Ammo Level: " + player.secondaryAmmoLevel + "  Max Secondary Ammo: " + player.maxSecondaryAmmo + ". Upgrade for " + (player.secondaryAmmoLevel + 1) * 50 + " cores.";
+					guiText[6].text = "Ammo"
+					guiText[6].y = _canvas.height - 65
+					guiText[6].fontStyle = "20px VT323"
+					guiText[14] = new GUIText("Upgrade: " + (player.secondaryAmmoLevel + 1) * 50 + " Cores", _canvas.width / 2, _canvas.height - 23, "14px VT323", "center", "top", "rgb(230, 230, 255)");
+					guiText[13].text = "Level: " + player.secondaryAmmoLevel;
+					guiText[13].y = _canvas.height - 43;
+
+                    //guiText[6].text = "Ammo Level: " + player.secondaryAmmoLevel + "  Max Secondary Ammo: " + player.maxSecondaryAmmo + ". Upgrade for " + (player.secondaryAmmoLevel + 1) * 50 + " cores.";
                 }
-                if(player.secondaryAmmoLevel > 1)
-                {
+                if(player.secondaryAmmoLevel > 1) {
 					buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[5], _canvas.width - 250, 448, 48, 48);
 					buffer.shadowBlur = 0;
                 }
-                else
-                {
+				else {
 					buffer.globalAlpha = 0.5;
                     buffer.drawImage(images[5], _canvas.width - 250, 448, 48, 48);
 					buffer.globalAlpha = 1.0;
@@ -4599,12 +4639,16 @@ function Game()
                     buffer.drawImage(images[6], _canvas.width - 200, 448, 48, 48);
                     buffer.shadowBlur = 0;
                     menu.DrawArrow(0, _canvas.width - 176, 504);
-					if(player.secondaryAmmo < player.maxSecondaryAmmo)
-					{
-                    	guiText[6].text = "Secondary Ammo: " + player.secondaryAmmo + "  Max Secondary Ammo: " + player.maxSecondaryAmmo + ". +25 Ammo for " + gco.secondaryAmmoPrice + " cores.";
-					} else
-					{
-						guiText[6].text = "Secondary Ammo full.";
+					guiText[6].text = "Ammo"
+					guiText[6].y = _canvas.height - 65
+					guiText[6].fontStyle = "20px VT323"
+					guiText[13].text = "Level: " + player.secondaryAmmoLevel;
+					guiText[13].y = _canvas.height - 43;
+					guiText[13].text = player.secondaryAmmo + "/" + player.maxSecondaryAmmo;
+					if(player.secondaryAmmo < player.maxSecondaryAmmo) {
+						guiText[14] = new GUIText(gco.secondaryAmmoPrice + " Cores", _canvas.width / 2, _canvas.height - 23, "14px VT323", "center", "top", "rgb(230, 230, 255)");
+					} else {
+						guiText[14] = new GUIText("Full", _canvas.width / 2, _canvas.height - 23, "14px VT323", "center", "top", "rgb(255, 0, 0)");
 					}
                 }
                 if(player.secondaryAmmo < player.maxSecondaryAmmo)
