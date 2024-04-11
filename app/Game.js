@@ -298,7 +298,7 @@ function Game()
 		totalDestroys += destroys;
 		destroys = 0;
         player.life = 100;
-		initStars();
+		starGeneration.initStars();
 		totalShots += player.totalMissiles;
         player.totalMissiles = 0;
         player.x = _buffer.width / 2;
@@ -308,7 +308,6 @@ function Game()
 		player.resetShield();
 		sfx.pause(1);//Pause laser sound on round end
 		enemyGeneration.hasBoss = false;
-		starGeneration.hasPlanet = false;
 	}
     
     this.popArray = function(Array, popThis)
@@ -1096,25 +1095,25 @@ function Game()
 			this.GenerateObjectives();
 		}
 	}
-	
-    function initStars()
-    {
-		stars = [];
-        for(i = 0; i < numStars; i++)
-        {
-            var X = Math.floor(Math.random() * _buffer.width);
-            var Y = Math.floor(Math.random() * _buffer.height);
-            star = new Star(X, Y, 0, 10, false, 1);
-            stars.push(star);
-        }
-    }
     
     function StarGeneration()
 	{
 		this.onTick = 0;
 		this.hasPlanet = false;
-		this.generate = function()
-		{
+
+        this.initStars = function() {
+            this.hasPlanet = false;
+            stars = [];
+            for(i = 0; i < numStars; i++)
+            {
+                var X = Math.floor(Math.random() * _buffer.width);
+                var Y = Math.floor(Math.random() * _buffer.height);
+                star = new Star(X, Y, 0, 10, false, 1);
+                stars.push(star);
+            }
+        }
+
+		this.generate = function() {
 			if(ticks != this.onTick)
 			{
 				this.onTick = ticks;
@@ -2780,7 +2779,7 @@ function Game()
         player = new Player(24, 40);
 		enemyGeneration = new EnemyGeneration();
         starGeneration = new StarGeneration();
-        initStars();
+        starGeneration.initStars();
 		itemGeneration = new RandomItemGeneration();
 		
 		gco = new GameControlObject();
