@@ -507,7 +507,8 @@ function Game()
 		
 		this.ResetFuel = function()
 		{
-			player.currentFuel = this.fuelLevel * 60;
+            let fuelMultiplier = 60; // Base: 60
+			player.currentFuel = this.fuelLevel * fuelMultiplier;
 		}
 		
 		this.GoToUpgradeMenu = function()
@@ -564,8 +565,7 @@ function Game()
 						{
 							if(this.levelMission.CheckCompletion())
 							{
-								currentGui = 4;//Go to level up menu
-								gameState = 0;
+                                gco.goToLevelUpMenu()
 							} else
 							{
 								self.softReset();
@@ -583,6 +583,12 @@ function Game()
 				}
 			}
 		}
+
+        this.goToLevelUpMenu = function() {
+            menu.delayNextInput();
+            currentGui = 4; // Go to level up menu
+            gameState = 0;
+        }
 		
 		this.RandomBossExplosion = function()
 		{
@@ -612,7 +618,10 @@ function Game()
 
         this.Init = function()
         {
-            this.resetStates()
+            this.resetStates();
+
+            // When testing a GUI for dev purposes, use the following to get to it immediately on the main game screen
+            // setTimeout(() => { currentGui = 7; }, 1000)
         }
 
         this.resetStates = function()
@@ -620,7 +629,7 @@ function Game()
             //State GUIs
             // 0 = Main Menu
             // 1 = Pause Menu
-            // 2 = Level Up Menu
+            // 2 = Upgrade Menu
             // 3 = Continue Menu
             // 4 = Level Up Menu
             // 5 = Game Over Menu
@@ -632,12 +641,16 @@ function Game()
                 [true, false, false],
                 [[false, false], [false, false, false, true], [false, false, false, false, false, false, false]],
                 [true, false, false],
-                [],
+                [true],
                 [true, false],
                 // Options: Particles, Music, SFX, Back
                 [true, false, false, false],
-                [],
+                [true, false],
             ]
+        }
+
+        this.delayNextInput = function() {
+            this.timeout = 15; // 750ms delay
         }
 		
         this.move = function(activeMenu, direction)
@@ -648,7 +661,7 @@ function Game()
             // Escape this function if a menu option was moved within the last n milliseconds
             if(this.timeout > 0) return;
 
-            if(activeMenu == 0 || activeMenu == 1 || activeMenu == 3 || activeMenu == 5) { // Linear Navigation Support
+            if(activeMenu == 0 || activeMenu == 1 || activeMenu == 3 || activeMenu == 5 || activeMenu == 7) { // Linear Navigation Support
                 var currentIndex = this.states[activeMenu].findIndex(value => value === true);
                 var newIndex = currentIndex;
                 // up/left = up, down/right = down
@@ -765,23 +778,23 @@ function Game()
                 case 0:
                 { // Main Menu
                     if(!gco.playStory) {
-                        if(this.states[0][0]) currentGui = 2;
-                        if(this.states[0][1]) currentGui = 6; lastGui = 0;	
+                        if(this.states[0][0]) currentGui = 2; this.delayNextInput();
+                        if(this.states[0][1]) currentGui = 6; lastGui = 0;
                         if(this.states[0][2]) gco.playStory = true;
                         if(this.states[0][3]) ipcRenderer.send('quit-app');
                     }
                     break;
                 }
-                case 1: {
+                case 1: { // Pause Menu
                     if(this.states[1][0]){ currentGui = 6; lastGui = 1; }
-                    if(this.states[1][1]){ self.hardReset(); }
+                    if(this.states[1][1]){ self.hardReset(); this.delayNextInput(); }
                     if(this.states[1][2]){ ipcRenderer.send('quit-app'); }
                     break;
                 }
-                case 2: {
+                case 2: { // Upgrade Menu
                     
                     // Options
-                    if(this.states[2][0][0]){ currentGui = 6; lastGui = 2; }
+                    if(this.states[2][0][0]){ currentGui = 6; lastGui = 2; this.delayNextInput(); }
                     // Quit
                     if(this.states[2][0][1]){ self.hardReset(); }
 
@@ -811,23 +824,30 @@ function Game()
 
                     break;
                 }
-                case 3: {
-                    if(this.states[3][0]){ currentGui = NULL_GUI_STATE; self.softReset(); }
-                    if(this.states[3][1]){ self.hardReset(); }
+                case 3: { // Continue Menu
+                    if(this.states[3][0]){ currentGui = NULL_GUI_STATE; self.softReset(); this.delayNextInput();}
+                    if(this.states[3][1]){ self.hardReset(); this.delayNextInput(); }
                     if(this.states[3][2]){ ipcRenderer.send('quit-app'); }
                     break;
                 }
-                case 4: { break; }
-                case 5: {
-                    if(this.states[5][0]) self.hardReset();
+                case 4: { // Level Up Menu
+                    if(this.states[4][0]) { self.softReset(); gco.GoToUpgradeMenu(); this.delayNextInput(); }
+                    break;
+                }
+                case 5: { // Game Over Menu
+                    if(this.states[5][0]){ self.hardReset(); this.delayNextInput(); }
                     if(this.states[5][1]) ipcRenderer.send('quit-app');
                     break;
                 }
-                case 6: {
-                    if(this.states[6][3]) { currentGui = lastGui; lastGui = 6; }
+                case 6: { // Options Menu
+                    if(this.states[6][3]) { currentGui = lastGui; lastGui = 6; this.delayNextInput(); }
                     break;
                 }
-                case 7: { break; }
+                case 7: { // Score Menu
+                    if(this.states[7][0]) { self.hardReset(); }
+                    if(this.states[7][1]) { ipcRenderer.send('quit-app'); }
+                    break;
+                }
             }
         }
 
@@ -1023,10 +1043,12 @@ function Game()
 		
 		this.GenerateObjectives = function()
 		{
+            let randomMultiplier = 25; // Base: 25
+            let floorAddative = 35; // Base: 35
 			for(var i = 0; i < gco.level; i++)
 			{//For each level, a new enemy type objective is placed on the mission stack.
 				if(gco.level >= 6){ this.objectives.push(0); }
-				else{ this.objectives.push(Math.floor(Math.random() * 25) + 35); }
+				else{ this.objectives.push(Math.floor(Math.random() * randomMultiplier) + floorAddative); }
 				this.progress.push(0);
 			}
 		}
@@ -2354,7 +2376,7 @@ function Game()
 		this.didShoot = false;
 		this.onTick = 0;
 		this.money = 0;
-		this.currentFuel = 60;
+		this.currentFuel = 60; // Base 60
 		this.MAX_FUEL = 60;
 	
 		this.laser = false;//true if laser is on
@@ -2685,7 +2707,7 @@ function Game()
 		{
 			if(this.overlayAlpha >= 1){ this.isBlackedOut = true; } else { this.overlayAlpha += delta / 16; }
 			if(this.isBlackedOut && !this.CreditsFinished()){ this.yOffset += this.scrollSpeed * delta; }
-			else if(this.isBlackedOut && this.CreditsFinished() && currentGui != 7){ currentGui = 7; }
+			else if(this.isBlackedOut && this.CreditsFinished() && currentGui != 7){ currentGui = 7; menu.delayNextInput(); }
 		}
 		
 		this.Draw = function()
@@ -3226,13 +3248,11 @@ function Game()
 			}
 			case 4:
 			{// Level Up Menu
-				if(mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 &&
-				   mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)
-				{
-					self.softReset();
-					gco.GoToUpgradeMenu();	
-				}
-				break;
+				if(mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10) {
+                    self.softReset();
+                    gco.GoToUpgradeMenu();	
+                }
+                break;
 			}
 			case 5:
 			{// Game Over Menu
@@ -3290,14 +3310,14 @@ function Game()
 			}
 			case 7:
 			{// Submit Score Menu
-        		if(mouseX > (_canvas.width / 2 + 10) - 110 && mouseX < (_canvas.width / 2 + 10) + 95 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10) {
+                if(mouseX > (_canvas.width / 2 + 10) - 110 && mouseX < (_canvas.width / 2 + 10) + 95 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10) {
                     // Need to figure out what to do on the submit score screen
-					// self.submitScore("http://www.blackmodulestudio.com/games/katt/update_database.php", self.buildScoresHash(), "POST");
+                    // self.submitScore("http://www.blackmodulestudio.com/games/katt/update_database.php", self.buildScoresHash(), "POST");
                     self.hardReset();
-				}
-				if(mouseX > (_canvas.width / 2 + 10) - 100 && mouseX < (_canvas.width / 2 + 10) + 80 && mouseY < (_canvas.height / 2 + 58) + 20 && mouseY > (_canvas.height / 2 + 58) - 10) {
+                }
+                if(mouseX > (_canvas.width / 2 + 10) - 100 && mouseX < (_canvas.width / 2 + 10) + 80 && mouseY < (_canvas.height / 2 + 58) + 20 && mouseY > (_canvas.height / 2 + 58) - 10) {
                     ipcRenderer.send('quit-app');
-				}
+                }
 				break;
 			}
 		}
@@ -4727,23 +4747,15 @@ function Game()
 			}
 			case 4:
 			{// Level Up Menu
-				guiText[0] = new GUIText("Level Up!", _canvas.width / 2, _canvas.height / 2 - 150, 
-										 "44px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 255)");
-
-				guiText[1] = new GUIText("Now on level: " + (gco.level + 1), _canvas.width / 2, _canvas.height / 2 - 100, 
-										 "28px VT323", "center", "top", "rgb(255, 0, 255)");						 
-										 
-        		if(mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 &&
-				   mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)
-				{
-					guiText[2] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, 
-										 "28px VT323", "center", "top", "rgb(96, 255, 96)");
-				} else
-				{
-					guiText[2] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, 
-										 "28px VT323", "center", "top", "rgb(96, 150, 96)");
-				}
-				break;
+                guiText[0] = new GUIText("Level Up!", _canvas.width / 2, _canvas.height / 2 - 150, "44px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
+                guiText[1] = new GUIText("Now on level: " + (gco.level + 1), _canvas.width / 2, _canvas.height / 2 - 100, "28px VT323", "center", "top", "rgb(255, 0, 0)");						 
+                if(menu.states[4][0] || (mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)) {
+                    if(menu.states[4][0]) menu.DrawArrow(3, _canvas.width / 2 - 65, _canvas.height / 2 + 15);
+                    guiText[2] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(210, 210, 210)");
+                } else {
+                    guiText[2] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(255, 255, 255)");
+                }
+                break;
 			}
 			case 5:
 			{// Game Over Menu
@@ -4850,19 +4862,21 @@ function Game()
                 break;
 			}
 			case 7:
-			{// Submit Score Menu
+			{ // Score Menu
 				guiText[0] = new GUIText("Score" , _canvas.width / 2, _canvas.height / 2 - 230, "48px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
 				guiText[1] = new GUIText(score , _canvas.width / 2, _canvas.height / 2 - 160, "38px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
 				guiText[2] = new GUIText("Kills: " + enemiesKilled + "  Cores: " + totalCores + "  Items Used: " + itemsUsed, _canvas.width / 2, _canvas.height / 2 - 80, "20px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
-        		if(mouseX > (_canvas.width / 2 + 10) - 110 && mouseX < (_canvas.width / 2 + 10) + 95 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10) {
-					guiText[3] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px Thunderstrike", "center", "top", "rgb(96, 255, 96)");
+        		if(menu.states[7][0] || (mouseX > _canvas.width / 2 - 60 && mouseX < _canvas.width / 2 + 60 && mouseY < _canvas.height / 2 + 30 && mouseY > _canvas.height / 2)) {
+                    if(menu.states[7][0]) menu.DrawArrow(3, _canvas.width / 2 - 60, _canvas.height / 2 + 15);
+					guiText[3] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(255, 255, 255)");
 				} else {
-					guiText[3] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
+					guiText[3] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(210, 210, 210)");
 				}
-				if(mouseX > (_canvas.width / 2 + 10) - 100 && mouseX < (_canvas.width / 2 + 10) + 80 && mouseY < (_canvas.height / 2 + 58) + 20 && mouseY > (_canvas.height / 2 + 58) - 10) {
-					guiText[4] = new GUIText("Exit Game", _canvas.width / 2, _canvas.height / 2 + 50, "28px Thunderstrike", "center", "top", "rgb(96, 255, 96)");
+				if(menu.states[7][1] || (mouseX > _canvas.width / 2 - 60 && mouseX < _canvas.width / 2 + 60 && mouseY < _canvas.height / 2 + 78 && mouseY > _canvas.height / 2 + 48)) {
+                    if(menu.states[7][1]) menu.DrawArrow(3, _canvas.width / 2 - 60, _canvas.height / 2 + 65);
+					guiText[4] = new GUIText("Exit Game", _canvas.width / 2, _canvas.height / 2 + 50, "28px VT323", "center", "top", "rgb(255, 255, 255)");
 				} else {
-					guiText[4] = new GUIText("Exit Game", _canvas.width / 2, _canvas.height / 2 + 50, "28px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
+					guiText[4] = new GUIText("Exit Game", _canvas.width / 2, _canvas.height / 2 + 50, "28px VT323", "center", "top", "rgb(210, 210, 210)");
 				}
 				break;
 			}
