@@ -1,5 +1,22 @@
 const { ipcRenderer } = require('electron');
 
+// Star Rendering
+// This canvas is used to initialize stars. When a star is initialized, we pre-render the star in this canvas
+// and then cache the resulting image in memory. This allows us to perform manipulations on that star,
+// creating programatically more random and variable stars.
+var offscreenCanvas = document.createElement('canvas');
+var offscreenCtx = offscreenCanvas.getContext('2d');
+
+// Planet Rendering
+// The offscreen canvas creates a gl context as opposed to a 2d context which allows us to perform shaders,
+// which is essentially hardware accelleration which we use to filter out the background of planet renders.
+// Then, we take this webGL context and render it, 10 times per second, to a 2d context which caches
+// the final planet render, which is then rendered to the 2d canvas buffer, which is the main game render.
+var offScreenPlanetCanvas = document.createElement('canvas');
+var gl = offScreenPlanetCanvas.getContext('webgl') || offScreenPlanetCanvas.getContext('experimental-webgl');
+var shaderPlanetCanvas = document.createElement('canvas');
+var shaderPlanetCtx = shaderPlanetCanvas.getContext('2d');
+
 function Game()
 {
 	//Tracked Data
@@ -63,6 +80,9 @@ function Game()
     var seconds = 0;
     var paused = false;
 
+    // Asset Information
+    var starTypes = 3;
+
     // Context
     var _canvas = null;
     var _buffer = null;
@@ -86,7 +106,7 @@ function Game()
 	var numImagesLoaded = 0;
         // Graphics
         var starImages = [];
-        for(var i = 0; i < 6; i++)
+        for(var i = 0; i < starTypes; i++)
         {
             starImages[i] = new Image();
             starImages[i].addEventListener('load', self.loadedImage, false);
@@ -168,7 +188,7 @@ function Game()
                 0, 0, 0, 0, 0];
     
     // World
-    var numStars = 100;
+    var numStars = 500;
 	var numEnemies = 0;
 
     /******************************************************/
@@ -1108,7 +1128,8 @@ function Game()
             {
                 var X = Math.floor(Math.random() * _buffer.width);
                 var Y = Math.floor(Math.random() * _buffer.height);
-                star = new Star(X, Y, 0, 10, false, 1);
+                var model = Math.floor(Math.random() * starTypes);
+                star = new Star(X, Y, model, 10, false, 1);
                 stars.push(star);
             }
         }
@@ -1120,7 +1141,7 @@ function Game()
                 if(stars.length < numStars)
                 {
 					var starType = 0;
-					if(this.hasPlanet){ starType = Math.floor(Math.random() * 3); } else { starType = Math.floor(Math.random() * 4); }
+					if(this.hasPlanet){ starType = Math.floor(Math.random() * starTypes); } else { starType = -1 }
 					var X = Math.floor(Math.random() * _buffer.width);
 					var Y = 0;
 					var model = 0;
@@ -1149,35 +1170,15 @@ function Game()
 							height = 11;
 							break;
 						}
-						case 3:
+						case -1:
 						{//Planets
-							var planetType = Math.floor(Math.random() * 3);
-							switch(planetType)
-							{
-								case 0:
-								{
-									Y = -178;
-									height = 356;
-									break;
-								}
-								case 1:
-								{
-									Y = -359;
-									height = 718;
-									break;
-								}
-								case 2:
-								{
-									Y = -368;
-									height = 735;
-									break;
-								}
-							}
-							speed = 100;
-							model = 3 + planetType;
-							isPlanet = true;
-							this.hasPlanet = true;
-							break;
+                            speed = 100;
+                            model = -1;
+                            Y = -250;
+                            height = 500;
+                            isPlanet = true;
+                            this.hasPlanet = true;
+                            break;
 						}
 					}
                     star = new Star(X, Y, model, speed, isPlanet, height);
@@ -1186,27 +1187,178 @@ function Game()
 			}
 		}
 	}
-    
-    function Star(X, Y, mdl, spd, isPlnt, hght)
-    {
+
+    function Star(X, Y, mdl, spd, isPlnt, hght) {
+        this.onTick = 0
         this.x = X;
         this.y = Y;
-		this.Model = mdl;
-		this.speed = spd;
-		this.isPlanet = isPlnt;
-		this.height = hght;
-		this.killY = _canvas.height + (this.height / 2);
-        
-        this.Update = function()
-        {
+        this.Model = mdl;
+        this.speed = spd;
+        this.isPlanet = isPlnt;
+        this.height = hght;
+        this.killY = _canvas.height + (this.height / 2);
+        this.opacity = 1.0;
+        this.colorTint = "rgba(255, 255, 255, 1.0)";
+        this.image = new Image();  // Initialize the image
+    
+        // Pre-render the star image with tint and opacity using a shared offscreen canvas
+        this.preRenderImage = function() {
+            if(this.isPlanet) return;
+            var img = starImages[this.Model];
+    
+            // Resize the offscreen canvas to the image dimensions
+            offscreenCanvas.width = img.width;
+            offscreenCanvas.height = img.height;
+    
+            // Clear the canvas and draw the image
+            offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+            offscreenCtx.globalAlpha = this.opacity;
+            offscreenCtx.drawImage(img, 0, 0);
+    
+            // Apply the color tint
+            offscreenCtx.globalCompositeOperation = 'source-atop';
+            offscreenCtx.fillStyle = this.colorTint;
+            offscreenCtx.fillRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+    
+            // Reset the composite operation and opacity for normal drawing
+            offscreenCtx.globalCompositeOperation = 'source-over';
+            offscreenCtx.globalAlpha = 1.0;
+    
+            // Assign the canvas as the source for the star image
+            this.image.src = offscreenCanvas.toDataURL();
+        };
+
+        this.Update = function() {
+            if(ticks != this.onTick) {
+                this.onTick = ticks
+                if(this.onTick % 2 === 0 && this.isPlanet) { // Planet Pre-Rendering
+                    this.renderPlanet();
+                }
+            }
+
+            // Movement Dynamics
             this.y += this.speed * delta;
-            if(this.y > this.killY)
-            {
+            if(this.y > this.killY) {
                 return 1;
             }
             return 0;
         }
-    }
+
+        this.renderPlanet = function() {
+            var planetCanvas = document.querySelector('#root canvas');
+            if(planetCanvas == null) return;
+            // Clear and reset our planet rendering contexts so we can re-render this game loop.
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            shaderPlanetCtx.clearRect(0, 0, shaderPlanetCanvas.width, shaderPlanetCanvas.height);
+            offScreenPlanetCanvas.width = planetCanvas.width;
+            offScreenPlanetCanvas.height = planetCanvas.height;
+
+            // Vertex shader code
+            var vertexShaderSource = `
+                attribute vec2 a_position;
+                varying vec2 v_texCoord;
+
+                void main() {
+                    gl_Position = vec4(a_position, 0, 1);
+                    v_texCoord = a_position * 0.5 + 0.5;
+                }
+            `;
+
+            // Fragment shader code
+            var fragmentShaderSource = `
+                precision mediump float;
+                varying vec2 v_texCoord;
+                uniform sampler2D u_texture;
+
+                void main() {
+                    vec4 color = texture2D(u_texture, v_texCoord);
+                    if (color == vec4(0, 0, 0, 1)) {
+                        discard; // Discard black color pixels
+                    }
+                    gl_FragColor = color;
+                }
+            `;
+
+            // Compile shaders
+            var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+            gl.shaderSource(vertexShader, vertexShaderSource);
+            gl.compileShader(vertexShader);
+
+            var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+            gl.shaderSource(fragmentShader, fragmentShaderSource);
+            gl.compileShader(fragmentShader);
+
+            // Link shaders into a program
+            var shaderProgram = gl.createProgram();
+            gl.attachShader(shaderProgram, vertexShader);
+            gl.attachShader(shaderProgram, fragmentShader);
+            gl.linkProgram(shaderProgram);
+            gl.useProgram(shaderProgram);
+
+            // Create and bind buffer to render a quad
+            var positionBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+
+            var positionLocation = gl.getAttribLocation(shaderProgram, 'a_position');
+            gl.enableVertexAttribArray(positionLocation);
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+            // Create a texture from your source canvas
+            var texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, planetCanvas);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+            // Set the texture uniform in the shader
+            var textureLocation = gl.getUniformLocation(shaderProgram, 'u_texture');
+            gl.uniform1i(textureLocation, 0);
+
+            // Ensure the webGL context has the correct dimensions for our planet canvas
+            gl.viewport(0, 0, offScreenPlanetCanvas.width, offScreenPlanetCanvas.height);
+
+            // Render the quad with the shader applied
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+            // Get the resulting image data from WebGL
+            var imageData = new Uint8Array(offScreenPlanetCanvas.width * offScreenPlanetCanvas.height * 4);
+            gl.readPixels(0, 0, offScreenPlanetCanvas.width, offScreenPlanetCanvas.height, gl.RGBA, gl.UNSIGNED_BYTE, imageData);
+
+            // Put the modified image data onto your buffer canvas
+            var imageDataUint8Clamped = new Uint8ClampedArray(imageData);
+            var imageDataObject = new ImageData(imageDataUint8Clamped, offScreenPlanetCanvas.width, offScreenPlanetCanvas.height);
+
+            shaderPlanetCanvas.width = offScreenPlanetCanvas.width;
+            shaderPlanetCanvas.height = offScreenPlanetCanvas.height;
+            shaderPlanetCtx.putImageData(imageDataObject, 0, 0);
+        }
+
+        this.randomlySelectPlanet = function() {
+            if(!this.isPlanet) return;
+
+            // Get the select element
+            var selectElement = document.querySelector('.dg.ac select');
+
+            // Get all the options within the select element
+            var options = selectElement.options;
+
+            // Calculate a random index within the range of options
+            var randomIndex = Math.floor(Math.random() * options.length);
+
+            // Set the selected option based on the random index
+            options[randomIndex].selected = true;
+
+            // Simulate the change event on the select element
+            var event = new Event('change', { bubbles: true });
+            selectElement.dispatchEvent(event);
+        }
+    
+        // Call pre-render on object creation
+        this.preRenderImage();
+        this.randomlySelectPlanet();
+    }    
 
 	function EnemyGeneration()
 	{
@@ -3671,26 +3823,25 @@ function Game()
 
     this.drawStars = function()
     {
-		var p = -1;//p is for planet
+        var p = -1; // p is for planet
         for(i = 0; i < stars.length; i++)
         {
-			if(stars[i].isPlanet){p = i; continue;}
-			if (imagesLoaded)
-			{
-				buffer.drawImage(starImages[stars[i].Model], stars[i].x - (starImages[stars[i].Model].width / 2), stars[i].y - (starImages[stars[i].Model].height / 2), starImages[stars[i].Model].width, starImages[stars[i].Model].height);
-			} else
-			{
-				buffer.fillStyle = 'rgb(200, 200, 255)';
-				buffer.beginPath();
-					buffer.arc(stars[i].x, stars[i].y, 2, 0, Math.PI * 2, true);
-				buffer.closePath();
-				buffer.fill();
-			}
+            if(stars[i].isPlanet){p = i; continue;}
+            if (imagesLoaded)
+            {
+                buffer.drawImage(starImages[stars[i].Model], stars[i].x - (starImages[stars[i].Model].width / 2), stars[i].y - (starImages[stars[i].Model].height / 2), starImages[stars[i].Model].width, starImages[stars[i].Model].height);
+            } else
+            {
+                buffer.fillStyle = 'rgb(200, 200, 255)';
+                buffer.beginPath();
+                buffer.arc(stars[i].x, stars[i].y, 2, 0, Math.PI * 2, true);
+                buffer.closePath();
+                buffer.fill();
+            }
         }
-		if(p != -1)
-		{//ensure planets are drawn in front of stars
-			buffer.drawImage(starImages[stars[p].Model], stars[p].x - (starImages[stars[p].Model].width / 2), stars[p].y - (starImages[stars[p].Model].height / 2), starImages[stars[p].Model].width, starImages[stars[p].Model].height);
-		}
+        if(p != -1) { // Ensure planets are drawn in front of stars
+            buffer.drawImage(shaderPlanetCanvas, stars[p].x - (offScreenPlanetCanvas.width / 2), stars[p].y - (offScreenPlanetCanvas.height / 2));
+        }
     }
 
     this.drawPlayer = function()

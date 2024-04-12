@@ -2,6 +2,7 @@
 <html class="game_page">
 <head>
     <title>Blackmodule's Space Game</title>
+    <script src="Lib/pixel-planets.js"></script>
     <script src="Game.js"></script>
     <script type="text/javascript">
         function soundsLoaded() { play.InitSounds(); }
@@ -34,13 +35,14 @@
             align-items: center;
             height: 100vh;
             margin: 0;
+            padding: 0;
             background-color: black;
             overflow: hidden;
             font-smooth: never !important;
             -webkit-font-smoothing: none !important;
         }
 
-        canvas {
+        canvas.game-canvas {
             margin: 0;
             position: absolute;
             top: 50%;
@@ -48,6 +50,20 @@
             transform: translate(-50%, -50%);
             font-smooth: never !important;
             -webkit-font-smoothing: none !important;
+        }
+
+        #root {
+            margin: auto;
+            width: 600px;
+            height: 500px;
+            position: fixed;
+            left: -9999px;
+            top: 0;
+        }
+
+        .dg.ac .dg.main.a {
+            position: absolute;
+            left: -9999px;
         }
     </style>
 </head>
@@ -79,7 +95,7 @@
 <!-- End Audio -->
 
 
-<canvas id="canvas" width="800" height="600" style="image-rendering: pixelated; image-rendering: crisp-edges;">
+<canvas id="canvas" class="game-canvas" width="800" height="600" style="image-rendering: pixelated; image-rendering: crisp-edges;">
     Your browser does not support the canvas element, sorry.
 </canvas>
 <script type="text/javascript">
@@ -95,8 +111,10 @@
 
 	var play = new Game();
 	play.Init();
-	play.Run();    
+	play.Run();
 </script>
+
+<div id="root"></div>
 
 </body>
 </html>
