@@ -15,6 +15,9 @@ var starGl = offscreenStarCanvas.getContext('webgl') || offscreenStarCanvas.getC
 var renderStarCanvas = document.createElement('canvas'); // For rendering the stars back to a 2d image context
 var renderStarCtx = renderStarCanvas.getContext('2d');
 
+var postProcessCanvas = document.createElement('canvas');
+var postProcessGl = postProcessCanvas.getContext('webgl');
+
 function Game()
 {
 	//Tracked Data
@@ -2592,8 +2595,8 @@ function Game()
         }
     }
 
-  function Player(Width, Height)
-  {
+    function Player(Width, Height)
+    {
 		this.x = 400;
 		this.y = 300;
 		this.speed = 200;
@@ -2626,65 +2629,79 @@ function Game()
 		this.laserY = this.y - 25;
 		this.laserWidth = 20;
 		this.laserHeight = this.y - 25;
+        this.idleAnim = 0; // 0-3
         
-			this.isAlive = function()
-			{
-				return (this.life > 0);
-			}
-		
-			this.DamagePlayer = function(dmg)
-			{
-				if(this.hasShield && this.shield > 0)
-				{
-					this.shield -= dmg * 3;
-				} else
-				{
-					this.life -= dmg;
-					if(this.life < 0){this.life = 0;}
-				}
-				if(!this.isAlive())
-				{ 
-					gco.ShowContinueScreen();
-					sfx.play(0);
-					explosion = new Explosion(player.x, player.y, 350, 5, 200, 0.1, 3, 0.1);
-					explosions.push(explosion);
-					this.laser = false;
-				}
-			}
+        this.isAlive = function()
+        {
+            return (this.life > 0);
+        }
+    
+        this.DamagePlayer = function(dmg)
+        {
+            if(this.hasShield && this.shield > 0)
+            {
+                this.shield -= dmg * 3;
+            } else
+            {
+                this.life -= dmg;
+                if(this.life < 0){this.life = 0;}
+            }
+            if(!this.isAlive())
+            { 
+                gco.ShowContinueScreen();
+                sfx.play(0);
+                explosion = new Explosion(player.x, player.y, 350, 5, 200, 0.1, 3, 0.1);
+                explosions.push(explosion);
+                this.laser = false;
+            }
+        }
 
-			this.Update = function()
-			{
-				this.x1 = this.x;
-				this.y1 = this.y - (this.height / 2);
-				this.x2 = this.x - (this.width / 2);
-				this.y2 = this.y + (this.height / 2);
-				this.x3 = this.x + (this.width / 2);
-				this.y3 = this.y + (this.height / 2);
+        this.Update = function()
+        {
+            this.x1 = this.x;
+            this.y1 = this.y - (this.height / 2);
+            this.x2 = this.x - (this.width / 2);
+            this.y2 = this.y + (this.height / 2);
+            this.x3 = this.x + (this.width / 2);
+            this.y3 = this.y + (this.height / 2);
 
-				//Laser Updating
-				if(this.secondary >= 9000) {
-					if(Keys[19] != 0 && this.secondaryAmmo > 0) {
-						if(!sfx.laserPlaying){ sfx.play(1); }
-						this.laser = true;
-						this.laserX = this.x;
-						this.laserY = 0;
-						this.laserHeight = this.y - 25;
-						if(ticks == 0){ this.secondaryAmmo -= 3; if(this.secondaryAmmo < 0){this.secondaryAmmo = 0;} }
-					} else { if(sfx.laserPlaying){ sfx.pause(1); } this.laser = false; }
-				} else
-				{
-					this.laser = false;
-					if(sfx.laserPlaying){ sfx.pause(1); }
-				}
-				
-				if(this.hasShield)
-				{
-					if(this.shield <= 0)
-					{
-						this.shield = 0;
-					}
-				}
-			}
+            //Laser Updating
+            if(this.secondary >= 9000) {
+                if(Keys[19] != 0 && this.secondaryAmmo > 0) {
+                    if(!sfx.laserPlaying){ sfx.play(1); }
+                    this.laser = true;
+                    this.laserX = this.x;
+                    this.laserY = 0;
+                    this.laserHeight = this.y - 25;
+                    if(ticks == 0){ this.secondaryAmmo -= 3; if(this.secondaryAmmo < 0){this.secondaryAmmo = 0;} }
+                } else { if(sfx.laserPlaying){ sfx.pause(1); } this.laser = false; }
+            } else
+            {
+                this.laser = false;
+                if(sfx.laserPlaying){ sfx.pause(1); }
+            }
+            
+            if(this.hasShield)
+            {
+                if(this.shield <= 0)
+                {
+                    this.shield = 0;
+                }
+            }
+        }
+
+        this.drawPlayer = function()
+        {
+            buffer.drawImage(playerImages[0], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);   
+        }
+
+        this.runOnTick = function()
+        {
+            if(this.onTick % 2 == 0) {
+                this.idleAnim++;
+                if(this.idleAnim > 3) this.idleAnim = 0;
+            }
+        }
 		
 		this.upgradeShield = function()
 		{
@@ -2714,58 +2731,59 @@ function Game()
 			}
 		}
 
-    this.shoot = function()
-    {
-			switch(this.weapon)
-			{
-				case 0:
-				{
-					this.totalMissiles += 1;
-					if(this.weaponFunc)
-					{
-						missile = new Missile(missiles.length, 300, this.weapon, this.x, this.y - 25, 1);
-						missiles.push(missile);
-					}
-					this.weaponFunc = !this.weaponFunc;
-					break;
-				}
-				case 1:
-				{
-					this.totalMissiles += 1;
-					if(this.weaponFunc)
-					{
-						missile = new Missile(missiles.length, 300, this.weapon, this.x - 5, this.y - 25, 2);
-						missiles.push(missile);
-					} else
-					{
-						missile = new Missile(missiles.length, 300, this.weapon, this.x + 5, this.y - 25, 2);
-						missiles.push(missile);
-					}
-					this.weaponFunc = !this.weaponFunc;
-					break;
-				}
-				case 2:
-				{
-					this.totalMissiles += 1;
-					if(this.weaponFunc)
-					{
-						missile = new Missile(missiles.length, 300, 1, this.x - 5, this.y - 25, 2);
-						missiles.push(missile);
-						missile = new Missile(missiles.length, 300, this.weapon, this.x + 5, this.y - 25, 2);
-						missiles.push(missile);
-					} else
-					{
-						missile = new Missile(missiles.length, 300, 1, this.x + 5, this.y - 25, 2);
-						missiles.push(missile);
-						missile = new Missile(missiles.length, 300, this.weapon, this.x - 5, this.y - 25, 3);
-						missiles.push(missile);
-					}
-					this.weaponFunc = !this.weaponFunc;
-					break;
-				}
-				default:{break;}
-			}
-    }
+        this.shoot = function()
+        {
+                switch(this.weapon)
+                {
+                    case 0:
+                    {
+                        this.totalMissiles += 1;
+                        if(this.weaponFunc)
+                        {
+                            missile = new Missile(missiles.length, 300, this.weapon, this.x, this.y - 25, 1);
+                            missiles.push(missile);
+                        }
+                        this.weaponFunc = !this.weaponFunc;
+                        break;
+                    }
+                    case 1:
+                    {
+                        this.totalMissiles += 1;
+                        if(this.weaponFunc)
+                        {
+                            missile = new Missile(missiles.length, 300, this.weapon, this.x - 5, this.y - 25, 2);
+                            missiles.push(missile);
+                        } else
+                        {
+                            missile = new Missile(missiles.length, 300, this.weapon, this.x + 5, this.y - 25, 2);
+                            missiles.push(missile);
+                        }
+                        this.weaponFunc = !this.weaponFunc;
+                        break;
+                    }
+                    case 2:
+                    {
+                        this.totalMissiles += 1;
+                        if(this.weaponFunc)
+                        {
+                            missile = new Missile(missiles.length, 300, 1, this.x - 5, this.y - 25, 2);
+                            missiles.push(missile);
+                            missile = new Missile(missiles.length, 300, this.weapon, this.x + 5, this.y - 25, 2);
+                            missiles.push(missile);
+                        } else
+                        {
+                            missile = new Missile(missiles.length, 300, 1, this.x + 5, this.y - 25, 2);
+                            missiles.push(missile);
+                            missile = new Missile(missiles.length, 300, this.weapon, this.x - 5, this.y - 25, 3);
+                            missiles.push(missile);
+                        }
+                        this.weaponFunc = !this.weaponFunc;
+                        break;
+                    }
+                    default:{break;}
+                }
+        }
+
 		this.shootSecondary = function()
 		{
 			if(this.secondaryAmmo > 0 && this.secondary < 9000)
@@ -2799,7 +2817,7 @@ function Game()
 				}
 			}
 		}
-  }
+    }
     
     function GUIText(Text, X, Y, fStyle, aX, aY, col)
     {
@@ -3796,14 +3814,13 @@ function Game()
                     player.y += moveY;
                 }
 
-				if(ticks != player.onTick)
-                {//On Tick Player Input
-					player.onTick = ticks;
-					if(Keys[16] >= 1) // Space
-					{
-						player.shoot();
-					}
-				}
+                if(ticks != player.onTick) {//On Tick Player Input
+                    player.onTick = ticks;
+                    player.runOnTick();
+                    if(Keys[16] >= 1) { // Space
+                        player.shoot();
+                    }
+                }
 				
                 if(Keys[19] == 1) // B
                 {
@@ -3869,23 +3886,21 @@ function Game()
         buffer.fillStyle = "rgb(0, 0, 0)";
         buffer.fillRect(0, 0, _buffer.width, _buffer.height);
         
-		// Stars
+        // Stars
         self.drawStars();
-		
+        
         if(gameState == 1 && !gco.credits.isBlackedOut)
         {
-			//Money
-			self.drawMoney();
-			
-			//Random Items
-			self.drawItems();
-			
+            //Money
+            self.drawMoney();
+            
+            //Random Items
+            self.drawItems();
+            
             // Player
-            if(player.isAlive())
-            {
-                self.drawPlayer();
-                if(player.hasShield && player.shield > 0)
-                {
+            if(player.isAlive()) {
+                player.drawPlayer();
+                if(player.hasShield && player.shield > 0) {
                     self.drawShield();
                 }
             }
@@ -3896,20 +3911,20 @@ function Game()
             // Missile
             self.drawMissiles();
 
-			//Laser
-			if(player.laser){ self.drawLaser(); }
-			
+            //Laser
+            if(player.laser){ self.drawLaser(); }
+            
             // Explosion
             self.drawExplosions();
             
             // GUI
             self.drawHUD();
         }
-		
-		if(gco.win){ gco.credits.Draw(); }
-		self.drawGUI();
-		if(gco.playStory){ gco.story.Draw(); }
-		
+        
+        if(gco.win){ gco.credits.Draw(); }
+        self.drawGUI();
+        if(gco.playStory){ gco.story.Draw(); }
+
         canvas.drawImage(_buffer, 0, 0);
     }
 
@@ -3934,33 +3949,6 @@ function Game()
         if (p != -1) { // Ensure planets are drawn in front of stars
             buffer.drawImage(shaderPlanetCanvas, stars[p].x - (offScreenPlanetCanvas.width / 2), stars[p].y - (offScreenPlanetCanvas.height / 2));
         }
-    }
-    
-
-    // this.drawStars = function()
-    // {
-    //     var p = -1; // p is for planet
-    //     for(i = 0; i < stars.length; i++)
-    //     {
-    //         if(stars[i].isPlanet){p = i; continue;}
-    //         if (imagesLoaded) {
-    //             buffer.drawImage(starImages[stars[i].Model], stars[i].x - (starImages[stars[i].Model].width / 2), stars[i].y - (starImages[stars[i].Model].height / 2), starImages[stars[i].Model].width, starImages[stars[i].Model].height);
-    //         } else {
-    //             buffer.fillStyle = 'rgb(200, 200, 255)';
-    //             buffer.beginPath();
-    //             buffer.arc(stars[i].x, stars[i].y, 2, 0, Math.PI * 2, true);
-    //             buffer.closePath();
-    //             buffer.fill();
-    //         }
-    //     }
-    //     if(p != -1) { // Ensure planets are drawn in front of stars
-    //         buffer.drawImage(shaderPlanetCanvas, stars[p].x - (offScreenPlanetCanvas.width / 2), stars[p].y - (offScreenPlanetCanvas.height / 2));
-    //     }
-    // }
-
-    this.drawPlayer = function()
-    {
-		buffer.drawImage(playerImages[0], player.x - (player.width / 2), player.y - (player.height / 2), player.width, player.height);   
     }
     
     this.drawShield = function()
