@@ -15,9 +15,6 @@ var starGl = offscreenStarCanvas.getContext('webgl') || offscreenStarCanvas.getC
 var renderStarCanvas = document.createElement('canvas'); // For rendering the stars back to a 2d image context
 var renderStarCtx = renderStarCanvas.getContext('2d');
 
-var postProcessCanvas = document.createElement('canvas');
-var postProcessGl = postProcessCanvas.getContext('webgl');
-
 function Game()
 {
 	//Tracked Data
