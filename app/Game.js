@@ -1110,9 +1110,9 @@ function Game()
 	}
     
     function StarGeneration()
-	{
-		this.onTick = 0;
-		this.hasPlanet = false;
+    {
+        this.onTick = 0;
+        this.hasPlanet = false;
 
         this.initStars = function() {
             this.hasPlanet = false;
@@ -1121,87 +1121,63 @@ function Game()
             {
                 var X = Math.floor(Math.random() * _buffer.width);
                 var Y = Math.floor(Math.random() * _buffer.height);
-                var model = Math.floor(Math.random() * starTypes);
-                var speed = this.starSpeed(model);
-                var height = this.starHeight(model);
-                star = new Star(X, Y, model, speed, false, height);
+                var starType = this.genRandomStarType(true);
+                var speed = this.starSpeed(starType);
+                var height = this.starHeight(starType);
+                star = new Star(X, Y, starType, speed, false, height);
                 stars.push(star);
             }
         }
 
         this.starSpeed = function(starType) {
-            var speed = 0;
-            switch(starType) {
-                case 0: { speed = 0.1; break; }
-                case 1: { speed = 0.3; break; }
-                case 2: { speed = 0.5; break; }
-                case 3: { speed = 1; break; }
-                case 4: { speed = 1.3; break; }
-                case 5: { speed = 1.6; break; }
-                case 6: { speed = 2; break; }
-                case 7: { speed = 2.3; break; }
-                case 8: { speed = 2.6; break; }
-                case 9: { speed = 2.8; break; }
-                case -1: { speed = 100; break; }
-            }
-            return speed;
+            if(starType == -1) return 100;
+            return [0.8, 1, 1.1, 1.3, 1.5, 1.7, 1.9, 2.2, 2.5, 2.7][starType];
         }
 
         this.starHeight = function(starType) {
-            var height = 0;
-            switch(starType) {
-                case 0: { height = 1; break; }
-                case 1: { height = 3; break; }
-                case 2: { height = 3; break; }
-                case 3: { height = 5; break; }
-                case 4: { height = 9; break; }
-                case 5: { height = 9; break; }
-                case 6: { height = 7; break; }
-                case 7: { height = 9; break; }
-                case 8: { height = 17; break; }
-                case 9: { height = 21; break; }
-                case -1: { height = 500; break; }
-            }
-            return height;
+            if(starType == -1) return 500;
+            return [1, 3, 3, 5, 9, 9, 7, 9, 17, 21][starType];
         }
 
-		this.generate = function() {
-			if(ticks != this.onTick) {
-				this.onTick = ticks;
+        this.generate = function() {
+            if(ticks != this.onTick) {
+                this.onTick = ticks;
                 if(stars.length < numStars) {
-					var starType = 0;
-					if(this.hasPlanet){ starType = Math.floor(Math.random() * starTypes); } else { starType = -1 }
-					var X = Math.floor(Math.random() * _buffer.width);
-					var Y = 0;
-					var model = 0;
-					var speed = this.starSpeed(starType);
-					var isPlanet = false;
-					var height = this.starHeight(starType);
-					switch(starType) {
-                        case 0: { model = 0; break; }
-                        case 1: { model = 1; break; }
-                        case 2: { model = 2; break; }
-                        case 3: { model = 3; break; }
-                        case 4: { model = 4; break; }
-                        case 5: { model = 5; break; }
-                        case 6: { model = 6; break; }
-                        case 7: { model = 7; break; }
-                        case 8: { model = 8; break; }
-                        case 9: { model = 9; break; }
-                        case -1: { // Planets
-                            model = -1;
-                            Y = -250;
-                            isPlanet = true;
-                            this.hasPlanet = true;
-                            break;
-                        }
+                    var starType = this.genRandomStarType(false);
+                    var X = Math.floor(Math.random() * _buffer.width);
+                    var Y = 0;
+                    var speed = this.starSpeed(starType);
+                    var isPlanet = false;
+                    var height = this.starHeight(starType);
+                    if(starType == -1) { // Planets
+                        Y = -250;
+                        isPlanet = true;
+                        this.hasPlanet = true;
                     }
-                    star = new Star(X, Y, model, speed, isPlanet, height);
+                    star = new Star(X, Y, starType, speed, isPlanet, height);
                     stars.push(star);
                 }
-			}
-		}
-	}
+            }
+        }
+
+        this.genRandomStarType = function(onlyStars) {
+            var starWeights = [100, 20, 8, 7, 6, 5, 4, 3, 2, 1];
+            if(onlyStars || this.hasPlanet) { // Stars
+                var totalWeight = starWeights.reduce((acc, val) => acc + val, 0);
+                var rand = Math.random() * totalWeight;
+                var cumulativeWeight = 0;
+                for (var i = 0; i < starWeights.length; i++) {
+                    cumulativeWeight += starWeights[i];
+                    if (rand < cumulativeWeight) {
+                        return i;
+                    }
+                }
+                return starWeights.length - 1; // Fallback
+            } else { // Planet
+                return -1;
+            }
+        }
+    }
 
     function Star(X, Y, mdl, spd, isPlnt, hght) {
         this.onTick = 0
@@ -1212,7 +1188,6 @@ function Game()
         this.isPlanet = isPlnt;
         this.height = hght;
         this.killY = _canvas.height + (this.height / 2);
-        
 
         this.Update = function() {
             if(ticks != this.onTick) {
