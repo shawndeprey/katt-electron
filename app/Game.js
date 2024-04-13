@@ -1,12 +1,5 @@
 const { ipcRenderer } = require('electron');
 
-// Star Rendering
-// This canvas is used to initialize stars. When a star is initialized, we pre-render the star in this canvas
-// and then cache the resulting image in memory. This allows us to perform manipulations on that star,
-// creating programatically more random and variable stars.
-var offscreenCanvas = document.createElement('canvas');
-var offscreenCtx = offscreenCanvas.getContext('2d');
-
 // Planet Rendering
 // The offscreen canvas creates a gl context as opposed to a 2d context which allows us to perform shaders,
 // which is essentially hardware accelleration which we use to filter out the background of planet renders.
@@ -1219,36 +1212,7 @@ function Game()
         this.isPlanet = isPlnt;
         this.height = hght;
         this.killY = _canvas.height + (this.height / 2);
-        this.opacity = 1.0;
-        this.colorTint = "rgba(255, 255, 255, 1.0)";
-        this.image = new Image();  // Initialize the image
-    
-        // Pre-render the star image with tint and opacity using a shared offscreen canvas
-        this.preRenderImage = function() {
-            if(this.isPlanet) return;
-            var img = starImages[this.Model];
-    
-            // Resize the offscreen canvas to the image dimensions
-            offscreenCanvas.width = img.width;
-            offscreenCanvas.height = img.height;
-    
-            // Clear the canvas and draw the image
-            offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
-            offscreenCtx.globalAlpha = this.opacity;
-            offscreenCtx.drawImage(img, 0, 0);
-    
-            // Apply the color tint
-            offscreenCtx.globalCompositeOperation = 'source-atop';
-            offscreenCtx.fillStyle = this.colorTint;
-            offscreenCtx.fillRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
-    
-            // Reset the composite operation and opacity for normal drawing
-            offscreenCtx.globalCompositeOperation = 'source-over';
-            offscreenCtx.globalAlpha = 1.0;
-    
-            // Assign the canvas as the source for the star image
-            this.image.src = offscreenCanvas.toDataURL();
-        };
+        
 
         this.Update = function() {
             if(ticks != this.onTick) {
@@ -1378,7 +1342,6 @@ function Game()
         }
     
         // Call pre-render on object creation
-        this.preRenderImage();
         this.randomlySelectPlanet();
     }    
 
