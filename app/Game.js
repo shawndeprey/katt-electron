@@ -1225,7 +1225,7 @@ function Game()
             }
 
             // Movement Dynamics
-            this.y += this.speed * delta;
+            this.y += (this.speed * player.yVecMulti) * delta;
             if(this.y > this.killY) {
                 return 1;
             }
@@ -2596,6 +2596,13 @@ function Game()
     {
 		this.x = 400;
 		this.y = 300;
+        this.movingX = 0;
+        this.movingY = 0;
+        this.movingUp = false;
+        this.movingDown = false;
+        this.movingLeft = false;
+        this.movingRight = false;
+        this.yVecMulti = 1;
 		this.speed = 200;
 		this.width = Width;
 		this.height = Height;
@@ -2655,6 +2662,39 @@ function Game()
             }
         }
 
+        this.setMovementVector = function(moveX, moveY) {
+            this.movingX = moveX;
+            this.movingY = moveY;
+
+            // Set states for Y trajectories
+            if(this.movingY < 0) {
+                this.movingUp = true;
+                this.movingDown = false;
+                if(this.yVecMulti < 1.3) this.yVecMulti += delta;
+            } else if(this.movingY > 0) {
+                this.movingUp = false;
+                this.movingDown = true;
+                if(this.yVecMulti > 0.85) this.yVecMulti -= delta;
+            } else if(this.movingY == 0) {
+                this.movingUp = false;
+                this.movingDown = false;
+                if(this.yVecMulti > 1) this.yVecMulti -= delta;
+                if(this.yVecMulti < 1) this.yVecMulti += delta;
+            }
+
+            // Set states for X trajectories
+            if(this.movingX < 0) {
+                this.movingLeft = true;
+                this.movingRight = false;
+            } else if(this.movingX > 0) {
+                this.movingLeft = false;
+                this.movingRight = true;
+            } else if(this.movingX == 0) {
+                this.movingLeft = false;
+                this.movingRight = false;
+            }
+        }
+
         this.Update = function()
         {
             this.x1 = this.x;
@@ -2699,29 +2739,29 @@ function Game()
             if(Keys[3] >= 1) {
                 buffer.drawImage(playerImages[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
             } // D || Right  
-      }
+        }
 
-      this.runOnTick = function()
-      {
-          if(this.onTick % 2 == 0) {
-              this.idleAnim++;
-              if(this.idleAnim > 3) this.idleAnim = 0;
-          }
-          if(Keys[1] >= 1){
-              if(this.onTick % 1 == 0) {
-                  this.turnAnimL++;
-                  if(this.turnAnimL > 11) this.turnAnimL = 11;
-              }
-          }
-          if(Keys[3] >= 1){
-              if(this.onTick % 1 == 0) {
-                  this.turnAnimR++;
-                  if(this.turnAnimR > 19) this.turnAnimR = 19;
-              }
-          }
-          if(Keys[1] == 0) this.turnAnimL = 4;            
-          if(Keys[3] == 0) this.turnAnimR = 12;
-      }
+        this.runOnTick = function()
+        {
+            if(this.onTick % 2 == 0) {
+                this.idleAnim++;
+                if(this.idleAnim > 3) this.idleAnim = 0;
+            }
+            if(Keys[1] >= 1){
+                if(this.onTick % 1 == 0) {
+                    this.turnAnimL++;
+                    if(this.turnAnimL > 11) this.turnAnimL = 11;
+                }
+            }
+            if(Keys[3] >= 1){
+                if(this.onTick % 1 == 0) {
+                    this.turnAnimR++;
+                    if(this.turnAnimR > 19) this.turnAnimR = 19;
+                }
+            }
+            if(Keys[1] == 0) this.turnAnimL = 4;            
+            if(Keys[3] == 0) this.turnAnimR = 12;
+        }
 		
 		this.upgradeShield = function()
 		{
@@ -3239,66 +3279,66 @@ function Game()
 					
                     for(var a = 0; a < enemies.length; a++)
                     {
-											if(player.isAlive())
-											{
-												if(ticks % 2 == 0)
-												{//LASERS!
-													if(enemies[a].laser)
-													{//Boss Laser
-														if(self.BossLaserCollision(player, enemies[a]))
-														{
-															player.DamagePlayer(2);
-														}
-													}
-													if(player.laser)
-													{
-														if(self.LaserCollision(enemies[a]))
-														{
-															enemies[a].life -= 5;
-															explosion = new Explosion(enemies[a].x, enemies[a].y, 2, 4, 50, 0.1, 0.1, 3.0);
-															explosions.push(explosion);
-														}
-													}
-												}
-												
-												if(self.Collision(player, enemies[a]))
-												{
-													if(enemies[a].isBoss)
-													{
-														player.DamagePlayer(9000);//once to ensure shield is gone
-														player.DamagePlayer(9000);//once to ensure player death
-													} else
-													{
-														player.DamagePlayer(Math.round(enemies[a].damage));
-														explosion = new Explosion(player.x, player.y, 5, 10, 60, 0.1, 3, 0.1);
-														explosions.push(explosion);
-														enemies[a].life = 0;
-													}
-												}
-																	
-												for(var b = 0; b < missiles.length; b++)
-												{
-													if(missiles[b].missileType > 99)
-													{
-														if(self.Collision(player, missiles[b]))
-														{
-															explosion = new Explosion(missiles[b].x, missiles[b].y, 5, 10, 100, 1, 1, 1);
-															explosions.push(explosion);
-															player.DamagePlayer(missiles[b].damage);
-															this.popArray(missiles, b);
-														}
-													} else
-													{
-														if(self.Collision(missiles[b], enemies[a]))
-														{
-															explosion = new Explosion(missiles[b].x, missiles[b].y, 5, 10, 100, 1, 1, 1);
-															explosions.push(explosion);
-															enemies[a].life -= missiles[b].damage;
-															this.popArray(missiles, b);
-														}
-													}
-												}
-											}
+                        if(player.isAlive())
+                        {
+                            if(ticks % 2 == 0)
+                            {//LASERS!
+                                if(enemies[a].laser)
+                                {//Boss Laser
+                                    if(self.BossLaserCollision(player, enemies[a]))
+                                    {
+                                        player.DamagePlayer(2);
+                                    }
+                                }
+                                if(player.laser)
+                                {
+                                    if(self.LaserCollision(enemies[a]))
+                                    {
+                                        enemies[a].life -= 5;
+                                        explosion = new Explosion(enemies[a].x, enemies[a].y, 2, 4, 50, 0.1, 0.1, 3.0);
+                                        explosions.push(explosion);
+                                    }
+                                }
+                            }
+                            
+                            if(self.Collision(player, enemies[a]))
+                            {
+                                if(enemies[a].isBoss)
+                                {
+                                    player.DamagePlayer(9000);//once to ensure shield is gone
+                                    player.DamagePlayer(9000);//once to ensure player death
+                                } else
+                                {
+                                    player.DamagePlayer(Math.round(enemies[a].damage));
+                                    explosion = new Explosion(player.x, player.y, 5, 10, 60, 0.1, 3, 0.1);
+                                    explosions.push(explosion);
+                                    enemies[a].life = 0;
+                                }
+                            }
+                                                
+                            for(var b = 0; b < missiles.length; b++)
+                            {
+                                if(missiles[b].missileType > 99)
+                                {
+                                    if(self.Collision(player, missiles[b]))
+                                    {
+                                        explosion = new Explosion(missiles[b].x, missiles[b].y, 5, 10, 100, 1, 1, 1);
+                                        explosions.push(explosion);
+                                        player.DamagePlayer(missiles[b].damage);
+                                        this.popArray(missiles, b);
+                                    }
+                                } else
+                                {
+                                    if(self.Collision(missiles[b], enemies[a]))
+                                    {
+                                        explosion = new Explosion(missiles[b].x, missiles[b].y, 5, 10, 100, 1, 1, 1);
+                                        explosions.push(explosion);
+                                        enemies[a].life -= missiles[b].damage;
+                                        this.popArray(missiles, b);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 else
@@ -3821,6 +3861,8 @@ function Game()
                 if(Keys[1] >= 1) moveX -= player.speed * delta; // A || Left
                 if(Keys[2] >= 1) moveY += player.speed * delta; // S || Down
                 if(Keys[3] >= 1) moveX += player.speed * delta; // D || Right
+                // Set the current movement vectors for the player.
+                player.setMovementVector(moveX, moveY);
                 // Only update player position if there's movement
                 if (moveX !== 0 || moveY !== 0) {
                     // Normalize the speed if moving diagonally
