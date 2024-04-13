@@ -1,5 +1,20 @@
 const { ipcRenderer } = require('electron');
 
+// Planet Rendering
+// The offscreen canvas creates a gl context as opposed to a 2d context which allows us to perform shaders,
+// which is essentially hardware accelleration which we use to filter out the background of planet renders.
+// Then, we take this webGL context and render it, 10 times per second, to a 2d context which caches
+// the final planet render, which is then rendered to the 2d canvas buffer, which is the main game render.
+var offScreenPlanetCanvas = document.createElement('canvas');
+var gl = offScreenPlanetCanvas.getContext('webgl') || offScreenPlanetCanvas.getContext('experimental-webgl');
+var shaderPlanetCanvas = document.createElement('canvas');
+var shaderPlanetCtx = shaderPlanetCanvas.getContext('2d');
+
+var offscreenStarCanvas = document.createElement('canvas'); // For rendering the stars in webgl to perform shading
+var starGl = offscreenStarCanvas.getContext('webgl') || offscreenStarCanvas.getContext('experimental-webgl');
+var renderStarCanvas = document.createElement('canvas'); // For rendering the stars back to a 2d image context
+var renderStarCtx = renderStarCanvas.getContext('2d');
+
 function Game()
 {
 	//Tracked Data
@@ -63,6 +78,9 @@ function Game()
     var seconds = 0;
     var paused = false;
 
+    // Asset Information
+    var starTypes = 10;
+
     // Context
     var _canvas = null;
     var _buffer = null;
@@ -75,25 +93,24 @@ function Game()
 	{
 		numImagesLoaded++;
 		//console.log("Loaded image: " + numImagesLoaded + "/" + numOfImages);
-		if(numImagesLoaded >= numOfImages)
-		{
+		if(numImagesLoaded >= numOfImages) {
 			imagesLoaded = true;
-		} else
-		{
+            starGeneration.initStars();
+		} else {
 			imagesLoaded = false;
 		}
 	}
 	var numImagesLoaded = 0;
         // Graphics
         var starImages = [];
-        for(var i = 0; i < 6; i++)
+        for(var i = 0; i < starTypes; i++)
         {
             starImages[i] = new Image();
             starImages[i].addEventListener('load', self.loadedImage, false);
             starImages[i].addEventListener('error', function() {
-                console.log('Error loading image: Graphics/star_' + i + '.png');
+                console.log('Error loading image: Graphics/Stars/star_' + i + '.png');
             });
-            starImages[i].src = ('Graphics/star_' + i + '.png');
+            starImages[i].src = ('Graphics/Stars/star_' + i + '.png');
         }
 		
         var images = [];
@@ -168,7 +185,7 @@ function Game()
                 0, 0, 0, 0, 0];
     
     // World
-    var numStars = 100;
+    var numStars = 500;
 	var numEnemies = 0;
 
     /******************************************************/
@@ -298,7 +315,7 @@ function Game()
 		totalDestroys += destroys;
 		destroys = 0;
         player.life = 100;
-		initStars();
+		starGeneration.initStars();
 		totalShots += player.totalMissiles;
         player.totalMissiles = 0;
         player.x = _buffer.width / 2;
@@ -308,7 +325,6 @@ function Game()
 		player.resetShield();
 		sfx.pause(1);//Pause laser sound on round end
 		enemyGeneration.hasBoss = false;
-		starGeneration.hasPlanet = false;
 	}
     
     this.popArray = function(Array, popThis)
@@ -1096,117 +1112,345 @@ function Game()
 			this.GenerateObjectives();
 		}
 	}
-	
-    function initStars()
-    {
-		stars = [];
-        for(i = 0; i < numStars; i++)
-        {
-            var X = Math.floor(Math.random() * _buffer.width);
-            var Y = Math.floor(Math.random() * _buffer.height);
-            star = new Star(X, Y, 0, 10, false, 1);
-            stars.push(star);
-        }
-    }
     
     function StarGeneration()
-	{
-		this.onTick = 0;
-		this.hasPlanet = false;
-		this.generate = function()
-		{
-			if(ticks != this.onTick)
-			{
-				this.onTick = ticks;
-                if(stars.length < numStars)
-                {
-					var starType = 0;
-					if(this.hasPlanet){ starType = Math.floor(Math.random() * 3); } else { starType = Math.floor(Math.random() * 4); }
-					var X = Math.floor(Math.random() * _buffer.width);
-					var Y = 0;
-					var model = 0;
-					var speed = 10;
-					var isPlanet = false;
-					var height = 1;
-					switch(starType)
-                    {
-						case 0:
-						{
-							model = 0;
-							speed = 10;
-							break;
-						}
-						case 1:
-						{
-							model = 1;
-							speed = 17;
-							height = 5;
-							break;
-						}
-						case 2:
-						{
-							model = 2;
-							speed = 25;
-							height = 11;
-							break;
-						}
-						case 3:
-						{//Planets
-							var planetType = Math.floor(Math.random() * 3);
-							switch(planetType)
-							{
-								case 0:
-								{
-									Y = -178;
-									height = 356;
-									break;
-								}
-								case 1:
-								{
-									Y = -359;
-									height = 718;
-									break;
-								}
-								case 2:
-								{
-									Y = -368;
-									height = 735;
-									break;
-								}
-							}
-							speed = 100;
-							model = 3 + planetType;
-							isPlanet = true;
-							this.hasPlanet = true;
-							break;
-						}
-					}
-                    star = new Star(X, Y, model, speed, isPlanet, height);
+    {
+        this.onTick = 0;
+        this.hasPlanet = false;
+
+        this.initStars = function() {
+            this.hasPlanet = false;
+            stars = [];
+            for(i = 0; i < numStars; i++)
+            {
+                var X = Math.floor(Math.random() * _buffer.width);
+                var Y = Math.floor(Math.random() * _buffer.height);
+                var starType = this.genRandomStarType(true);
+                var speed = this.starSpeed(starType);
+                var height = this.starHeight(starType);
+                star = new Star(X, Y, starType, speed, false, height);
+                stars.push(star);
+            }
+        }
+
+        this.starSpeed = function(starType) {
+            if(starType == -1) return 100;
+            return [0.8, 1, 1.1, 1.3, 1.5, 1.7, 1.9, 2.2, 2.5, 2.7][starType];
+        }
+
+        this.starHeight = function(starType) {
+            if(starType == -1) return 500;
+            return [1, 3, 3, 5, 9, 9, 7, 9, 17, 21][starType];
+        }
+
+        this.generate = function() {
+            if(ticks != this.onTick) {
+                this.onTick = ticks;
+                if(stars.length < numStars) {
+                    var starType = this.genRandomStarType(false);
+                    var X = Math.floor(Math.random() * _buffer.width);
+                    var Y = 0;
+                    var speed = this.starSpeed(starType);
+                    var isPlanet = false;
+                    var height = this.starHeight(starType);
+                    if(starType == -1) { // Planets
+                        Y = -250;
+                        isPlanet = true;
+                        this.hasPlanet = true;
+                    }
+                    star = new Star(X, Y, starType, speed, isPlanet, height);
                     stars.push(star);
                 }
-			}
-		}
-	}
-    
-    function Star(X, Y, mdl, spd, isPlnt, hght)
-    {
+            }
+        }
+
+        this.genRandomStarType = function(onlyStars) {
+            var starWeights = [100, 20, 8, 7, 6, 5, 4, 3, 2, 1];
+            if(onlyStars || this.hasPlanet) { // Stars
+                var totalWeight = starWeights.reduce((acc, val) => acc + val, 0);
+                var rand = Math.random() * totalWeight;
+                var cumulativeWeight = 0;
+                for (var i = 0; i < starWeights.length; i++) {
+                    cumulativeWeight += starWeights[i];
+                    if (rand < cumulativeWeight) {
+                        return i;
+                    }
+                }
+                return starWeights.length - 1; // Fallback
+            } else { // Planet
+                return -1;
+            }
+        }
+    }
+
+    function Star(X, Y, mdl, spd, isPlnt, hght) {
+        this.onTick = 0
         this.x = X;
         this.y = Y;
-		this.Model = mdl;
-		this.speed = spd;
-		this.isPlanet = isPlnt;
-		this.height = hght;
-		this.killY = _canvas.height + (this.height / 2);
-        
-        this.Update = function()
-        {
+        this.Model = mdl;
+        this.speed = spd;
+        this.isPlanet = isPlnt;
+        this.height = hght;
+        this.killY = _canvas.height + (this.height / 2);
+
+        // Custom Star Shading
+        this.color = { r: 125, g: 125, b: 255 };
+        this.image = null;
+        this.imageLoaded = false;
+        this.customStarShader = false;
+        if (!this.isPlanet && Math.random() < 0.2) { // 20% chance for non-standard stars
+            this.customStarShader = true;
+    
+            if (Math.random() < 0.8) {
+                // Primary color star: two components are reduced near zero
+                let colors = [0, 0, 0];
+                let primaryColorIndex = Math.floor(Math.random() * 3); // Select which color will be primary
+                colors[primaryColorIndex] = 225 + Math.floor(Math.random() * 30); // Set the primary color component to a high value from 225 to 255
+                this.color = { r: colors[0], g: colors[1], b: colors[2] };
+            } else {
+                // Secondary color star: one component is reduced near zero
+                let colors = [225, 225, 225].map(val => val + Math.floor(Math.random() * 30)); // Start with high values from 225 to 255
+                const reduceIndex = Math.floor(Math.random() * 3); // Select one color to reduce
+                colors[reduceIndex] = Math.max(0, colors[reduceIndex] - 200); // Reduce one component significantly to near zero
+                this.color = { r: colors[0], g: colors[1], b: colors[2] };
+            }
+        }
+
+        this.Update = function() {
+            if(ticks != this.onTick) {
+                this.onTick = ticks
+                if(this.onTick % 2 === 0 && this.isPlanet) { // Planet Pre-Rendering
+                    this.renderPlanet();
+                }
+            }
+
+            // Movement Dynamics
             this.y += this.speed * delta;
-            if(this.y > this.killY)
-            {
+            if(this.y > this.killY) {
                 return 1;
             }
             return 0;
         }
+
+        this.renderStar = function() {
+            if(this.isPlanet) return;
+        
+            // Clear and reset rendering contexts so we can re-render this game loop.
+            starGl.clear(starGl.COLOR_BUFFER_BIT);
+            renderStarCtx.clearRect(0, 0, renderStarCanvas.width, renderStarCanvas.height);
+            offscreenStarCanvas.width = starImages[this.Model].width;
+            offscreenStarCanvas.height = starImages[this.Model].height;
+            renderStarCanvas.width = starImages[this.Model].width;
+            renderStarCanvas.height = starImages[this.Model].height;
+        
+            // Vertex shader code
+            var vertexShaderSource = `
+                attribute vec2 a_position;
+                varying vec2 v_texCoord;
+        
+                void main() {
+                    gl_Position = vec4(a_position, 0, 1);
+                    v_texCoord = a_position * 0.5 + 0.5;
+                }
+            `;
+        
+            // Fragment shader code
+            var fragmentShaderSource = `
+                precision mediump float;
+                varying vec2 v_texCoord;
+                uniform sampler2D u_texture;
+                uniform vec3 targetColor;
+        
+                void main() {
+                    vec4 color = texture2D(u_texture, v_texCoord);
+                    if (color.rgb == vec3(0, 0, 0)) {
+                        discard; // Discard black color pixels
+                    }
+                    vec3 newColor = mix(color.rgb, targetColor, 0.5); // Mix original color with target color
+                    gl_FragColor = vec4(newColor, color.a);
+                }
+            `;
+        
+            // Compile shaders
+            var vertexShader = starGl.createShader(starGl.VERTEX_SHADER);
+            starGl.shaderSource(vertexShader, vertexShaderSource);
+            starGl.compileShader(vertexShader);
+        
+            var fragmentShader = starGl.createShader(starGl.FRAGMENT_SHADER);
+            starGl.shaderSource(fragmentShader, fragmentShaderSource);
+            starGl.compileShader(fragmentShader);
+        
+            // Link shaders into a program
+            var shaderProgram = starGl.createProgram();
+            starGl.attachShader(shaderProgram, vertexShader);
+            starGl.attachShader(shaderProgram, fragmentShader);
+            starGl.linkProgram(shaderProgram);
+            starGl.useProgram(shaderProgram);
+        
+            // Create and bind buffer to render a quad
+            var positionBuffer = starGl.createBuffer();
+            starGl.bindBuffer(starGl.ARRAY_BUFFER, positionBuffer);
+            starGl.bufferData(starGl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), starGl.STATIC_DRAW);
+        
+            var positionLocation = starGl.getAttribLocation(shaderProgram, 'a_position');
+            starGl.enableVertexAttribArray(positionLocation);
+            starGl.vertexAttribPointer(positionLocation, 2, starGl.FLOAT, false, 0, 0);
+        
+            // Create a texture from your source canvas
+            var texture = starGl.createTexture();
+            starGl.bindTexture(starGl.TEXTURE_2D, texture);
+            starGl.texImage2D(starGl.TEXTURE_2D, 0, starGl.RGBA, starGl.RGBA, starGl.UNSIGNED_BYTE, starImages[this.Model]);
+            starGl.texParameteri(starGl.TEXTURE_2D, starGl.TEXTURE_MIN_FILTER, starGl.LINEAR);
+            starGl.texParameteri(starGl.TEXTURE_2D, starGl.TEXTURE_WRAP_S, starGl.CLAMP_TO_EDGE);
+            starGl.texParameteri(starGl.TEXTURE_2D, starGl.TEXTURE_WRAP_T, starGl.CLAMP_TO_EDGE);
+        
+            // Set the texture and color uniform in the shader
+            var textureLocation = starGl.getUniformLocation(shaderProgram, 'u_texture');
+            var colorLocation = starGl.getUniformLocation(shaderProgram, 'targetColor');
+            starGl.uniform1i(textureLocation, 0);
+            starGl.uniform3fv(colorLocation, [this.color.r / 255, this.color.g / 255, this.color.b / 255]);
+        
+            // Set the viewport to match the offscreen canvas size
+            starGl.viewport(0, 0, offscreenStarCanvas.width, offscreenStarCanvas.height);
+        
+            // Render the quad with the shader applied
+            starGl.drawArrays(starGl.TRIANGLE_STRIP, 0, 4);
+        
+            // Get the resulting image data from WebGL
+            var imageData = new Uint8Array(offscreenStarCanvas.width * offscreenStarCanvas.height * 4);
+            starGl.readPixels(0, 0, offscreenStarCanvas.width, offscreenStarCanvas.height, gl.RGBA, gl.UNSIGNED_BYTE, imageData);
+        
+            // Put the modified image data onto your buffer canvas
+            var imageDataUint8Clamped = new Uint8ClampedArray(imageData);
+            var imageDataObject = new ImageData(imageDataUint8Clamped, offscreenStarCanvas.width, offscreenStarCanvas.height);
+            renderStarCtx.putImageData(imageDataObject, 0, 0);
+        
+            if (offscreenStarCanvas.width > 0 && offscreenStarCanvas.height > 0) {
+                this.image = new Image();
+                this.image.onload = () => { this.imageLoaded = true; };
+                this.image.src = renderStarCanvas.toDataURL();
+            }
+        }
+
+        this.renderPlanet = function() {
+            var planetCanvas = document.querySelector('#root canvas');
+            if(planetCanvas == null) return;
+            // Clear and reset our planet rendering contexts so we can re-render this game loop.
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            shaderPlanetCtx.clearRect(0, 0, shaderPlanetCanvas.width, shaderPlanetCanvas.height);
+            offScreenPlanetCanvas.width = planetCanvas.width;
+            offScreenPlanetCanvas.height = planetCanvas.height;
+
+            // Vertex shader code
+            var vertexShaderSource = `
+                attribute vec2 a_position;
+                varying vec2 v_texCoord;
+
+                void main() {
+                    gl_Position = vec4(a_position, 0, 1);
+                    v_texCoord = a_position * 0.5 + 0.5;
+                }
+            `;
+
+            // Fragment shader code
+            var fragmentShaderSource = `
+                precision mediump float;
+                varying vec2 v_texCoord;
+                uniform sampler2D u_texture;
+
+                void main() {
+                    vec4 color = texture2D(u_texture, v_texCoord);
+                    if (color == vec4(0, 0, 0, 1)) {
+                        discard; // Discard black color pixels
+                    }
+                    gl_FragColor = color;
+                }
+            `;
+
+            // Compile shaders
+            var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+            gl.shaderSource(vertexShader, vertexShaderSource);
+            gl.compileShader(vertexShader);
+
+            var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+            gl.shaderSource(fragmentShader, fragmentShaderSource);
+            gl.compileShader(fragmentShader);
+
+            // Link shaders into a program
+            var shaderProgram = gl.createProgram();
+            gl.attachShader(shaderProgram, vertexShader);
+            gl.attachShader(shaderProgram, fragmentShader);
+            gl.linkProgram(shaderProgram);
+            gl.useProgram(shaderProgram);
+
+            // Create and bind buffer to render a quad
+            var positionBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+
+            var positionLocation = gl.getAttribLocation(shaderProgram, 'a_position');
+            gl.enableVertexAttribArray(positionLocation);
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+            // Create a texture from your source canvas
+            var texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, planetCanvas);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+            // Set the texture uniform in the shader
+            var textureLocation = gl.getUniformLocation(shaderProgram, 'u_texture');
+            gl.uniform1i(textureLocation, 0);
+
+            // Ensure the webGL context has the correct dimensions for our planet canvas
+            gl.viewport(0, 0, offScreenPlanetCanvas.width, offScreenPlanetCanvas.height);
+
+            // Render the quad with the shader applied
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+            // Get the resulting image data from WebGL
+            var imageData = new Uint8Array(offScreenPlanetCanvas.width * offScreenPlanetCanvas.height * 4);
+            gl.readPixels(0, 0, offScreenPlanetCanvas.width, offScreenPlanetCanvas.height, gl.RGBA, gl.UNSIGNED_BYTE, imageData);
+
+            // Put the modified image data onto your buffer canvas
+            var imageDataUint8Clamped = new Uint8ClampedArray(imageData);
+            var imageDataObject = new ImageData(imageDataUint8Clamped, offScreenPlanetCanvas.width, offScreenPlanetCanvas.height);
+
+            shaderPlanetCanvas.width = offScreenPlanetCanvas.width;
+            shaderPlanetCanvas.height = offScreenPlanetCanvas.height;
+            shaderPlanetCtx.putImageData(imageDataObject, 0, 0);
+        }
+
+        this.randomlySelectPlanet = function() {
+            if(!this.isPlanet) return;
+
+            // Get the select element
+            var selectElement = document.querySelector('.dg.ac select');
+
+            if(!selectElement) return;
+
+            // Get all the options within the select element
+            var options = selectElement.options;
+
+            // Calculate a random index within the range of options
+            var randomIndex = Math.floor(Math.random() * options.length);
+
+            // Set the selected option based on the random index
+            options[randomIndex].selected = true;
+
+            // Simulate the change event on the select element
+            var event = new Event('change', { bubbles: true });
+            selectElement.dispatchEvent(event);
+        }
+    
+        // Call pre-render on object creation
+        this.randomlySelectPlanet();
+        if(this.customStarShader) {
+            this.renderStar();
+        }
+        
     }
 
 	function EnemyGeneration()
@@ -2348,8 +2592,8 @@ function Game()
         }
     }
 
-  function Player(Width, Height)
-  {
+    function Player(Width, Height)
+    {
 		this.x = 400;
 		this.y = 300;
 		this.speed = 200;
@@ -2382,65 +2626,79 @@ function Game()
 		this.laserY = this.y - 25;
 		this.laserWidth = 20;
 		this.laserHeight = this.y - 25;
+        this.idleAnim = 0; // 0-3
         
-			this.isAlive = function()
-			{
-				return (this.life > 0);
-			}
-		
-			this.DamagePlayer = function(dmg)
-			{
-				if(this.hasShield && this.shield > 0)
-				{
-					this.shield -= dmg * 3;
-				} else
-				{
-					this.life -= dmg;
-					if(this.life < 0){this.life = 0;}
-				}
-				if(!this.isAlive())
-				{ 
-					gco.ShowContinueScreen();
-					sfx.play(0);
-					explosion = new Explosion(player.x, player.y, 350, 5, 200, 0.1, 3, 0.1);
-					explosions.push(explosion);
-					this.laser = false;
-				}
-			}
+        this.isAlive = function()
+        {
+            return (this.life > 0);
+        }
+    
+        this.DamagePlayer = function(dmg)
+        {
+            if(this.hasShield && this.shield > 0)
+            {
+                this.shield -= dmg * 3;
+            } else
+            {
+                this.life -= dmg;
+                if(this.life < 0){this.life = 0;}
+            }
+            if(!this.isAlive())
+            { 
+                gco.ShowContinueScreen();
+                sfx.play(0);
+                explosion = new Explosion(player.x, player.y, 350, 5, 200, 0.1, 3, 0.1);
+                explosions.push(explosion);
+                this.laser = false;
+            }
+        }
 
-			this.Update = function()
-			{
-				this.x1 = this.x;
-				this.y1 = this.y - (this.height / 2);
-				this.x2 = this.x - (this.width / 2);
-				this.y2 = this.y + (this.height / 2);
-				this.x3 = this.x + (this.width / 2);
-				this.y3 = this.y + (this.height / 2);
+        this.Update = function()
+        {
+            this.x1 = this.x;
+            this.y1 = this.y - (this.height / 2);
+            this.x2 = this.x - (this.width / 2);
+            this.y2 = this.y + (this.height / 2);
+            this.x3 = this.x + (this.width / 2);
+            this.y3 = this.y + (this.height / 2);
 
-				//Laser Updating
-				if(this.secondary >= 9000) {
-					if(Keys[19] != 0 && this.secondaryAmmo > 0) {
-						if(!sfx.laserPlaying){ sfx.play(1); }
-						this.laser = true;
-						this.laserX = this.x;
-						this.laserY = 0;
-						this.laserHeight = this.y - 25;
-						if(ticks == 0){ this.secondaryAmmo -= 3; if(this.secondaryAmmo < 0){this.secondaryAmmo = 0;} }
-					} else { if(sfx.laserPlaying){ sfx.pause(1); } this.laser = false; }
-				} else
-				{
-					this.laser = false;
-					if(sfx.laserPlaying){ sfx.pause(1); }
-				}
-				
-				if(this.hasShield)
-				{
-					if(this.shield <= 0)
-					{
-						this.shield = 0;
-					}
-				}
-			}
+            //Laser Updating
+            if(this.secondary >= 9000) {
+                if(Keys[19] != 0 && this.secondaryAmmo > 0) {
+                    if(!sfx.laserPlaying){ sfx.play(1); }
+                    this.laser = true;
+                    this.laserX = this.x;
+                    this.laserY = 0;
+                    this.laserHeight = this.y - 25;
+                    if(ticks == 0){ this.secondaryAmmo -= 3; if(this.secondaryAmmo < 0){this.secondaryAmmo = 0;} }
+                } else { if(sfx.laserPlaying){ sfx.pause(1); } this.laser = false; }
+            } else
+            {
+                this.laser = false;
+                if(sfx.laserPlaying){ sfx.pause(1); }
+            }
+            
+            if(this.hasShield)
+            {
+                if(this.shield <= 0)
+                {
+                    this.shield = 0;
+                }
+            }
+        }
+
+        this.drawPlayer = function()
+        {
+            buffer.drawImage(playerImages[0], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);   
+        }
+
+        this.runOnTick = function()
+        {
+            if(this.onTick % 2 == 0) {
+                this.idleAnim++;
+                if(this.idleAnim > 3) this.idleAnim = 0;
+            }
+        }
 		
 		this.upgradeShield = function()
 		{
@@ -2470,58 +2728,59 @@ function Game()
 			}
 		}
 
-    this.shoot = function()
-    {
-			switch(this.weapon)
-			{
-				case 0:
-				{
-					this.totalMissiles += 1;
-					if(this.weaponFunc)
-					{
-						missile = new Missile(missiles.length, 300, this.weapon, this.x, this.y - 25, 1);
-						missiles.push(missile);
-					}
-					this.weaponFunc = !this.weaponFunc;
-					break;
-				}
-				case 1:
-				{
-					this.totalMissiles += 1;
-					if(this.weaponFunc)
-					{
-						missile = new Missile(missiles.length, 300, this.weapon, this.x - 5, this.y - 25, 2);
-						missiles.push(missile);
-					} else
-					{
-						missile = new Missile(missiles.length, 300, this.weapon, this.x + 5, this.y - 25, 2);
-						missiles.push(missile);
-					}
-					this.weaponFunc = !this.weaponFunc;
-					break;
-				}
-				case 2:
-				{
-					this.totalMissiles += 1;
-					if(this.weaponFunc)
-					{
-						missile = new Missile(missiles.length, 300, 1, this.x - 5, this.y - 25, 2);
-						missiles.push(missile);
-						missile = new Missile(missiles.length, 300, this.weapon, this.x + 5, this.y - 25, 2);
-						missiles.push(missile);
-					} else
-					{
-						missile = new Missile(missiles.length, 300, 1, this.x + 5, this.y - 25, 2);
-						missiles.push(missile);
-						missile = new Missile(missiles.length, 300, this.weapon, this.x - 5, this.y - 25, 3);
-						missiles.push(missile);
-					}
-					this.weaponFunc = !this.weaponFunc;
-					break;
-				}
-				default:{break;}
-			}
-    }
+        this.shoot = function()
+        {
+                switch(this.weapon)
+                {
+                    case 0:
+                    {
+                        this.totalMissiles += 1;
+                        if(this.weaponFunc)
+                        {
+                            missile = new Missile(missiles.length, 300, this.weapon, this.x, this.y - 25, 1);
+                            missiles.push(missile);
+                        }
+                        this.weaponFunc = !this.weaponFunc;
+                        break;
+                    }
+                    case 1:
+                    {
+                        this.totalMissiles += 1;
+                        if(this.weaponFunc)
+                        {
+                            missile = new Missile(missiles.length, 300, this.weapon, this.x - 5, this.y - 25, 2);
+                            missiles.push(missile);
+                        } else
+                        {
+                            missile = new Missile(missiles.length, 300, this.weapon, this.x + 5, this.y - 25, 2);
+                            missiles.push(missile);
+                        }
+                        this.weaponFunc = !this.weaponFunc;
+                        break;
+                    }
+                    case 2:
+                    {
+                        this.totalMissiles += 1;
+                        if(this.weaponFunc)
+                        {
+                            missile = new Missile(missiles.length, 300, 1, this.x - 5, this.y - 25, 2);
+                            missiles.push(missile);
+                            missile = new Missile(missiles.length, 300, this.weapon, this.x + 5, this.y - 25, 2);
+                            missiles.push(missile);
+                        } else
+                        {
+                            missile = new Missile(missiles.length, 300, 1, this.x + 5, this.y - 25, 2);
+                            missiles.push(missile);
+                            missile = new Missile(missiles.length, 300, this.weapon, this.x - 5, this.y - 25, 3);
+                            missiles.push(missile);
+                        }
+                        this.weaponFunc = !this.weaponFunc;
+                        break;
+                    }
+                    default:{break;}
+                }
+        }
+
 		this.shootSecondary = function()
 		{
 			if(this.secondaryAmmo > 0 && this.secondary < 9000)
@@ -2555,7 +2814,7 @@ function Game()
 				}
 			}
 		}
-  }
+    }
     
     function GUIText(Text, X, Y, fStyle, aX, aY, col)
     {
@@ -2780,7 +3039,6 @@ function Game()
         player = new Player(24, 40);
 		enemyGeneration = new EnemyGeneration();
         starGeneration = new StarGeneration();
-        initStars();
 		itemGeneration = new RandomItemGeneration();
 		
 		gco = new GameControlObject();
@@ -3553,14 +3811,13 @@ function Game()
                     player.y += moveY;
                 }
 
-				if(ticks != player.onTick)
-                {//On Tick Player Input
-					player.onTick = ticks;
-					if(Keys[16] >= 1) // Space
-					{
-						player.shoot();
-					}
-				}
+                if(ticks != player.onTick) {//On Tick Player Input
+                    player.onTick = ticks;
+                    player.runOnTick();
+                    if(Keys[16] >= 1) { // Space
+                        player.shoot();
+                    }
+                }
 				
                 if(Keys[19] == 1) // B
                 {
@@ -3626,23 +3883,21 @@ function Game()
         buffer.fillStyle = "rgb(0, 0, 0)";
         buffer.fillRect(0, 0, _buffer.width, _buffer.height);
         
-		// Stars
+        // Stars
         self.drawStars();
-		
+        
         if(gameState == 1 && !gco.credits.isBlackedOut)
         {
-			//Money
-			self.drawMoney();
-			
-			//Random Items
-			self.drawItems();
-			
+            //Money
+            self.drawMoney();
+            
+            //Random Items
+            self.drawItems();
+            
             // Player
-            if(player.isAlive())
-            {
-                self.drawPlayer();
-                if(player.hasShield && player.shield > 0)
-                {
+            if(player.isAlive()) {
+                player.drawPlayer();
+                if(player.hasShield && player.shield > 0) {
                     self.drawShield();
                 }
             }
@@ -3653,50 +3908,44 @@ function Game()
             // Missile
             self.drawMissiles();
 
-			//Laser
-			if(player.laser){ self.drawLaser(); }
-			
+            //Laser
+            if(player.laser){ self.drawLaser(); }
+            
             // Explosion
             self.drawExplosions();
             
             // GUI
             self.drawHUD();
         }
-		
-		if(gco.win){ gco.credits.Draw(); }
-		self.drawGUI();
-		if(gco.playStory){ gco.story.Draw(); }
-		
+        
+        if(gco.win){ gco.credits.Draw(); }
+        self.drawGUI();
+        if(gco.playStory){ gco.story.Draw(); }
+
         canvas.drawImage(_buffer, 0, 0);
     }
 
-    this.drawStars = function()
-    {
-		var p = -1;//p is for planet
-        for(i = 0; i < stars.length; i++)
-        {
-			if(stars[i].isPlanet){p = i; continue;}
-			if (imagesLoaded)
-			{
-				buffer.drawImage(starImages[stars[i].Model], stars[i].x - (starImages[stars[i].Model].width / 2), stars[i].y - (starImages[stars[i].Model].height / 2), starImages[stars[i].Model].width, starImages[stars[i].Model].height);
-			} else
-			{
-				buffer.fillStyle = 'rgb(200, 200, 255)';
-				buffer.beginPath();
-					buffer.arc(stars[i].x, stars[i].y, 2, 0, Math.PI * 2, true);
-				buffer.closePath();
-				buffer.fill();
-			}
+    this.drawStars = function() {
+        var p = -1; // p is for planet
+        for (var i = 0; i < stars.length; i++) {
+            if(stars[i].isPlanet){p = i; continue;}
+            if (stars[i].imageLoaded) { // Check if the image is loaded and ready
+                buffer.drawImage(stars[i].image, stars[i].x - (stars[i].image.width / 2), stars[i].y - (stars[i].image.height / 2));
+            } else {
+                if (imagesLoaded) {
+                    buffer.drawImage(starImages[stars[i].Model], stars[i].x - (starImages[stars[i].Model].width / 2), stars[i].y - (starImages[stars[i].Model].height / 2), starImages[stars[i].Model].width, starImages[stars[i].Model].height);
+                } else {
+                    buffer.fillStyle = 'rgb(200, 200, 255)';
+                    buffer.beginPath();
+                    buffer.arc(stars[i].x, stars[i].y, 2, 0, Math.PI * 2, true);
+                    buffer.closePath();
+                    buffer.fill();
+                }
+            }
         }
-		if(p != -1)
-		{//ensure planets are drawn in front of stars
-			buffer.drawImage(starImages[stars[p].Model], stars[p].x - (starImages[stars[p].Model].width / 2), stars[p].y - (starImages[stars[p].Model].height / 2), starImages[stars[p].Model].width, starImages[stars[p].Model].height);
-		}
-    }
-
-    this.drawPlayer = function()
-    {
-		buffer.drawImage(playerImages[0], player.x - (player.width / 2), player.y - (player.height / 2), player.width, player.height);   
+        if (p != -1) { // Ensure planets are drawn in front of stars
+            buffer.drawImage(shaderPlanetCanvas, stars[p].x - (offScreenPlanetCanvas.width / 2), stars[p].y - (offScreenPlanetCanvas.height / 2));
+        }
     }
     
     this.drawShield = function()
