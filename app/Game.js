@@ -1318,7 +1318,7 @@ function Game()
     
         // Call pre-render on object creation
         this.randomlySelectPlanet();
-    }    
+    }
 
 	function EnemyGeneration()
 	{
