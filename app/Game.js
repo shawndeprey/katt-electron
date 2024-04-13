@@ -130,7 +130,7 @@ function Game()
         }
         
         var playerImages = [];
-        for(var i = 0; i < 1; i++)
+        for(var i = 0; i < 20; i++)
         {
             playerImages[i] = new Image();
 			playerImages[i].addEventListener('load', self.loadedImage, false);
@@ -2627,6 +2627,8 @@ function Game()
 		this.laserWidth = 20;
 		this.laserHeight = this.y - 25;
         this.idleAnim = 0; // 0-3
+        this.turnAnimL = 4; // 4-11
+        this.turnAnimR = 12; // 12-19  
         
         this.isAlive = function()
         {
@@ -2687,18 +2689,39 @@ function Game()
             }
         }
 
-        this.drawPlayer = function()
+        
+	    this.drawPlayer = function()
         {
-            buffer.drawImage(playerImages[0], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);   
-        }
+            buffer.drawImage(playerImages[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height); 
+            if(Keys[1] >= 1){
+                buffer.drawImage(playerImages[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+            } // A || Left
+            if(Keys[3] >= 1) {
+                buffer.drawImage(playerImages[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+            } // D || Right  
+      }
 
-        this.runOnTick = function()
-        {
-            if(this.onTick % 2 == 0) {
-                this.idleAnim++;
-                if(this.idleAnim > 3) this.idleAnim = 0;
-            }
-        }
+      this.runOnTick = function()
+      {
+          if(this.onTick % 2 == 0) {
+              this.idleAnim++;
+              if(this.idleAnim > 3) this.idleAnim = 0;
+          }
+          if(Keys[1] >= 1){
+              if(this.onTick % 1 == 0) {
+                  this.turnAnimL++;
+                  if(this.turnAnimL > 11) this.turnAnimL = 11;
+              }
+          }
+          if(Keys[3] >= 1){
+              if(this.onTick % 1 == 0) {
+                  this.turnAnimR++;
+                  if(this.turnAnimR > 19) this.turnAnimR = 19;
+              }
+          }
+          if(Keys[1] == 0) this.turnAnimL = 4;            
+          if(Keys[3] == 0) this.turnAnimR = 12;
+      }
 		
 		this.upgradeShield = function()
 		{
