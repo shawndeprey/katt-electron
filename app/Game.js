@@ -2252,14 +2252,14 @@ function Game()
                 case 102:
                 {
                     this.totalMissiles += 1;
-					missile = new Missile(missiles.length, 300, missileType, this.x - 20, this.y + 25, this.damage / 5);
+					missile = new Missile(missiles.length, 300, missileType, this.x - 24, this.y + 25, this.damage / 5);
 					missiles.push(missile);
 					break;
                 }
                 case 103:
                 {
                     this.totalMissiles += 1;
-					missile = new Missile(missiles.length, 300, missileType, this.x + 20, this.y + 25, this.damage / 5);
+					missile = new Missile(missiles.length, 300, missileType, this.x + 24, this.y + 25, this.damage / 5);
 					missiles.push(missile);
 					break;
                 }
@@ -2629,6 +2629,7 @@ function Game()
         this.idleAnim = 0; // 0-3
         this.turnAnimL = 4; // 4-11
         this.turnAnimR = 12; // 12-19  
+        this.money = 0;
         
         this.isAlive = function()
         {
