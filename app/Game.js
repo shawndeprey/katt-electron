@@ -112,6 +112,16 @@ function Game()
             });
             starImages[i].src = ('Graphics/Stars/star_' + i + '.png');
         }
+
+        var fgImages = [];
+        for(var i = 0; i < 12; i++) {
+            fgImages[i] = new Image();
+            fgImages[i].addEventListener('load', self.loadedImage, false);
+            fgImages[i].addEventListener('error', function() {
+                console.log('Error loading image: Graphics/Foreground/fg_' + i + '.png');
+            });
+            fgImages[i].src = ('Graphics/Foreground/fg_' + i + '.png');
+        }
 		
         var images = [];
         for(var i = 0; i < 14; i++)
@@ -153,7 +163,7 @@ function Game()
             logoImages[i].src = ('Graphics/Logo.png')
         }
 
-	var numOfImages = (starImages.length + images.length + enemyImages.length + playerImages.length + itemImages.length);
+	var numOfImages = (starImages.length + images.length + enemyImages.length + playerImages.length + itemImages.length + logoImages.length + fgImages.length);
 	
 	
     // Containers
@@ -1111,6 +1121,91 @@ function Game()
 			this.GenerateObjectives();
 		}
 	}
+
+    function ForegroundGeneration()
+    {
+        this.onTick = 0;
+        this.objects = [];
+
+        this.Update = function() {
+            if(ticks != this.onTick) {
+                this.onTick = ticks;
+                for(var i = 0; i < this.objects.length; i++) {
+                    if(this.objects[i].y > this.objects[i].killY) {
+                        self.popArray(this.objects, i);
+                    }
+                }
+
+                if(this.objects.length < 2) {
+                    this.generate();
+                }
+            }
+
+            for(var i = 0; i < this.objects.length; i++) {
+                this.objects[i].Update();
+            }
+        }
+
+        this.Draw = function() {
+            for(var i = 0; i < this.objects.length; i++) {
+                this.objects[i].Draw();
+            }
+        }
+
+        this.generate = function() {
+            if(Math.random() <= 0.5) { // 0.5% chance per tick to get a foreground object
+                this.objects.push(new ForegroundObject());
+                console.log("Generating object: ", this.objects);
+            }
+        }
+    }
+
+    function ForegroundObject() {
+        this.onTick = 0;
+        this.x = Math.floor(Math.random() * _buffer.width);
+        this.y = 0;
+        this.model = Math.floor(Math.random() * 12);
+        this.speed = Math.floor(Math.random() * 70) + 30;
+        this.xVel = (Math.floor(Math.random() * 1) + 0.5) * (Math.floor(Math.random() * 2) > 0 ? 1 : -1);
+        this.height = [32, 32, 32, 32, 31, 30, 18, 11, 32, 32, 32, 20][this.model];
+        this.killY = _canvas.height + (this.height / 2);
+        this.rotation = 0;
+    
+        this.Update = function() {
+            if (ticks != this.onTick) {
+                this.onTick = ticks;
+                // Update rotation
+                this.rotation += 1; // Adjust the rotation speed as needed
+                if (this.rotation >= 360) {
+                    this.rotation -= 360; // Keep rotation within 0 to 359 degrees
+                }
+            }
+    
+            // Movement Dynamics
+            this.x += ((this.speed / 2) * this.xVel) * delta;
+            this.y += (this.speed * player.yVecMulti) * delta;
+            if (this.y > this.killY) {
+                return 1;
+            }
+            return 0;
+        }
+    
+        this.Draw = function() {
+            if (imagesLoaded) {
+                buffer.save(); // Save the current state
+                buffer.translate(this.x, this.y); // Translate to the object's position
+                buffer.rotate(this.rotation * Math.PI / 180); // Rotate
+                buffer.drawImage(fgImages[this.model], -fgImages[this.model].width / 2, -fgImages[this.model].height / 2, fgImages[this.model].width, fgImages[this.model].height); // Draw the image centered at (0,0)
+                buffer.restore(); // Restore the previous state
+            } else {
+                buffer.fillStyle = 'rgb(200, 200, 255)';
+                buffer.beginPath();
+                buffer.arc(this.x, this.y, 2, 0, Math.PI * 2, true);
+                buffer.closePath();
+                buffer.fill();
+            }
+        }
+    }
     
     function StarGeneration()
     {
@@ -1183,7 +1278,7 @@ function Game()
     }
 
     function Star(X, Y, mdl, spd, isPlnt, hght) {
-        this.onTick = 0
+        this.onTick = 0;
         this.x = X;
         this.y = Y;
         this.Model = mdl;
@@ -1217,7 +1312,7 @@ function Game()
 
         this.Update = function() {
             if(ticks != this.onTick) {
-                this.onTick = ticks
+                this.onTick = ticks;
                 if(this.onTick % 2 === 0 && this.isPlanet) { // Planet Pre-Rendering
                     this.renderPlanet();
                 }
@@ -3101,6 +3196,7 @@ function Game()
         player = new Player(24, 40);
 		enemyGeneration = new EnemyGeneration();
         starGeneration = new StarGeneration();
+        foregroundGeneration = new ForegroundGeneration();
 		itemGeneration = new RandomItemGeneration();
 		
 		gco = new GameControlObject();
@@ -3150,11 +3246,12 @@ function Game()
         // Input
         self.doInput();
         self.getInput();
-        
-		 // Random Star Generation
+
+		// Random Star & Foreground Generation
 		if(!paused)
 		{
 			starGeneration.generate();
+            foregroundGeneration.Update();
 			for(var i = 0; i < stars.length; i++)
 			{
 				if(stars[i].Update() != 0)
@@ -3981,6 +4078,9 @@ function Game()
             // GUI
             self.drawHUD();
         }
+
+        // Foreground
+        foregroundGeneration.Draw();
         
         if(gco.win){ gco.credits.Draw(); }
         self.drawGUI();
