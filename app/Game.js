@@ -369,271 +369,221 @@ function Game()
     // Objects
     /******************************************************/
 	
-	function GameControlObject()
-	{
-		this.level = 1; // Starting at 1
-		this.win = false;
-		this.enemiesKilled = []; // [enemyNum] = 126
-		this.weaponsOwned = []; // [weaponNum] = true
-		this.weaponPrice = []; // [weaponNum] = 486 (cores)
-		this.ownLaser = false;
-		this.laserPrice = 1000;
-		this.levelProgress = 0.0; // Percentage
-		this.levelMission = new LevelMission();
-		this.extras = [];
-		this.extraPrices = [];
-		//0 = shield
-		//1 = fuel
-		this.fuelLevel = 1;
-		this.onTick = 0;
+    function GameControlObject()
+    {
+        this.level = 1; // Starting at 1
+        this.win = false;
+        this.enemiesKilled = []; // [enemyNum] = 126
+        this.weaponsOwned = []; // [weaponNum] = true
+        this.weaponPrice = []; // [weaponNum] = 486 (cores)
+        this.ownLaser = false;
+        this.laserPrice = 1000;
+        this.levelProgress = 0.0; // Percentage
+        this.levelMission = new LevelMission();
+        this.extras = [];
+        this.extraPrices = [];
+        this.fuelLevel = 1;
+        this.onTick = 0;
         this.missionText = [];
-		this.secondaryAmmoPrice = 25;
-		this.bgm = null;
-		this.playingBossMusic = false;
-		
-		this.bossX = 0; // Final Boss X set when boss dies
-		this.bossY = 0; // Final Boss Y set when boss dies
-		
-		this.credits = new Credits();
-		this.story = new Story();
-		this.playStory = false;
-		
-		this.mustPurchasePrevious = 0;
-		this.notEnoughCores = 0;
-		
-		this.Init = function()
-		{
-			this.levelMission.GenerateObjectives();
-			
-			this.weaponsOwned[0] = true;//Primary Assult
-			this.weaponsOwned[1] = false;//Rapid Fire Assult
-			this.weaponsOwned[2] = false;//Rapid Fire Cyclone
-			this.weaponsOwned[49] = true;//Null Weapon
-			this.weaponsOwned[50] = true;//SD-15 Sidewinder
-			this.weaponsOwned[51] = false;//DM-21 Auto Strike
+        this.secondaryAmmoPrice = 25;
+        this.bgm = null;
+        this.playingBossMusic = false;
+        
+        this.bossX = 0; // Final Boss X set when boss dies
+        this.bossY = 0; // Final Boss Y set when boss dies
+        
+        this.credits = new Credits();
+        this.story = new Story();
+        this.playStory = false;
+        
+        this.mustPurchasePrevious = 0;
+        this.notEnoughCores = 0;
+        
+        this.Init = function() {
+            this.levelMission.GenerateObjectives();
+            
+            this.weaponsOwned[0] = true;//Primary Assult
+            this.weaponsOwned[1] = false;//Rapid Fire Assult
+            this.weaponsOwned[2] = false;//Rapid Fire Cyclone
+            this.weaponsOwned[49] = true;//Null Weapon
+            this.weaponsOwned[50] = true;//SD-15 Sidewinder
+            this.weaponsOwned[51] = false;//DM-21 Auto Strike
             this.weaponsOwned[52] = false;//Impact Burst Mine
-			
-			this.weaponPrice[0] = 0;//Primary Assult
-			this.weaponPrice[1] = 150;//Rapid Fire Assult
-			this.weaponPrice[2] = 500;//Rapid Fire Cyclone
-			this.weaponPrice[50] = 0;//SD-15 Sidewinder
-			this.weaponPrice[51] = 250;//DM-21 Auto Strike
+            
+            this.weaponPrice[0] = 0;//Primary Assult
+            this.weaponPrice[1] = 150;//Rapid Fire Assult
+            this.weaponPrice[2] = 500;//Rapid Fire Cyclone
+            this.weaponPrice[50] = 0;//SD-15 Sidewinder
+            this.weaponPrice[51] = 250;//DM-21 Auto Strike
             this.weaponPrice[52] = 500;//Impact Burst Mine
-		}
-		
-		this.init_audio = function()
-		{
-			if(this.bgm.currentTime)
-			{
-				this.bgm.currentTime = 0;
-			}
-			this.bgm.volume = masterBGMVolume;
-			this.bgm.play();
-		}
-		
-		this.CheckLevelCompletion = function()
-		{
-			if(this.levelMission.CheckCompletion())
-			{
-				this.level += 1;
-				this.levelMission.ResetObjectives();
-				player.life = 100;
-				player.resetShield();
-			}
-		}
-		
-		this.PurchaseWeapon = function(wepID)
-		{//assumes player has the cash/doesn't own weapon
-			if(wepID < 9000)
-			{
-				if(wepID > 49)
-				{
-					if(this.weaponsOwned[wepID - 1])
-					{
-						this.weaponsOwned[wepID] = true;
-						player.money -= this.weaponPrice[wepID];
-						this.EquipWeapon(wepID);
-					} else
-					{
-						this.mustPurchasePrevious = 1000;
-					}
-				} else
-				{
-					if(wepID - 1 < 0)
-					{
-						this.weaponsOwned[wepID] = true;
-						this.EquipWeapon(wepID);
-					} else
-					{
-						if(this.weaponsOwned[wepID - 1])
-						{
-							this.weaponsOwned[wepID] = true;
-							player.money -= this.weaponPrice[wepID];
-							this.EquipWeapon(wepID);
-						} else
-						{
-							this.mustPurchasePrevious = 1000;
-						}
-					}
-				}
-			} else
-			{
-				if(this.weaponsOwned[52])
-				{
-					this.ownLaser = true;
-					player.money -= gco.laserPrice;
-					this.EquipWeapon(wepID);
-				} else
-				{
-					this.mustPurchasePrevious = 1000;
-				}
-			}
-		}
-		
-		this.EquipWeapon = function(wepID)
-		{
-			if(wepID > 48)
-			{
-				player.secondary = wepID;
-			} else
-			{
-				player.weapon = wepID;
-			}
-		}
-		
-		this.PurchaseExtras = function(itemNumber)
-		{
-			switch(itemNumber)
-			{
-				case 0:
-				{//Shield
-					player.money -= (player.shieldLevel + 1) * 250;
-					player.upgradeShield();
-					break;
-				}
-				case 1:
-				{//Fuel
-					break;
-				}
-				case 2:
-				{//Secondary Ammo Level
-					player.money -= (player.secondaryAmmoLevel + 1) * 50;
-					player.upgradeSecondaryAmmo();
-					break;
-				}
-				case 3:
-				{//Extra Secondary Ammo
-					player.money -= this.secondaryAmmoPrice;
-					player.secondaryAmmo += 25;
-					if(player.secondaryAmmo > player.maxSecondaryAmmo){player.secondaryAmmo = player.maxSecondaryAmmo;}
-					break;
-				}
-			}
-		}
-		
-		this.ResetFuel = function()
-		{
+        }
+        
+        this.init_audio = function() {
+            if(this.bgm.currentTime) {
+                this.bgm.currentTime = 0;
+            }
+            this.bgm.volume = masterBGMVolume;
+            this.bgm.play();
+        }
+        
+        this.CheckLevelCompletion = function() {
+            if(this.levelMission.CheckCompletion()) {
+                this.level += 1;
+                this.levelMission.ResetObjectives();
+                player.life = 100;
+                player.resetShield();
+            }
+        }
+        
+        this.PurchaseWeapon = function(wepID) { //assumes player has the cash/doesn't own weapon
+            if(wepID < 9000) {
+                if(wepID > 49) {
+                    if(this.weaponsOwned[wepID - 1]) {
+                        this.weaponsOwned[wepID] = true;
+                        player.money -= this.weaponPrice[wepID];
+                        this.EquipWeapon(wepID);
+                    } else {
+                        this.mustPurchasePrevious = 1000;
+                    }
+                } else {
+                    if(wepID - 1 < 0) {
+                        this.weaponsOwned[wepID] = true;
+                        this.EquipWeapon(wepID);
+                    } else {
+                        if(this.weaponsOwned[wepID - 1]) {
+                            this.weaponsOwned[wepID] = true;
+                            player.money -= this.weaponPrice[wepID];
+                            this.EquipWeapon(wepID);
+                        } else {
+                            this.mustPurchasePrevious = 1000;
+                        }
+                    }
+                }
+            } else {
+                if(this.weaponsOwned[52]) {
+                    this.ownLaser = true;
+                    player.money -= gco.laserPrice;
+                    this.EquipWeapon(wepID);
+                } else {
+                    this.mustPurchasePrevious = 1000;
+                }
+            }
+        }
+        
+        this.EquipWeapon = function(wepID) {
+            if(wepID > 48) {
+                player.secondary = wepID;
+            } else {
+                player.weapon = wepID;
+            }
+        }
+        
+        this.PurchaseExtras = function(itemNumber) {
+            switch(itemNumber) {
+                case 0: { // Shield
+                    player.money -= (player.shieldLevel + 1) * 250;
+                    player.upgradeShield();
+                    break;
+                }
+                case 1: { // Fuel
+                    break;
+                }
+                case 2: { // Secondary Ammo Level
+                    player.money -= (player.secondaryAmmoLevel + 1) * 50;
+                    player.upgradeSecondaryAmmo();
+                    break;
+                }
+                case 3: { // Extra Secondary Ammo
+                    player.money -= this.secondaryAmmoPrice;
+                    player.secondaryAmmo += 25;
+                    if(player.secondaryAmmo > player.maxSecondaryAmmo){player.secondaryAmmo = player.maxSecondaryAmmo;}
+                    break;
+                }
+            }
+        }
+        
+        this.ResetFuel = function() {
             let fuelMultiplier = 60; // Base: 60
-			player.currentFuel = this.fuelLevel * fuelMultiplier;
-		}
-		
-		this.GoToUpgradeMenu = function()
-		{
-			currentGui = 2;//Go to upgradeMenu
-			gameState = 0;//Take game out of live mode
+            player.currentFuel = this.fuelLevel * fuelMultiplier;
+        }
+        
+        this.GoToUpgradeMenu = function() {
+            currentGui = 2;//Go to upgradeMenu
+            gameState = 0;//Take game out of live mode
             menu.delayNextInput();
-			playerInfo = false;
-			this.levelProgress = this.levelMission.GetCompletionPercent();
-			this.CheckLevelCompletion();
-			sfx.pause(1);
-		}
-		
-		this.StartLevel = function()
-		{
-			currentGui = NULL_GUI_STATE;//default case will Trigger
-			gameState = 1;//Put Game in live mode
-			if(this.level > 5 && !this.playingBossMusic)
-			{
-				this.playingBossMusic = true;
-				this.bgm.pause();
-				this.bgm = document.getElementById('bgm_boss');
-				this.bgm.loop = true;
-				this.init_audio();
-			}
-		}
-		
-		this.ShowContinueScreen = function()
-		{
-			player.lives -= 1;
-			if(player.lives < 0)
-			{
-				currentGui = 5;//Game Over Gui
-			} else
-			{
-				currentGui = 3;//Continue Screen
-			}
-		}
-		
-		this.TogglePauseGame = function()
-		{
-			paused = !paused;
-		}
-		
-		this.Update = function()
-		{
-			if(this.onTick != ticks)
-			{
-				this.onTick = ticks;
-				if(!gco.win)
-				{
-					if(this.onTick == 19 && player.isAlive() && this.level < 6)
-					{//Update Fuel
-						if(player.currentFuel == 0)
-						{
-							if(this.levelMission.CheckCompletion()){
+            playerInfo = false;
+            this.levelProgress = this.levelMission.GetCompletionPercent();
+            this.CheckLevelCompletion();
+            sfx.pause(1);
+        }
+        
+        this.StartLevel = function() {
+            currentGui = NULL_GUI_STATE;//default case will Trigger
+            gameState = 1;//Put Game in live mode
+            if(this.level > 5 && !this.playingBossMusic) {
+                this.playingBossMusic = true;
+                this.bgm.pause();
+                this.bgm = document.getElementById('bgm_boss');
+                this.bgm.loop = true;
+                this.init_audio();
+            }
+        }
+        
+        this.ShowContinueScreen = function() {
+            player.lives -= 1;
+            currentGui = player.lives < 0 ? 5 : 3; // Game Over or Continue
+        }
+        
+        this.TogglePauseGame = function() {
+            paused = !paused;
+        }
+        
+        this.Update = function() {
+            if(this.onTick != ticks) {
+                this.onTick = ticks;
+                if(!gco.win) {
+                    if(this.onTick == 19 && player.isAlive() && this.level < 6) { // Update Fuel
+                        if(player.currentFuel == 0) {
+                            if(this.levelMission.CheckCompletion()) {
                                 gco.goToLevelUpMenu()
-							} else {
-								self.softReset();
-								this.GoToUpgradeMenu();	
-							}
-						}
-						player.currentFuel -= 1;
-					}
-				} else
-				{
-					if(Math.floor(Math.random() * 4) == 1)
-					{
-						this.RandomBossExplosion();
-					}
-				}
-			}
-		}
+                            } else {
+                                self.softReset();
+                                this.GoToUpgradeMenu();	
+                            }
+                        }
+                        player.currentFuel -= 1;
+                    }
+                } else {
+                    if(Math.floor(Math.random() * 4) == 1) {
+                        this.RandomBossExplosion();
+                    }
+                }
+            }
+        }
 
         this.goToLevelUpMenu = function() {
             menu.delayNextInput();
             currentGui = 4; // Go to level up menu
             gameState = 0;
         }
-		
-		this.RandomBossExplosion = function()
-		{
-			var randX = Math.floor(Math.random() * 51) - 25;
-			var randY = Math.floor(Math.random() * 27) - 13;
-			var R = Math.floor(Math.random() * 2);
-			var G = Math.floor(Math.random() * 2);
-			var B = Math.floor(Math.random() * 2);
-			if(R == 1){R = 3} else {R = 0.1}; if(G == 1){G = 3} else {G = 0.1}; if(B == 1){B = 3} else {B = 0.1};
-			explosion = new Explosion(this.bossX + randX, this.bossY + randY, 75, 4, 200, R, G, B);
-			explosions.push(explosion);
-			sfx.play(0);
-		}
-		
-		this.EndStoryMode = function()
-		{
-			this.playStory = false;
-			this.story = new Story();
-		}
-	}
+        
+        this.RandomBossExplosion = function() {
+            var randX = Math.floor(Math.random() * 51) - 25;
+            var randY = Math.floor(Math.random() * 27) - 13;
+            var R = Math.floor(Math.random() * 2);
+            var G = Math.floor(Math.random() * 2);
+            var B = Math.floor(Math.random() * 2);
+            if(R == 1){R = 3} else {R = 0.1}; if(G == 1){G = 3} else {G = 0.1}; if(B == 1){B = 3} else {B = 0.1};
+            explosion = new Explosion(this.bossX + randX, this.bossY + randY, 75, 4, 200, R, G, B);
+            explosions.push(explosion);
+            sfx.play(0);
+        }
+        
+        this.EndStoryMode = function() {
+            this.playStory = false;
+            this.story = new Story();
+        }
+    }
 
     function Menu()
     {
@@ -1155,7 +1105,6 @@ function Game()
         this.generate = function() {
             if(Math.random() <= 0.5) { // 0.5% chance per tick to get a foreground object
                 this.objects.push(new ForegroundObject());
-                console.log("Generating object: ", this.objects);
             }
         }
     }
@@ -3217,8 +3166,7 @@ function Game()
     
     this.Run = function()
     {	
-        if(canvas != null)
-        {
+        if(canvas != null) {
             self.gameLoop = setInterval(self.Loop, 1);
         }	
     }
@@ -3236,7 +3184,7 @@ function Game()
 		if(gco.mustPurchasePrevious > 0){ gco.mustPurchasePrevious -= (delta * 1000); }
 		if(gco.notEnoughCores > 0){ gco.notEnoughCores -= (delta * 1000); }
 		if(gco.playStory){ gco.story.Update(); }
-		//Stop Sound Check
+		// Stop Sound Check
 		if((currentGui != NULL_GUI_STATE) && sfx.laserPlaying){sfx.pause(1);}
 		if((gameState != 1) && sfx.bossLaserPlaying){sfx.pause(2);}
         if(levelStart){ bgm.play(); }
@@ -3249,148 +3197,90 @@ function Game()
         self.getInput();
 
 		// Random Star & Foreground Generation
-		if(!paused)
-		{
-			starGeneration.generate();
+        if(!paused) {
+            starGeneration.generate();
             foregroundGeneration.Update();
-			for(var i = 0; i < stars.length; i++)
-			{
-				if(stars[i].Update() != 0)
-				{
-					if(stars[i].isPlanet){starGeneration.hasPlanet = false;}
-					self.popArray(stars, i);
-				}
-			}
-		}
+            for(var i = 0; i < stars.length; i++) {
+                if(stars[i].Update() != 0) {
+                    if(stars[i].isPlanet){ starGeneration.hasPlanet = false;}
+                    self.popArray(stars, i);
+                }
+            }
+        }
 				
-        if(gameState == 1 && !gco.win)
-        {
-            if(!paused)
-            {
-				// Game Control Object Update
-				gco.Update();
-				
-				// Random Enemy Generation
-				enemyGeneration.generate(gco.level);
-				
-				// Random Item Generation
-				itemGeneration.generate();
-				
-                // Update Objects
-                if(player.isAlive())
-                {
-					self.levelBoundingCheck(player);
+        if(gameState == 1 && !gco.win) {
+            if(!paused) {
+                gco.Update(); // Game Control Object Update
+                enemyGeneration.generate(gco.level); // Random Enemy Generation
+                itemGeneration.generate(); // Random Item Generation
+
+                if(player.isAlive()) { // Update Player
+                    self.levelBoundingCheck(player);
                     player.Update();
                 }
                 
-                for(var i = 0; i < missiles.length; i++)
-				{ 
-					missiles[i].Update(i);
-					if(missiles[i].life <= 0){ self.popArray(missiles, i); }
-				}
+                for(var i = 0; i < missiles.length; i++) { // Update Missile Objects 
+                    missiles[i].Update(i);
+                    if(missiles[i].life <= 0){ self.popArray(missiles, i); }
+                }
                 
-                for(var i = 0; i < enemies.length; i++)
-                {
-					if(enemies[i].onTick != ticks){ enemies[i].onTick = ticks; }
-                    switch(enemies[i].Update())
-                    {
-                        case 0:
-                        break;
-                        
+                for(var i = 0; i < enemies.length; i++) { // Enemy Update Ticks
+                    if(enemies[i].onTick != ticks){ enemies[i].onTick = ticks; }
+                    switch(enemies[i].Update()){
                         case 1:
-                            if(!self.isEnemyAlive(enemies[i].enemyNum))
-                            {
+                            if(!self.isEnemyAlive(enemies[i].enemyNum)) {
                                 enemiesKilled += 1;
                                 enemyPoints += enemies[i].points;
                                 sfx.play(0);
                                 mon = new MoneyEntity(enemies[i].Cores, enemies[i].x, enemies[i].y);
                                 money.push(mon);
                             }
-                            if(!gco.win){
-                                self.popArray(enemies, i);
-                            }
-                        break;
-                        
-                        case 2:
-                            if(enemies[i].isBoss){ }
-                        break;
-                        
-                        case 3:
-                            if(enemies[i].isBoss){ }
+                            if(!gco.win) self.popArray(enemies, i);
                         break;
                     }
                 }
-				
-				for(var i = 0; i < money.length; i++)
-				{
-					if(money[i].Update() != 0)
-					{
-						self.popArray(money, i);
-					}
-				}
-				
-				for(var i = 0; i < randomItems.length; i++)
-				{
-					if(randomItems[i].Update() != 0)
-					{
-						self.popArray(randomItems, i);
-					}
-				}
                 
-                for(var i = 0; i < explosions.length; i++)
-                {
-									if(explosions[i].Update() != 0)
-									{
-										self.popArray(explosions, i);
-									}
+                for(var i = 0; i < money.length; i++) { // Money Item Updates
+                    if(money[i].Update() != 0) self.popArray(money, i);
+                }
+                for(var i = 0; i < randomItems.length; i++) { // Random Item Updates
+                    if(randomItems[i].Update() != 0) self.popArray(randomItems, i);
+                }
+                for(var i = 0; i < explosions.length; i++) { // Explosion Object Updates
+                    if(explosions[i].Update() != 0) self.popArray(explosions, i);
                 }
                 
                 // Collision Detection
-                if(colSwap)
-                {
+                if(colSwap) {
                     colSwap = false;
-					
-					for(var i = 0; i < money.length; i++)
-					{
-						if(player.isAlive() && !money[i].used)
-						{
-							if(self.Collision(player, money[i]))
-							{
-								player.money += money[i].amount;
-								totalCores += money[i].amount;
-								money[i].used = true;
-							}
-						}
-					}
-					
-					for(var i = 0; i < randomItems.length; i++)
-					{
-						if(player.isAlive() && !randomItems[i].used)
-						{
-							if(self.Collision(player, randomItems[i]))
-							{
-								randomItems[i].doItemEffect();
-							}
-						}
-					}
-					
-                    for(var a = 0; a < enemies.length; a++)
-                    {
-                        if(player.isAlive())
-                        {
-                            if(ticks % 2 == 0)
-                            {//LASERS!
-                                if(enemies[a].laser)
-                                {//Boss Laser
-                                    if(self.BossLaserCollision(player, enemies[a]))
-                                    {
+                    for(var i = 0; i < money.length; i++) { // Actual Collision with money
+                        if(player.isAlive() && !money[i].used) {
+                            if(self.Collision(player, money[i])) {
+                                player.money += money[i].amount;
+                                totalCores += money[i].amount;
+                                money[i].used = true;
+                            }
+                        }
+                    }
+                    
+                    for(var i = 0; i < randomItems.length; i++) { // Actual Collision with random item
+                        if(player.isAlive() && !randomItems[i].used) {
+                            if(self.Collision(player, randomItems[i])) {
+                                randomItems[i].doItemEffect();
+                            }
+                        }
+                    }
+                    
+                    for(var a = 0; a < enemies.length; a++) { // Various Update Ticks and Collision with enemies
+                        if(player.isAlive()) {
+                            if(ticks % 2 == 0) { // Laser Collision Detection
+                                if(enemies[a].laser) { // Boss Laser
+                                    if(self.BossLaserCollision(player, enemies[a])) {
                                         player.DamagePlayer(2);
                                     }
                                 }
-                                if(player.laser)
-                                {
-                                    if(self.LaserCollision(enemies[a]))
-                                    {
+                                if(player.laser) { // Player Laser
+                                    if(self.LaserCollision(enemies[a])) {
                                         enemies[a].life -= 5;
                                         explosion = new Explosion(enemies[a].x, enemies[a].y, 2, 4, 50, 0.1, 0.1, 3.0);
                                         explosions.push(explosion);
@@ -3398,14 +3288,11 @@ function Game()
                                 }
                             }
                             
-                            if(self.Collision(player, enemies[a]))
-                            {
-                                if(enemies[a].isBoss)
-                                {
-                                    player.DamagePlayer(9000);//once to ensure shield is gone
-                                    player.DamagePlayer(9000);//once to ensure player death
-                                } else
-                                {
+                            if(self.Collision(player, enemies[a])) { // Player Collision with enemies or boss
+                                if(enemies[a].isBoss) {
+                                    player.DamagePlayer(9000); // once to ensure shield is gone
+                                    player.DamagePlayer(9000); // once to ensure player death
+                                } else {
                                     player.DamagePlayer(Math.round(enemies[a].damage));
                                     explosion = new Explosion(player.x, player.y, 5, 10, 60, 0.1, 3, 0.1);
                                     explosions.push(explosion);
@@ -3413,21 +3300,16 @@ function Game()
                                 }
                             }
                                                 
-                            for(var b = 0; b < missiles.length; b++)
-                            {
-                                if(missiles[b].missileType > 99)
-                                {
-                                    if(self.Collision(player, missiles[b]))
-                                    {
+                            for(var b = 0; b < missiles.length; b++) { // Missile Collision Detection
+                                if(missiles[b].missileType > 99) { // Collision detection with enemy missiles and player
+                                    if(self.Collision(player, missiles[b])) {
                                         explosion = new Explosion(missiles[b].x, missiles[b].y, 5, 10, 100, 1, 1, 1);
                                         explosions.push(explosion);
                                         player.DamagePlayer(missiles[b].damage);
                                         this.popArray(missiles, b);
                                     }
-                                } else
-                                {
-                                    if(self.Collision(missiles[b], enemies[a]))
-                                    {
+                                } else { // Collision detection with player missiles and enemies
+                                    if(self.Collision(missiles[b], enemies[a])) {
                                         explosion = new Explosion(missiles[b].x, missiles[b].y, 5, 10, 100, 1, 1, 1);
                                         explosions.push(explosion);
                                         enemies[a].life -= missiles[b].damage;
@@ -3437,27 +3319,25 @@ function Game()
                             }
                         }
                     }
-                }
-                else
-                {
-										score = (enemyPoints + enemiesKilled) * 10;
+                } else {
+                    score = (enemyPoints + enemiesKilled) * 10;
                     colSwap = true;
                 }
             }
+
+        // WIN CONDITION & CREDITS
+        // -------------------------------------------------------------------------------
+        // The game is won at this point. Do what happens exactly after game is beat here.
+        } else if(gameState == 1 && gco.win) {
+            if(sfx.laserPlaying){sfx.pause(1);}
+            gco.credits.Update();
+            if(!gco.credits.isBlackedOut){ gco.Update(); }//Will do random boss explosions
+            for(var i = 0; i < explosions.length; i++){
+                if(explosions[i].Update() != 0) {
+                    self.popArray(explosions, i);
+                }
+            }
         }
-		else if(gameState == 1 && gco.win)
-		{//The game is won at this point. Do what happens exactly after game is beat here.
-			if(sfx.laserPlaying){sfx.pause(1);}
-			gco.credits.Update();
-			if(!gco.credits.isBlackedOut){ gco.Update(); }//Will do random boss explosions
-			for(var i = 0; i < explosions.length; i++)
-			{
-				if(explosions[i].Update() != 0)
-				{
-					self.popArray(explosions, i);
-				}
-			}
-		}
     }
 
 	this.PlayerCollision = function(Player, Target)
