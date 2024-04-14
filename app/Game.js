@@ -544,7 +544,7 @@ function Game()
                 if(!gco.win) {
                     if(this.onTick == 19 && player.isAlive() && this.level < 6) { // Update Fuel
                         if(player.currentFuel == 0) {
-                            ed.initEvent(2);
+                            ed.initEvent(2); // Fly out of level event
                         }
                         player.currentFuel -= 1;
                     }
