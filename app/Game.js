@@ -325,11 +325,11 @@ function Game()
 		totalDestroys += destroys;
 		destroys = 0;
         player.life = 100;
-		starGeneration.initStars();
+		// starGeneration.initStars();
 		totalShots += player.totalMissiles;
         player.totalMissiles = 0;
         player.x = _buffer.width / 2;
-        player.y = _buffer.height / 2;
+        player.y = _buffer.height + player.height / 2;
 		gco.ResetFuel();
 		gco.GoToUpgradeMenu();
 		player.resetShield();
@@ -527,6 +527,7 @@ function Game()
                 this.bgm.loop = true;
                 this.init_audio();
             }
+            ed.initEvent(1); // Fly in to level event
         }
         
         this.ShowContinueScreen = function() {
@@ -544,12 +545,7 @@ function Game()
                 if(!gco.win) {
                     if(this.onTick == 19 && player.isAlive() && this.level < 6) { // Update Fuel
                         if(player.currentFuel == 0) {
-                            if(this.levelMission.CheckCompletion()) {
-                                gco.goToLevelUpMenu()
-                            } else {
-                                self.softReset();
-                                this.GoToUpgradeMenu();	
-                            }
+                            ed.initEvent(2);
                         }
                         player.currentFuel -= 1;
                     }
@@ -582,6 +578,123 @@ function Game()
         this.EndStoryMode = function() {
             this.playStory = false;
             this.story = new Story();
+        }
+    }
+
+    function EventDirector() {
+        this.onTick = 0;
+        this.activeEvent = 0; // 0 = No Active Event
+        this.eventTime = 0;
+        
+        // Event variables other systems can watch or use
+        this.moveMultiplierOne = 1;
+
+        this.eventPlaying = function() { // Easy function for other game systems to query for event state
+            return this.activeEvent !== 0;
+        }
+
+        this.initEvent = function(event) {
+            this.activeEvent = event;
+            if(this.activeEvent == 1) {
+                this.eventTime = 60; // 3 Seconds
+                player.y = _buffer.height + player.height;
+                sfx.play(3);
+            } else if(this.activeEvent == 2) {
+                this.eventTime = 60; // 3 Seconds
+                sfx.play(3);
+            }
+        }
+
+        this.endEvent = function() {
+            this.activeEvent = 0;
+        }
+
+        this.Update = function() {
+            if(ticks != this.onTick) {
+                this.onTick = ticks
+                if (this.eventTime > 0) this.eventTime--; // For time based events, this controls the time of the event in 50ms increments
+            }
+            // Event Updates
+            if(this.activeEvent == 1) this.levelIntroUpdate();
+            if(this.activeEvent == 2) this.levelOutroUpdate();
+        }
+
+        // Event 1
+        this.levelIntroUpdate = function() {
+            this.moveMultiplierOne = this.eventTime * 5
+            if(this.moveMultiplierOne < 1) this.moveMultiplierOne = 1;
+
+            // Nearly working example
+            // Constants
+            let endY = _buffer.height / 2;  // Target: middle of the screen
+            let startY = player.y;  // Start: below the screen
+            let totalDistance = startY - endY / 2; // Total distance to travel
+
+            // Calculate normalized time t based on eventTime
+            let normalizedTime = (60 - this.eventTime) / 60;
+            normalizedTime = Math.max(0, Math.min(1, normalizedTime)); // Ensure it's between 0 and 1
+
+            // Speed calculation using the derivative of the cubic easing function
+            // Speed should be proportional to the derivative of the easing function times the total distance
+            let speed = -3 * Math.pow(1 - normalizedTime, 2) * totalDistance / 3; // Total duration is 3 seconds
+
+            // Update player.y by speed adjusted for delta
+            player.y += speed * delta;  // Use += since speed will be negative, moving the player up
+
+            if(this.eventTime <= 0) this.endEvent();
+        }
+
+        // Event 2
+        this.levelOutroUpdate = function() {
+            // Star movement multiplier calculation for event
+            let t = 60 - this.eventTime;  // Converts countdown to count up from 0 to 60
+            if (t <= 20) { // First second: ramp up from 1 to 300, Linear interpolation from 1 to 300 over 20 units of time
+                this.moveMultiplierOne = 1 + (299 * (t / 20));
+            } else if (t <= 40) { // Second second: hold at 300
+                this.moveMultiplierOne = 300;
+            } else if (t <= 60) { // Third second: ramp down from 300 to 1, Linear interpolation from 300 to 1 over 20 units of time
+                this.moveMultiplierOne = 300 - (299 * ((t - 40) / 20));
+            } else { // Just in case, hold at 1 if something goes wrong
+                this.moveMultiplierOne = 1;
+            }
+
+            // Calculate the ship's speed
+            let speed;
+            if (t <= 20) { // First second: ramp up from 0 to 500, Linear interpolation from 0 to 500 over 20 units of time
+                speed = 500 * (t / 20);
+            } else {
+                speed = 500; // Hold speed at 500
+            }
+
+            // Player movement multiplier for event
+            player.y -= speed * delta;
+
+            // Enemy ship movement multiplier for event
+            for(var i = 0; i < enemies.length; i++) { // Enemy Update Ticks
+                enemies[i].y += speed * delta;
+            }
+
+            // Other items screen exit
+            for(var i = 0; i < money.length; i++) { // Money Item Updates
+                money[i].y += speed * delta;
+            }
+            for(var i = 0; i < randomItems.length; i++) { // Random Item Updates
+                randomItems[i].y += speed * delta;
+            }
+
+            if(this.eventTime <= 0) {
+                if(gco.levelMission.CheckCompletion()) {
+                    gco.goToLevelUpMenu()
+                } else {
+                    self.softReset();
+                    gco.GoToUpgradeMenu();	
+                }
+                this.endEvent();
+            }
+        }
+
+        this.Draw = function() {
+            // Custom draws for event states
         }
     }
 
@@ -920,94 +1033,93 @@ function Game()
 	
 	function SFXObject()
 	{
-		// Audio
-		this.explosion = {}
-		this.laser = 0;
-		this.laserPlaying = false;
-		this.bossLaser = 0;
-		this.bossLaserPlaying = false;
+		// Audio Channels
+		this.explosion = {index: 0, channel: [], channels: 25} // Explosion Channels
+		this.laser = 0; this.laserPlaying = false; // Player Laser Channel
+		this.bossLaser = 0; this.bossLaserPlaying = false; // Boss Laser Channel
+        this.whooshOne = 0; // Whoosh One Channel
+
+        // Other Variables
         this.masterVolume = 0.2;
-		this.explosion.index = 0;this.explosion.channel = []; this.explosion.channels = 20;
         
-		this.Init = function()
-		{
-		//Explosions
-			
-			for(var i = 0; i < this.explosion.channels; i++)
-			{
-				var a = new Audio('Audio/Explode.mp3');
-				a.volume = this.masterVolume;
-				a.preload = 'auto';
-				this.explosion.channel.push(a);
-			}
-		//Lasers
+        this.Init = function() {
+            // Explosions
+            for(var i = 0; i < this.explosion.channels; i++) {
+                var a = new Audio('Audio/Explode.mp3');
+                a.volume = this.masterVolume;
+                a.preload = 'auto';
+                this.explosion.channel.push(a);
+            }
+
+            // Player Lasers
             this.laser = new Audio('Audio/lasorz.mp3');
-			this.laser.volume = this.masterVolume;
-			this.laser.preload = 'auto';
-			this.laser.loop = true;
-			
-			this.bossLaser = new Audio('Audio/lasorz.mp3');
-			this.bossLaser.volume = this.masterVolume;
-			this.bossLaser.preload = 'auto';
-			this.bossLaser.loop = true;
-		}
+            this.laser.volume = this.masterVolume;
+            this.laser.preload = 'auto';
+            this.laser.loop = true;
+            
+            // Boss Lasers
+            this.bossLaser = new Audio('Audio/lasorz.mp3');
+            this.bossLaser.volume = this.masterVolume;
+            this.bossLaser.preload = 'auto';
+            this.bossLaser.loop = true;
+
+            // Whoose One
+            this.whooshOne = new Audio('Audio/sfx/woosh-low-long.mp3');
+            this.whooshOne.volume = this.masterVolume;
+            this.whooshOne.preload = 'auto';
+        }
 		
-		this.play = function(playfx)
-		{
-			switch(playfx)
-			{
-				case 0: {//Explode
-						if(this.explosion.channel[this.explosion.index])
-						{
-						this.explosion.channel[this.explosion.index].play();
-						this.explosion.index += 1; if(this.explosion.index > (this.explosion.channels - 1)){this.explosion.index = 0;}
-						}
-					break;
-				}
-				case 1: {//Laser
-					this.laser.play();
-					this.laserPlaying = true;
-					break;
-				}
-				case 2: {//Boss Laser
-					this.bossLaser.play();
-					this.bossLaserPlaying = true;
-					break;
-				}
-			}
-		}
+        this.play = function(playfx) {
+            switch(playfx) {
+                case 0: { // Explode
+                    if(this.explosion.channel[this.explosion.index]) {
+                        this.explosion.channel[this.explosion.index].play();
+                        this.explosion.index += 1; if(this.explosion.index > (this.explosion.channels - 1)){this.explosion.index = 0;}
+                    }
+                    break;
+                }
+                case 1: { // Laser
+                    this.laser.play();
+                    this.laserPlaying = true;
+                    break;
+                }
+                case 2: { // Boss Laser
+                    this.bossLaser.play();
+                    this.bossLaserPlaying = true;
+                    break;
+                }
+                case 3: { // Whoosh One
+                    this.whooshOne.play();
+                    break;
+                }
+            }
+        }
 		
-		this.pause = function(stopfx)
-		{
-			switch(stopfx)
-			{
-				case 0: {//Explode
-					break;
-				}
-				case 1: {//Laser
-					this.laser.pause();
-					this.laserPlaying = false;
-					break;
-				}
-				case 2: {//Boss Laser
-					this.bossLaser.pause();
-					this.bossLaserPlaying = false;
-					break;
-				}
-			}
-		}
+        this.pause = function(stopfx) { // Only some SFX can be paused once started
+            switch(stopfx) {
+                case 1: { // Laser
+                    this.laser.pause();
+                    this.laserPlaying = false;
+                    break;
+                }
+                case 2: { // Boss Laser
+                    this.bossLaser.pause();
+                    this.bossLaserPlaying = false;
+                    break;
+                }
+            }
+        }
         
-        this.volume = function(value)
-		{
-            for(var i = 0; i < this.explosion.channel.length; i++)
-            {
+        this.volume = function(value) {
+            for(var i = 0; i < this.explosion.channel.length; i++) {
                 this.explosion.channel[i].volume = value;
             }
             this.laser.volume = value;
             this.bossLaser.volume = value;
+            this.whooshOne.volume = value;
             this.masterVolume = value;
-		}
-	}
+        }
+    }
 	
 	function LevelMission()
 	{
@@ -1190,19 +1302,21 @@ function Game()
             if(ticks != this.onTick) {
                 this.onTick = ticks;
                 if(stars.length < numStars) {
-                    var starType = this.genRandomStarType(false);
-                    var X = Math.floor(Math.random() * _buffer.width);
-                    var Y = 0;
-                    var speed = this.starSpeed(starType);
-                    var isPlanet = false;
-                    var height = this.starHeight(starType);
-                    if(starType == -1) { // Planets
-                        Y = -250;
-                        isPlanet = true;
-                        this.hasPlanet = true;
+                    while(stars.length < numStars) {
+                        var starType = this.genRandomStarType(ed.activeEvent == 1 || ed.activeEvent == 2); // Only gen stars in fly in and out events
+                        var X = Math.floor(Math.random() * _buffer.width);
+                        var Y = 0;
+                        var speed = this.starSpeed(starType);
+                        var isPlanet = false;
+                        var height = this.starHeight(starType);
+                        if(starType == -1) { // Planets
+                            Y = -250;
+                            isPlanet = true;
+                            this.hasPlanet = true;
+                        }
+                        star = new Star(X, Y, starType, speed, isPlanet, height);
+                        stars.push(star);
                     }
-                    star = new Star(X, Y, starType, speed, isPlanet, height);
-                    stars.push(star);
                 }
             }
         }
@@ -1268,7 +1382,7 @@ function Game()
             }
 
             // Movement Dynamics
-            this.y += (this.speed * player.yVecMulti) * delta;
+            this.y += ((this.speed * player.yVecMulti) * ed.moveMultiplierOne) * delta;
             if(this.y > this.killY) {
                 return 1;
             }
@@ -2610,24 +2724,20 @@ function Game()
         this.size = Size;
         this.age = 0;
         this.maxAge = MaxAge;
-				X = Math.round(X);
-				Y = Math.round(Y);
+        X = Math.round(X);
+        Y = Math.round(Y);
 				
-        for(var i = 0; i < this.numParticles; i++)
-        {
+        for(var i = 0; i < this.numParticles; i++) {
             this.particles.push(new Particle(X, Y, R, G, B));
         }
             
-        this.Update = function()
-        {
-            for(var i = 0; i < this.particles.length; i++)
-            {
-							this.particles[i].x += this.particles[i].xv * delta;
-							this.particles[i].y += this.particles[i].yv * delta;
+        this.Update = function() {
+            for(var i = 0; i < this.particles.length; i++) {
+                this.particles[i].x += this.particles[i].xv * delta;
+                this.particles[i].y += this.particles[i].yv * delta;
             }
             
-            if(this.age >= this.maxAge)
-            {
+            if(this.age >= this.maxAge) {
               return 1;
             }
             this.age = this.age + 1;
@@ -2774,15 +2884,16 @@ function Game()
         }
 
         
-	    this.drawPlayer = function()
-        {
-            buffer.drawImage(playerImages[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height); 
-            if(Keys[1] >= 1){
-                buffer.drawImage(playerImages[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
-            } // A || Left
-            if(Keys[3] >= 1) {
-                buffer.drawImage(playerImages[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
-            } // D || Right  
+	    this.drawPlayer = function() {
+            buffer.drawImage(playerImages[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+            if(!ed.eventPlaying()) {
+                if(Keys[1] >= 1){
+                    buffer.drawImage(playerImages[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                } // A || Left
+                if(Keys[3] >= 1) {
+                    buffer.drawImage(playerImages[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                } // D || Right  
+            }
         }
 
         this.runOnTick = function()
@@ -3116,7 +3227,6 @@ function Game()
     /******************************************************/
     // Initialization
     /******************************************************/
-    
     this.Init = function()
     {
         _canvas = document.getElementById('canvas');
@@ -3148,11 +3258,11 @@ function Game()
         starGeneration = new StarGeneration();
         foregroundGeneration = new ForegroundGeneration();
 		itemGeneration = new RandomItemGeneration();
-		
 		gco = new GameControlObject();
 		gco.Init();
         menu = new Menu(); // State manager for all game menus to enable keyboard and gamepad navigation
         menu.Init()
+        ed = new EventDirector();
 		
 		sfx = new SFXObject();
     }
@@ -3200,6 +3310,7 @@ function Game()
         if(!paused) {
             starGeneration.generate();
             foregroundGeneration.Update();
+            ed.Update();
             for(var i = 0; i < stars.length; i++) {
                 if(stars[i].Update() != 0) {
                     if(stars[i].isPlanet){ starGeneration.hasPlanet = false;}
@@ -3207,9 +3318,20 @@ function Game()
                 }
             }
         }
-				
-        if(gameState == 1 && !gco.win) {
-            if(!paused) {
+
+        // Game objects that should keep running even during an event
+        if(!paused && gameState == 1 && !gco.win) {
+            for(var i = 0; i < missiles.length; i++) { // Update Missile Objects 
+                missiles[i].Update(i);
+                if(missiles[i].life <= 0){ self.popArray(missiles, i); }
+            }
+            for(var i = 0; i < explosions.length; i++) { // Explosion Object Updates
+                if(explosions[i].Update() != 0) self.popArray(explosions, i);
+            }
+        }
+
+        if(!ed.eventPlaying()) { // If event is not playing
+            if(!paused && gameState == 1 && !gco.win) {
                 gco.Update(); // Game Control Object Update
                 enemyGeneration.generate(gco.level); // Random Enemy Generation
                 itemGeneration.generate(); // Random Item Generation
@@ -3217,11 +3339,6 @@ function Game()
                 if(player.isAlive()) { // Update Player
                     self.levelBoundingCheck(player);
                     player.Update();
-                }
-                
-                for(var i = 0; i < missiles.length; i++) { // Update Missile Objects 
-                    missiles[i].Update(i);
-                    if(missiles[i].life <= 0){ self.popArray(missiles, i); }
                 }
                 
                 for(var i = 0; i < enemies.length; i++) { // Enemy Update Ticks
@@ -3245,9 +3362,6 @@ function Game()
                 }
                 for(var i = 0; i < randomItems.length; i++) { // Random Item Updates
                     if(randomItems[i].Update() != 0) self.popArray(randomItems, i);
-                }
-                for(var i = 0; i < explosions.length; i++) { // Explosion Object Updates
-                    if(explosions[i].Update() != 0) self.popArray(explosions, i);
                 }
                 
                 // Collision Detection
@@ -3323,18 +3437,18 @@ function Game()
                     score = (enemyPoints + enemiesKilled) * 10;
                     colSwap = true;
                 }
-            }
 
-        // WIN CONDITION & CREDITS
-        // -------------------------------------------------------------------------------
-        // The game is won at this point. Do what happens exactly after game is beat here.
-        } else if(gameState == 1 && gco.win) {
-            if(sfx.laserPlaying){sfx.pause(1);}
-            gco.credits.Update();
-            if(!gco.credits.isBlackedOut){ gco.Update(); }//Will do random boss explosions
-            for(var i = 0; i < explosions.length; i++){
-                if(explosions[i].Update() != 0) {
-                    self.popArray(explosions, i);
+            // WIN CONDITION & CREDITS
+            // -------------------------------------------------------------------------------
+            // The game is won at this point. Do what happens exactly after game is beat here.
+            } else if(gameState == 1 && gco.win) {
+                if(sfx.laserPlaying){sfx.pause(1);}
+                gco.credits.Update();
+                if(!gco.credits.isBlackedOut){ gco.Update(); }//Will do random boss explosions
+                for(var i = 0; i < explosions.length; i++){
+                    if(explosions[i].Update() != 0) {
+                        self.popArray(explosions, i);
+                    }
                 }
             }
         }
@@ -3792,10 +3906,9 @@ function Game()
     
     this.getInput = function()
     {
-        if(Keys[17] == 1) // Escape/Pause
-        {
-			if(gameState == 1 && player.isAlive())
-			{   if(!gco.win){ if(currentGui != 6){ gco.TogglePauseGame(); } }
+        if(Keys[17] == 1) { // Escape/Pause
+			if(gameState == 1 && player.isAlive() && !ed.eventPlaying()) {
+                if(!gco.win){ if(currentGui != 6){ gco.TogglePauseGame(); } }
 				if(!paused){ currentGui = NULL_GUI_STATE;} else { currentGui = 1; }
 			}
 			
@@ -3812,12 +3925,10 @@ function Game()
         }
     
         if(!paused) {
-            if(Keys[4] == 1)
-            {
+            if(Keys[4] == 1) {
 				debug = !debug;
             }
-			if(Keys[5] == 1 && gameState == 1)
-			{
+			if(Keys[5] == 1 && gameState == 1) {
 				if(playerInfo)
 				{
 					explosion = new Explosion(135, _canvas.height - 50, 75, 10, 100, 0.1, 3, 0.1);
@@ -3829,8 +3940,7 @@ function Game()
 				}
 				playerInfo = !playerInfo;
 			}
-            if(player.isAlive() && gameState == 1 && !gco.win)
-            {
+            if(player.isAlive() && gameState == 1 && !gco.win && !ed.eventPlaying()) {
                 // Player Movement
                 let moveX = 0;
                 let moveY = 0;
