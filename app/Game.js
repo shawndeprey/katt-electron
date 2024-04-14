@@ -315,27 +315,26 @@ function Game()
 		enemyGeneration = new EnemyGeneration();
     }
 	
-	this.softReset = function()
-	{
-		missiles = [];
-		enemies = [];
-		explosions = [];
-		money = [];
-		randomItems = [];
-		totalDestroys += destroys;
-		destroys = 0;
+    this.softReset = function()
+    {
+        missiles = [];
+        enemies = [];
+        explosions = [];
+        money = [];
+        randomItems = [];
+        totalDestroys += destroys;
+        destroys = 0;
         player.life = 100;
-		// starGeneration.initStars();
-		totalShots += player.totalMissiles;
+        totalShots += player.totalMissiles;
         player.totalMissiles = 0;
         player.x = _buffer.width / 2;
         player.y = _buffer.height + player.height / 2;
-		gco.ResetFuel();
-		gco.GoToUpgradeMenu();
-		player.resetShield();
-		sfx.pause(1);//Pause laser sound on round end
-		enemyGeneration.hasBoss = false;
-	}
+        gco.ResetFuel();
+        gco.GoToUpgradeMenu();
+        player.resetShield();
+        sfx.pause(1);//Pause laser sound on round end
+        enemyGeneration.hasBoss = false;
+    }
     
     this.popArray = function(Array, popThis)
     {
