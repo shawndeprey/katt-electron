@@ -531,6 +531,7 @@ function Game()
 		{
 			currentGui = 2;//Go to upgradeMenu
 			gameState = 0;//Take game out of live mode
+            menu.delayNextInput();
 			playerInfo = false;
 			this.levelProgress = this.levelMission.GetCompletionPercent();
 			this.CheckLevelCompletion();
@@ -579,11 +580,9 @@ function Game()
 					{//Update Fuel
 						if(player.currentFuel == 0)
 						{
-							if(this.levelMission.CheckCompletion())
-							{
+							if(this.levelMission.CheckCompletion()){
                                 gco.goToLevelUpMenu()
-							} else
-							{
+							} else {
 								self.softReset();
 								this.GoToUpgradeMenu();	
 							}
