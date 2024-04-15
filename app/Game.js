@@ -139,12 +139,68 @@ function Game()
             enemyImages[i].src = ('Graphics/ship_' + i + '.png');
         }
         
-        var playerImages = [];
+        var playerImages1 = [];
         for(var i = 0; i < 20; i++)
         {
-            playerImages[i] = new Image();
-			playerImages[i].addEventListener('load', self.loadedImage, false);
-            playerImages[i].src = ('Graphics/player_' + i + '.png');
+            playerImages1[i] = new Image();
+			playerImages1[i].addEventListener('load', self.loadedImage, false);
+            playerImages1[i].src = ('Graphics/Player/ship1/normal/player_' + i + '.png');
+        }
+
+        var playerImages2 = [];
+        for(var i = 0; i < 20; i++)
+        {
+            playerImages2[i] = new Image();
+			playerImages2[i].addEventListener('load', self.loadedImage, false);
+            playerImages2[i].src = ('Graphics/Player/ship2/normal/player_' + i + '.png');
+        }
+
+        var playerImages3 = [];
+        for(var i = 0; i < 20; i++)
+        {
+            playerImages3[i] = new Image();
+			playerImages3[i].addEventListener('load', self.loadedImage, false);
+            playerImages3[i].src = ('Graphics/Player/ship3/normal/player_' + i + '.png');
+        }
+
+        var playerImages4 = [];
+        for(var i = 0; i < 20; i++)
+        {
+            playerImages4[i] = new Image();
+			playerImages4[i].addEventListener('load', self.loadedImage, false);
+            playerImages4[i].src = ('Graphics/Player/ship4/normal/player_' + i + '.png');
+        }
+
+        var playerImages5 = [];
+        for(var i = 0; i < 20; i++)
+        {
+            playerImages5[i] = new Image();
+			playerImages5[i].addEventListener('load', self.loadedImage, false);
+            playerImages5[i].src = ('Graphics/Player/ship5/normal/player_' + i + '.png');
+        }
+
+        var playerImages6 = [];
+        for(var i = 0; i < 20; i++)
+        {
+            playerImages6[i] = new Image();
+			playerImages6[i].addEventListener('load', self.loadedImage, false);
+            playerImages6[i].src = ('Graphics/Player/ship6/normal/player_' + i + '.png');
+        }
+
+        var playerImages7 = [];
+        for(var i = 0; i < 20; i++)
+        {
+            playerImages7[i] = new Image();
+			playerImages7[i].addEventListener('load', self.loadedImage, false);
+            playerImages7[i].src = ('Graphics/Player/ship7/normal/player_' + i + '.png');
+        }
+
+        var playerImages8 = [];
+        for(var i = 0; i < 20; i++)
+        {
+            playerImages8[i] = new Image();
+			playerImages8[i].addEventListener('load', self.loadedImage, false);
+            playerImages8[i].src = ('Graphics/Player/ship8/normal/player_' + i + '.png');
         }
         
         var itemImages = [];
@@ -163,7 +219,9 @@ function Game()
             logoImages[i].src = ('Graphics/Logo.png')
         }
 
-	var numOfImages = (starImages.length + images.length + enemyImages.length + playerImages.length + itemImages.length + logoImages.length + fgImages.length);
+	var numOfImages = (starImages.length + images.length + enemyImages.length + playerImages1.length + playerImages2.length + playerImages3.length 
+        + playerImages4.length + playerImages5.length + playerImages6.length + playerImages7.length + playerImages8.length  
+        + itemImages.length + logoImages.length + fgImages.length);
 	
 	
     // Containers
@@ -2657,6 +2715,7 @@ function Game()
 		this.shield = 100;
 		this.maxShield = this.shield * this.shieldLevel;
 		this.hasShield = false;
+        this.pilot = 8;
 	
 		this.weapon = 0;// 0 - 48
 		this.secondary = 50;//Starts at 50, 49 = no secondary.
@@ -2776,12 +2835,12 @@ function Game()
         
 	    this.drawPlayer = function()
         {
-            buffer.drawImage(playerImages[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height); 
+            buffer.drawImage(playerImages7[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height); 
             if(Keys[1] >= 1){
-                buffer.drawImage(playerImages[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                buffer.drawImage(playerImages7[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
             } // A || Left
             if(Keys[3] >= 1) {
-                buffer.drawImage(playerImages[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                buffer.drawImage(playerImages7[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
             } // D || Right  
         }
 
@@ -2794,13 +2853,13 @@ function Game()
             if(Keys[1] >= 1){
                 if(this.onTick % 1 == 0) {
                     this.turnAnimL++;
-                    if(this.turnAnimL > 11) this.turnAnimL = 11;
+                    if(this.turnAnimL > 11) this.turnAnimL = 8;
                 }
             }
             if(Keys[3] >= 1){
                 if(this.onTick % 1 == 0) {
                     this.turnAnimR++;
-                    if(this.turnAnimR > 19) this.turnAnimR = 19;
+                    if(this.turnAnimR > 19) this.turnAnimR = 16;
                 }
             }
             if(Keys[1] == 0) this.turnAnimL = 4;            
@@ -3143,6 +3202,8 @@ function Game()
             buffer.font = "bold 25px sans-serif";
         }
 
+        // if (player.pilot == 8) player = new Player(40, 40);
+        // else player = new Player(24, 40);
         player = new Player(24, 40);
 		enemyGeneration = new EnemyGeneration();
         starGeneration = new StarGeneration();
@@ -4026,7 +4087,6 @@ function Game()
 			buffer.drawImage(enemyImages[enemies[i].Model], enemies[i].x - (enemies[i].width / 2), enemies[i].y - (enemies[i].height / 2), enemies[i].width, enemies[i].height);
 			if(enemies[i].isBoss)
 			{
-				//buffer.drawImage(playerImages[0], enemies[i].moveX - (player.width / 2), enemies[i].moveY - (player.height / 2), player.width, player.height);
                 self.drawBossLifeMeter(enemies[i]);
 			}
 			if(enemies[i].laser == true){ drawLaser = true; x = enemies[i].laserX; y = enemies[i].laserY; h = enemies[i].laserHeight; w = enemies[i].laserWidth; }
@@ -4273,7 +4333,7 @@ function Game()
 		var xOffset = 0;
 		for(var i = 0; i < player.lives; i++)
 		{
-			buffer.drawImage(playerImages[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
+			buffer.drawImage(playerImages1[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
 			xOffset += 20;
 		}
 	}
