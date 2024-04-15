@@ -362,7 +362,8 @@ function Game()
 		player.resetShield();
 		player.recharge = true;
 		totalShots = 0;
-        player = new Player(24, 40);
+        player = new player(24, 40);
+        if (player.pilot == 8) new player(40, 40);
 		gco.bgm.pause();
 		gco = new GameControlObject();
 		gco.Init();
@@ -2942,14 +2943,87 @@ function Game()
         }
 
         this.drawPlayer = function() {
-            buffer.drawImage(playerImages[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
-            if(!ed.eventPlaying()) {
-                if(Keys[1] >= 1){
-                    buffer.drawImage(playerImages[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
-                } // A || Left
-                if(Keys[3] >= 1) {
-                    buffer.drawImage(playerImages[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
-                } // D || Right  
+
+            if(this.pilot == 2){
+                buffer.drawImage(playerImages2[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                if(!ed.eventPlaying()) {
+                    if(Keys[1] >= 1){
+                        buffer.drawImage(playerImages2[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    } // A || Left
+                    if(Keys[3] >= 1) {
+                        buffer.drawImage(playerImages2[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    } // D || Right  
+                } 
+            }else if (this.pilot == 3) {
+                buffer.drawImage(playerImages3[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                if(!ed.eventPlaying()) {
+                    if(Keys[1] >= 1){
+                        buffer.drawImage(playerImages3[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    } // A || Left
+                    if(Keys[3] >= 1) {
+                        buffer.drawImage(playerImages3[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    } // D || Right  
+                }
+            }else if (this.pilot == 4) {
+                buffer.drawImage(playerImages4[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                if(!ed.eventPlaying()) {
+                    if(Keys[1] >= 1){
+                        buffer.drawImage(playerImages4[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    } // A || Left
+                    if(Keys[3] >= 1) {
+                        buffer.drawImage(playerImages4[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    } // D || Right  
+                }
+            }else if (this.pilot == 5) {
+                buffer.drawImage(playerImages5[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                if(!ed.eventPlaying()) {
+                    if(Keys[1] >= 1){
+                        buffer.drawImage(playerImages5[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    } // A || Left
+                    if(Keys[3] >= 1) {
+                        buffer.drawImage(playerImages5[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    } // D || Right  
+                }
+            }else if (this.pilot == 6) {
+                buffer.drawImage(playerImages6[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                if(!ed.eventPlaying()) {
+                    if(Keys[1] >= 1){
+                        buffer.drawImage(playerImages6[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    } // A || Left
+                    if(Keys[3] >= 1) {
+                        buffer.drawImage(playerImages6[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    } // D || Right  
+                }
+            }else if (this.pilot == 7) {
+                buffer.drawImage(playerImages7[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                if(!ed.eventPlaying()) {
+                    if(Keys[1] >= 1){
+                        buffer.drawImage(playerImages7[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    } // A || Left
+                    if(Keys[3] >= 1) {
+                        buffer.drawImage(playerImages7[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    } // D || Right  
+                }
+            }else if (this.pilot == 8) {
+                buffer.drawImage(playerImages8[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                if(!ed.eventPlaying()) {
+                    if(Keys[1] >= 1){
+                        buffer.drawImage(playerImages8[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    } // A || Left
+                    if(Keys[3] >= 1) {
+                        buffer.drawImage(playerImages8[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    } // D || Right  
+                }
+            } else {
+                buffer.drawImage(playerImages1[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                if(!ed.eventPlaying()) {
+                    if(Keys[1] >= 1){
+                        buffer.drawImage(playerImages1[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    } // A || Left
+                    if(Keys[3] >= 1) {
+                        buffer.drawImage(playerImages1[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    } // D || Right  
+                }  
             }
 
         }
@@ -3310,10 +3384,8 @@ function Game()
             buffer.fillStyle = "rgb(255, 255, 255)";
             buffer.font = "bold 25px sans-serif";
         }
-
-        // if (player.pilot == 8) player = new Player(40, 40);
-        // else player = new Player(24, 40);
         player = new Player(24, 40);
+        if (player.pilot == 8) player = new Player(40, 40);
 		enemyGeneration = new EnemyGeneration();
         starGeneration = new StarGeneration();
         foregroundGeneration = new ForegroundGeneration();
@@ -4442,8 +4514,26 @@ function Game()
 		var xOffset = 0;
 		for(var i = 0; i < player.lives; i++)
 		{
-			buffer.drawImage(playerImages1[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-			xOffset += 20;
+            if(player.pilot == 2){
+                buffer.drawImage(playerImages2[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
+            }else if (player.pilot == 3){
+                buffer.drawImage(playerImages3[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
+            }else if (player.pilot == 4){
+                buffer.drawImage(playerImages4[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
+            }else if (player.pilot == 5){
+                buffer.drawImage(playerImages5[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
+            }else if (player.pilot == 6){
+                buffer.drawImage(playerImages6[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
+            }else if (player.pilot == 7){
+                buffer.drawImage(playerImages7[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
+            }else if (player.pilot == 8){
+                buffer.drawImage(playerImages8[0], _buffer.width - (84 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
+            }else{
+                buffer.drawImage(playerImages1[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
+            }
+			
+            if(player.pilot == 8) xOffset += 28;
+            else xOffset += 20;
 		}
 	}
 	
