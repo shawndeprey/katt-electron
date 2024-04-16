@@ -363,7 +363,7 @@ function Game()
 		player.recharge = true;
 		totalShots = 0;
         player = new player(24, 40);
-        if (player.pilot == 8) new player(40, 40);
+        if (player.ship == 8) new player(40, 40);
 		gco.bgm.pause();
 		gco = new GameControlObject();
 		gco.Init();
@@ -2825,7 +2825,7 @@ function Game()
 		this.shield = 100;
 		this.maxShield = this.shield * this.shieldLevel;
 		this.hasShield = false;
-        this.pilot = 8;
+        this.ship = 8;
 	
 		this.weapon = 0;// 0 - 48
 		this.secondary = 50;//Starts at 50, 49 = no secondary.
@@ -2944,85 +2944,84 @@ function Game()
 
         this.drawPlayer = function() {
 
-            if(this.pilot == 2){
-                buffer.drawImage(playerImages2[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+            if(this.ship == 2){
+                if (Keys[1] == 0 && Keys[3] == 0) buffer.drawImage(playerImages2[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
                 if(!ed.eventPlaying()) {
-                    if(Keys[1] >= 1){
-                        buffer.drawImage(playerImages2[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
-                    } // A || Left
-                    if(Keys[3] >= 1) {
-                        buffer.drawImage(playerImages2[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
-                    } // D || Right  
+                    // A || Left
+                    if(Keys[1] >= 1 && this.turnAnimL >= 4 && this.turnAnimL <= 7) buffer.drawImage(playerImages2[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    if(Keys[1] >= 1 && this.turnAnimL >= 8 && this.turnAnimL <= 11) buffer.drawImage(playerImages2[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    // D || Right
+                    if(Keys[3] >= 1 && this.turnAnimR >= 12 && this.turnAnimR <= 15) buffer.drawImage(playerImages2[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height); 
+                    if(Keys[3] >= 1 && this.turnAnimR >= 16 && this.turnAnimR <= 19) buffer.drawImage(playerImages2[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);  
                 } 
-            }else if (this.pilot == 3) {
-                buffer.drawImage(playerImages3[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+            }else if (this.ship == 3) {
+                if (Keys[1] == 0 && Keys[3] == 0) buffer.drawImage(playerImages3[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
                 if(!ed.eventPlaying()) {
-                    if(Keys[1] >= 1){
-                        buffer.drawImage(playerImages3[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
-                    } // A || Left
-                    if(Keys[3] >= 1) {
-                        buffer.drawImage(playerImages3[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
-                    } // D || Right  
+                    // A || Left
+                    if(Keys[1] >= 1 && this.turnAnimL >= 4 && this.turnAnimL <= 7) buffer.drawImage(playerImages3[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    if(Keys[1] >= 1 && this.turnAnimL >= 8 && this.turnAnimL <= 11) buffer.drawImage(playerImages3[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    // D || Right
+                    if(Keys[3] >= 1 && this.turnAnimR >= 12 && this.turnAnimR <= 15) buffer.drawImage(playerImages3[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height); 
+                    if(Keys[3] >= 1 && this.turnAnimR >= 16 && this.turnAnimR <= 19) buffer.drawImage(playerImages3[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);  
                 }
-            }else if (this.pilot == 4) {
-                buffer.drawImage(playerImages4[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+            }else if (this.ship == 4) {
+                if (Keys[1] == 0 && Keys[3] == 0) buffer.drawImage(playerImages4[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
                 if(!ed.eventPlaying()) {
-                    if(Keys[1] >= 1){
-                        buffer.drawImage(playerImages4[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
-                    } // A || Left
-                    if(Keys[3] >= 1) {
-                        buffer.drawImage(playerImages4[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
-                    } // D || Right  
+                    // A || Left
+                    if(Keys[1] >= 1 && this.turnAnimL >= 4 && this.turnAnimL <= 7) buffer.drawImage(playerImages4[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    if(Keys[1] >= 1 && this.turnAnimL >= 8 && this.turnAnimL <= 11) buffer.drawImage(playerImages4[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    // D || Right
+                    if(Keys[3] >= 1 && this.turnAnimR >= 12 && this.turnAnimR <= 15) buffer.drawImage(playerImages4[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height); 
+                    if(Keys[3] >= 1 && this.turnAnimR >= 16 && this.turnAnimR <= 19) buffer.drawImage(playerImages4[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);  
                 }
-            }else if (this.pilot == 5) {
-                buffer.drawImage(playerImages5[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+            }else if (this.ship == 5) {
+                if (Keys[1] == 0 && Keys[3] == 0) buffer.drawImage(playerImages5[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
                 if(!ed.eventPlaying()) {
-                    if(Keys[1] >= 1){
-                        buffer.drawImage(playerImages5[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
-                    } // A || Left
-                    if(Keys[3] >= 1) {
-                        buffer.drawImage(playerImages5[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
-                    } // D || Right  
+                    // A || Left
+                    if(Keys[1] >= 1 && this.turnAnimL >= 4 && this.turnAnimL <= 7) buffer.drawImage(playerImages5[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    if(Keys[1] >= 1 && this.turnAnimL >= 8 && this.turnAnimL <= 11) buffer.drawImage(playerImages5[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    // D || Right
+                    if(Keys[3] >= 1 && this.turnAnimR >= 12 && this.turnAnimR <= 15) buffer.drawImage(playerImages5[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height); 
+                    if(Keys[3] >= 1 && this.turnAnimR >= 16 && this.turnAnimR <= 19) buffer.drawImage(playerImages5[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);  
                 }
-            }else if (this.pilot == 6) {
-                buffer.drawImage(playerImages6[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+            }else if (this.ship == 6) {
+                if (Keys[1] == 0 && Keys[3] == 0) buffer.drawImage(playerImages6[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
                 if(!ed.eventPlaying()) {
-                    if(Keys[1] >= 1){
-                        buffer.drawImage(playerImages6[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
-                    } // A || Left
-                    if(Keys[3] >= 1) {
-                        buffer.drawImage(playerImages6[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
-                    } // D || Right  
+                    // A || Left
+                    if(Keys[1] >= 1 && this.turnAnimL >= 4 && this.turnAnimL <= 7) buffer.drawImage(playerImages6[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    if(Keys[1] >= 1 && this.turnAnimL >= 8 && this.turnAnimL <= 11) buffer.drawImage(playerImages6[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    // D || Right
+                    if(Keys[3] >= 1 && this.turnAnimR >= 12 && this.turnAnimR <= 15) buffer.drawImage(playerImages6[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height); 
+                    if(Keys[3] >= 1 && this.turnAnimR >= 16 && this.turnAnimR <= 19) buffer.drawImage(playerImages6[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);  
                 }
-            }else if (this.pilot == 7) {
-                buffer.drawImage(playerImages7[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+            }else if (this.ship == 7) {
+                if (Keys[1] == 0 && Keys[3] == 0) buffer.drawImage(playerImages7[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
                 if(!ed.eventPlaying()) {
-                    if(Keys[1] >= 1){
-                        buffer.drawImage(playerImages7[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
-                    } // A || Left
-                    if(Keys[3] >= 1) {
-                        buffer.drawImage(playerImages7[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
-                    } // D || Right  
+                    // A || Left
+                    if(Keys[1] >= 1 && this.turnAnimL >= 4 && this.turnAnimL <= 7) buffer.drawImage(playerImages7[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    if(Keys[1] >= 1 && this.turnAnimL >= 8 && this.turnAnimL <= 11) buffer.drawImage(playerImages7[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    // D || Right
+                    if(Keys[3] >= 1 && this.turnAnimR >= 12 && this.turnAnimR <= 15) buffer.drawImage(playerImages7[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height); 
+                    if(Keys[3] >= 1 && this.turnAnimR >= 16 && this.turnAnimR <= 19) buffer.drawImage(playerImages7[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);   
                 }
-            }else if (this.pilot == 8) {
-                buffer.drawImage(playerImages8[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+            }else if (this.ship == 8) {
+                if (Keys[1] == 0 && Keys[3] == 0) buffer.drawImage(playerImages8[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
                 if(!ed.eventPlaying()) {
-                    if(Keys[1] >= 1){
-                        buffer.drawImage(playerImages8[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
-                    } // A || Left
-                    if(Keys[3] >= 1) {
-                        buffer.drawImage(playerImages8[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
-                    } // D || Right  
+                    // A || Left
+                    if(Keys[1] >= 1 && this.turnAnimL >= 4 && this.turnAnimL <= 7) buffer.drawImage(playerImages8[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    if(Keys[1] >= 1 && this.turnAnimL >= 8 && this.turnAnimL <= 11) buffer.drawImage(playerImages8[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    // D || Right
+                    if(Keys[3] >= 1 && this.turnAnimR >= 12 && this.turnAnimR <= 15) buffer.drawImage(playerImages8[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height); 
+                    if(Keys[3] >= 1 && this.turnAnimR >= 16 && this.turnAnimR <= 19) buffer.drawImage(playerImages8[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);  
                 }
             } else {
-                buffer.drawImage(playerImages1[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                if (Keys[1] == 0 && Keys[3] == 0) buffer.drawImage(playerImages1[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
                 if(!ed.eventPlaying()) {
-                    if(Keys[1] >= 1){
-                        buffer.drawImage(playerImages1[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
-                    } // A || Left
-                    if(Keys[3] >= 1) {
-                        buffer.drawImage(playerImages1[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
-                    } // D || Right  
+                    if(Keys[1] >= 1 && this.turnAnimL >= 4 && this.turnAnimL <= 7) buffer.drawImage(playerImages1[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    if(Keys[1] >= 1 && this.turnAnimL >= 8 && this.turnAnimL <= 11) buffer.drawImage(playerImages1[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+                    // D || Right
+                    if(Keys[3] >= 1 && this.turnAnimR >= 12 && this.turnAnimR <= 15) buffer.drawImage(playerImages1[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height); 
+                    if(Keys[3] >= 1 && this.turnAnimR >= 16 && this.turnAnimR <= 19) buffer.drawImage(playerImages1[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);  
                 }  
             }
 
@@ -3035,13 +3034,13 @@ function Game()
                 if(this.idleAnim > 3) this.idleAnim = 0;
             }
             if(Keys[1] >= 1){
-                if(this.onTick % 1 == 0) {
+                if(this.onTick % 2 == 0) {
                     this.turnAnimL++;
                     if(this.turnAnimL > 11) this.turnAnimL = 8;
                 }
             }
             if(Keys[3] >= 1){
-                if(this.onTick % 1 == 0) {
+                if(this.onTick % 2 == 0) {
                     this.turnAnimR++;
                     if(this.turnAnimR > 19) this.turnAnimR = 16;
                 }
@@ -3385,7 +3384,7 @@ function Game()
             buffer.font = "bold 25px sans-serif";
         }
         player = new Player(24, 40);
-        if (player.pilot == 8) player = new Player(40, 40);
+        if (player.ship == 8) player = new Player(40, 40);
 		enemyGeneration = new EnemyGeneration();
         starGeneration = new StarGeneration();
         foregroundGeneration = new ForegroundGeneration();
@@ -4514,25 +4513,25 @@ function Game()
 		var xOffset = 0;
 		for(var i = 0; i < player.lives; i++)
 		{
-            if(player.pilot == 2){
+            if(player.ship == 2){
                 buffer.drawImage(playerImages2[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }else if (player.pilot == 3){
+            }else if (player.ship == 3){
                 buffer.drawImage(playerImages3[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }else if (player.pilot == 4){
+            }else if (player.ship == 4){
                 buffer.drawImage(playerImages4[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }else if (player.pilot == 5){
+            }else if (player.ship == 5){
                 buffer.drawImage(playerImages5[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }else if (player.pilot == 6){
+            }else if (player.ship == 6){
                 buffer.drawImage(playerImages6[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }else if (player.pilot == 7){
+            }else if (player.ship == 7){
                 buffer.drawImage(playerImages7[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }else if (player.pilot == 8){
+            }else if (player.ship == 8){
                 buffer.drawImage(playerImages8[0], _buffer.width - (84 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
             }else{
                 buffer.drawImage(playerImages1[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
             }
 			
-            if(player.pilot == 8) xOffset += 28;
+            if(player.ship == 8) xOffset += 28;
             else xOffset += 20;
 		}
 	}
@@ -4790,8 +4789,8 @@ function Game()
                 guiText[3] = new GUIText("Cores: " + player.money, _canvas.width - 100, _canvas.height - 53, "20px VT323", "left", "top", "rgb(230, 230, 255)");
                 guiText[4] = new GUIText("Extra Items", _canvas.width - 300, 420, "20px VT323", "left", "top", "rgb(230, 230, 255)");
                 guiText[7] = new GUIText("Level " + gco.level, 5, _buffer.height / 2 - 76, "20px VT323", "left", "top", "rgb(230, 230, 255)");
-				guiText[8] = new GUIText(player.shieldLevel, _canvas.width - 271, 448, "20px VT323", "left", "top", "rgb(0, 0, 0)");
-				guiText[9] = new GUIText(player.secondaryAmmoLevel, _canvas.width - 221, 448, "20px VT323", "left", "top", "rgb(0, 0, 0)");
+				guiText[8] = new GUIText("", _canvas.width - 271, 448, "20px VT323", "left", "top", "rgb(0, 0, 0)");
+				guiText[9] = new GUIText("", _canvas.width - 221, 448, "20px VT323", "left", "top", "rgb(0, 0, 0)");
 
 
 //**********************************************************************//
@@ -5267,6 +5266,14 @@ function Game()
                 }
 				
 				guiText[12] = new GUIText("Score: " + score, 10, _canvas.height - 53, "18px VT323", "left", "top", "rgb(230, 230, 255)");
+//**********************************************************************//
+//					  BEGIN PILOT SELECT SECTION						//
+//**********************************************************************//
+
+//**********************************************************************//
+//					  END PILOT SELECT SECTION							//
+//**********************************************************************//
+
 //**********************************************************************//
 //					  END UPGRADE MENU SECTION							//
 //**********************************************************************//
