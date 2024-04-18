@@ -6,7 +6,7 @@ const { ipcRenderer } = require('electron');
 // Then, we take this webGL context and render it, 10 times per second, to a 2d context which caches
 // the final planet render, which is then rendered to the 2d canvas buffer, which is the main game render.
 var offScreenPlanetCanvas = document.createElement('canvas');
-var gl = offScreenPlanetCanvas.getContext('webgl') || offScreenPlanetCanvas.getContext('experimental-webgl');
+var offscreenPlanetGl = offScreenPlanetCanvas.getContext('webgl') || offScreenPlanetCanvas.getContext('experimental-webgl');
 var shaderPlanetCanvas = document.createElement('canvas');
 var shaderPlanetCtx = shaderPlanetCanvas.getContext('2d');
 
@@ -32,6 +32,7 @@ function Game()
 	var playerInfo = false;
 	var masterBGMVolume = 0.2;
 	var bossPhase = -1;
+    var postProcessing = {bloom: false}
 	
 	//GUI Info
 	var currentGui = 0;
@@ -1551,7 +1552,7 @@ function Game()
             var planetCanvas = document.querySelector('#root canvas');
             if(planetCanvas == null) return;
             // Clear and reset our planet rendering contexts so we can re-render this game loop.
-            gl.clear(gl.COLOR_BUFFER_BIT);
+            offscreenPlanetGl.clear(offscreenPlanetGl.COLOR_BUFFER_BIT);
             shaderPlanetCtx.clearRect(0, 0, shaderPlanetCanvas.width, shaderPlanetCanvas.height);
             offScreenPlanetCanvas.width = planetCanvas.width;
             offScreenPlanetCanvas.height = planetCanvas.height;
@@ -1583,51 +1584,51 @@ function Game()
             `;
 
             // Compile shaders
-            var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-            gl.shaderSource(vertexShader, vertexShaderSource);
-            gl.compileShader(vertexShader);
+            var vertexShader = offscreenPlanetGl.createShader(offscreenPlanetGl.VERTEX_SHADER);
+            offscreenPlanetGl.shaderSource(vertexShader, vertexShaderSource);
+            offscreenPlanetGl.compileShader(vertexShader);
 
-            var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-            gl.shaderSource(fragmentShader, fragmentShaderSource);
-            gl.compileShader(fragmentShader);
+            var fragmentShader = offscreenPlanetGl.createShader(offscreenPlanetGl.FRAGMENT_SHADER);
+            offscreenPlanetGl.shaderSource(fragmentShader, fragmentShaderSource);
+            offscreenPlanetGl.compileShader(fragmentShader);
 
             // Link shaders into a program
-            var shaderProgram = gl.createProgram();
-            gl.attachShader(shaderProgram, vertexShader);
-            gl.attachShader(shaderProgram, fragmentShader);
-            gl.linkProgram(shaderProgram);
-            gl.useProgram(shaderProgram);
+            var shaderProgram = offscreenPlanetGl.createProgram();
+            offscreenPlanetGl.attachShader(shaderProgram, vertexShader);
+            offscreenPlanetGl.attachShader(shaderProgram, fragmentShader);
+            offscreenPlanetGl.linkProgram(shaderProgram);
+            offscreenPlanetGl.useProgram(shaderProgram);
 
             // Create and bind buffer to render a quad
-            var positionBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+            var positionBuffer = offscreenPlanetGl.createBuffer();
+            offscreenPlanetGl.bindBuffer(offscreenPlanetGl.ARRAY_BUFFER, positionBuffer);
+            offscreenPlanetGl.bufferData(offscreenPlanetGl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), offscreenPlanetGl.STATIC_DRAW);
 
-            var positionLocation = gl.getAttribLocation(shaderProgram, 'a_position');
-            gl.enableVertexAttribArray(positionLocation);
-            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+            var positionLocation = offscreenPlanetGl.getAttribLocation(shaderProgram, 'a_position');
+            offscreenPlanetGl.enableVertexAttribArray(positionLocation);
+            offscreenPlanetGl.vertexAttribPointer(positionLocation, 2, offscreenPlanetGl.FLOAT, false, 0, 0);
 
             // Create a texture from your source canvas
-            var texture = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, planetCanvas);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            var texture = offscreenPlanetGl.createTexture();
+            offscreenPlanetGl.bindTexture(offscreenPlanetGl.TEXTURE_2D, texture);
+            offscreenPlanetGl.texImage2D(offscreenPlanetGl.TEXTURE_2D, 0, offscreenPlanetGl.RGBA, offscreenPlanetGl.RGBA, offscreenPlanetGl.UNSIGNED_BYTE, planetCanvas);
+            offscreenPlanetGl.texParameteri(offscreenPlanetGl.TEXTURE_2D, offscreenPlanetGl.TEXTURE_MIN_FILTER, offscreenPlanetGl.LINEAR);
+            offscreenPlanetGl.texParameteri(offscreenPlanetGl.TEXTURE_2D, offscreenPlanetGl.TEXTURE_WRAP_S, offscreenPlanetGl.CLAMP_TO_EDGE);
+            offscreenPlanetGl.texParameteri(offscreenPlanetGl.TEXTURE_2D, offscreenPlanetGl.TEXTURE_WRAP_T, offscreenPlanetGl.CLAMP_TO_EDGE);
 
             // Set the texture uniform in the shader
-            var textureLocation = gl.getUniformLocation(shaderProgram, 'u_texture');
-            gl.uniform1i(textureLocation, 0);
+            var textureLocation = offscreenPlanetGl.getUniformLocation(shaderProgram, 'u_texture');
+            offscreenPlanetGl.uniform1i(textureLocation, 0);
 
             // Ensure the webGL context has the correct dimensions for our planet canvas
-            gl.viewport(0, 0, offScreenPlanetCanvas.width, offScreenPlanetCanvas.height);
+            offscreenPlanetGl.viewport(0, 0, offScreenPlanetCanvas.width, offScreenPlanetCanvas.height);
 
             // Render the quad with the shader applied
-            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            offscreenPlanetGl.drawArrays(offscreenPlanetGl.TRIANGLE_STRIP, 0, 4);
 
             // Get the resulting image data from WebGL
             var imageData = new Uint8Array(offScreenPlanetCanvas.width * offScreenPlanetCanvas.height * 4);
-            gl.readPixels(0, 0, offScreenPlanetCanvas.width, offScreenPlanetCanvas.height, gl.RGBA, gl.UNSIGNED_BYTE, imageData);
+            offscreenPlanetGl.readPixels(0, 0, offScreenPlanetCanvas.width, offScreenPlanetCanvas.height, offscreenPlanetGl.RGBA, offscreenPlanetGl.UNSIGNED_BYTE, imageData);
 
             // Put the modified image data onto your buffer canvas
             var imageDataUint8Clamped = new Uint8ClampedArray(imageData);
@@ -4045,6 +4046,11 @@ function Game()
 			
         }
 
+        // Temporary input for enabling post processing
+        if(Keys[15] == 1) {
+            postProcessing.bloom = !postProcessing.bloom;
+        }
+
         // If we are currently not in an active game level gui, do input for menus...
         if(currentGui != 8) {
             if(Keys[0] >= 1) menu.move(currentGui, 0) // W || Up
@@ -4208,6 +4214,9 @@ function Game()
         self.drawGUI();
         if(gco.playStory){ gco.story.Draw(); }
 
+        if(postProcessing.bloom) {
+            applyBloomEffect(_buffer, buffer);
+        }
         canvas.drawImage(_buffer, 0, 0);
     }
 
