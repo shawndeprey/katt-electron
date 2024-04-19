@@ -113,9 +113,6 @@ const blurredBloomTexture = createTexture(glCanvas.width, glCanvas.height);
 const brightFramebuffer = createFramebuffer(brightResultTexture);
 const blurFramebuffer = createFramebuffer(blurredBloomTexture);
 
-
-
-
 window.applyBloomEffect = function(canvas, ctx) {
     // const originalSceneTexture = createTextureFromCanvas(canvas);
     // Clear and reset our planet rendering contexts so we can re-render this game loop.
@@ -141,6 +138,10 @@ window.applyBloomEffect = function(canvas, ctx) {
     `;
 
     // Bright Shader
+    // https://stackoverflow.com/questions/596216/formula-to-determine-perceived-brightness-of-rgb-color
+    // Luminance (standard for certain colour spaces): (0.2126*R + 0.7152*G + 0.0722*B)
+    // Luminance (perceived option 1): 0.299*R + 0.587*G + 0.114*B)
+    // Luminance (perceived option 2, slower to calculate): sqrt( 0.299*R^2 + 0.587*G^2 + 0.114*B^2 )
     const brightShaderSource = `
         precision highp float;
 
@@ -149,9 +150,9 @@ window.applyBloomEffect = function(canvas, ctx) {
 
         void main() {
             vec4 color = texture2D(uTexture, vTexCoord);
-            float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722)); // Calculate luminance
+            float brightness = dot(color.rgb, vec3(0.299, 0.587, 0.114)); // Calculate luminance
             // Adjust threshold here, maybe even use a smoothstep for softer transitions
-            float threshold = 0.5; // Lower the threshold
+            float threshold = 0.3; // Lower the threshold
             float factor = smoothstep(threshold - 0.1, threshold, brightness);
             gl_FragColor = vec4(color.rgb * factor, 1.0);
         }
