@@ -113,8 +113,7 @@ const blurredBloomTexture = createTexture(glCanvas.width, glCanvas.height);
 const brightFramebuffer = createFramebuffer(brightResultTexture);
 const blurFramebuffer = createFramebuffer(blurredBloomTexture);
 
-window.applyBloomEffect = function(canvas, ctx) {
-    // const originalSceneTexture = createTextureFromCanvas(canvas);
+window.applyPostProcessing = function(canvas, ctx) {
     // Clear and reset our planet rendering contexts so we can re-render this game loop.
     glCanvas.width = canvas.width;
     glCanvas.height = canvas.height;

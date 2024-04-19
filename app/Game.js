@@ -4215,7 +4215,7 @@ function Game()
         if(gco.playStory){ gco.story.Draw(); }
 
         if(postProcessing.bloom) {
-            applyBloomEffect(_buffer, buffer);
+            applyPostProcessing(_buffer, buffer);
         }
         canvas.drawImage(_buffer, 0, 0);
     }
