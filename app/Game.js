@@ -1569,8 +1569,8 @@ function Game()
 		
 		this.GenerateObjectives = function()
 		{
-            let randomMultiplier = 1; // Base: 25
-            let floorAddative = 1; // Base: 35
+            let randomMultiplier = 25; // Base: 25
+            let floorAddative = 35; // Base: 35
 			for(var i = 0; i < gco.level; i++)
 			{//For each level, a new enemy type objective is placed on the mission stack.
 				if(gco.level >= 6){ this.objectives.push(0); }
