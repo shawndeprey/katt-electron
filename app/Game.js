@@ -114,6 +114,17 @@ function Game()
             starImages[i].src = ('Graphics/Stars/star_' + i + '.png');
         }
 
+        var portraitImages = [];
+        for(var i = 0; i < 6; i++)
+        {
+            portraitImages[i] = new Image();
+            portraitImages[i].addEventListener('load', self.loadedImage, false);
+            portraitImages[i].addEventListener('error', function() {
+                console.log('Error loading image: Graphics/NPC/portrait_' + i + '.png');
+            });
+            portraitImages[i].src = ('Graphics/NPC/portrait_' + i + '.png');
+        }
+
         var fgImages = [];
         for(var i = 0; i < 12; i++) {
             fgImages[i] = new Image();
@@ -222,7 +233,7 @@ function Game()
 
 	var numOfImages = (starImages.length + images.length + enemyImages.length + playerImages1.length + playerImages2.length + playerImages3.length 
         + playerImages4.length + playerImages5.length + playerImages6.length + playerImages7.length + playerImages8.length  
-        + itemImages.length + logoImages.length + fgImages.length);
+        + itemImages.length + logoImages.length + fgImages.length + portraitImages.length);
 	
 	
     // Containers
@@ -644,6 +655,7 @@ function Game()
         this.onTick = 0;
         this.activeEvent = 0; // 0 = No Active Event
         this.eventTime = 0;
+        this.dialogue = new Dialogue();
         
         // Event variables other systems can watch or use
         this.moveMultiplierOne = 1;
@@ -661,6 +673,8 @@ function Game()
             } else if(this.activeEvent == 2) {
                 this.eventTime = 60; // 3 Seconds
                 sfx.play(3);
+            } else if(this.activeEvent == 3) {
+                this.dialogue.initDialogueForLevel();
             }
         }
 
@@ -676,6 +690,7 @@ function Game()
             // Event Updates
             if(this.activeEvent == 1) this.levelIntroUpdate();
             if(this.activeEvent == 2) this.levelOutroUpdate();
+            if(this.activeEvent == 3) this.levelDialogue();
         }
 
         // Event 1
@@ -700,7 +715,12 @@ function Game()
             // Update player.y by speed adjusted for delta
             player.y += speed * delta;  // Use += since speed will be negative, moving the player up
 
-            if(this.eventTime <= 0) this.endEvent();
+            if(this.eventTime <= 0) {
+                this.endEvent();
+                if(!this.dialogue.didDialogueForLevel()) {
+                    this.initEvent(3)
+                }
+            }
         }
 
         // Event 2
@@ -752,9 +772,314 @@ function Game()
             }
         }
 
-        this.Draw = function() {
-            // Custom draws for event states
+        // Event 3
+        this.levelDialogue = function() {
+            if(this.dialogue.isFinished()) {
+                this.endEvent();
+            } else {
+                this.dialogue.Update();
+            }
         }
+
+        this.Draw = function() {
+            if(this.activeEvent == 3) {
+                this.dialogue.Draw();
+            }
+        }
+
+        this.DoInput = function() {
+            if(this.activeEvent == 3) {
+                this.dialogue.DoInput();
+            }
+        }
+    }
+
+    function Dialogue() {
+        let onTick = 0;
+        let dialogueForLevel = [false, false, false, false, false, false];
+        let d = null;
+        let lineIndex = 0;
+        let lineText = "";
+        let subTick = 0;
+        let maxSubTick = 16;
+        let playInitialSound = true;
+        let percentageDone = 0;
+        let timeout = 0;
+        let dialogueFinished = false;
+
+        this.isFinished = function() {
+            return dialogueFinished;
+        }
+
+        this.didDialogueForLevel = function() {
+            return dialogueForLevel[gco.level - 1];
+        }
+
+        this.initDialogueForLevel = function() {
+            d = dialogues[gco.level - 1];
+            dialogueForLevel[gco.level - 1] = true;
+
+            // Reset all values controlling the dialogue progression
+            dialogueFinished = false;
+            lineIndex = 0;
+            resetDialogueValues()
+        }
+
+        const resetDialogueValues = function() {
+            subTick = 0;
+            lineText = "";
+            playInitialSound = true;
+            percentageDone = 0;
+        }
+
+        this.Update = function() {
+            // Determine the maximum sub-tick interval based on the character's voice type
+            const characterVoiceType = d.lines[lineIndex].character;
+            maxSubTick = [2, 5, 1, 3].includes(characterVoiceType) ? 10 : 16;
+        
+            if (ticks !== onTick) { // Ticks go 0-19 every second in 50 ms intervals
+                onTick = ticks;
+                subTick++;
+
+                // Count down timeout
+                if(timeout > 0) { timeout--; }
+
+                // Read through the text, 1 letter at a time, into the rendered cache state
+                if (lineText.length < d.lines[lineIndex].line.length) {
+                    lineText += d.lines[lineIndex].line[lineText.length];  // Append next character
+                }
+
+                // Calculate the percentage of the line that has been displayed
+                percentageDone = (lineText.length / d.lines[lineIndex].line.length) * 100;
+        
+                // Play sound effects based on the current tick interval and character's voice type
+                if (percentageDone < 90) {
+                    const midVoice = [0, 4].includes(characterVoiceType);
+                    if (!midVoice && (playInitialSound || subTick % 10 === 0)) {
+                        sfx.play([2, 5].includes(characterVoiceType) ? 4 : 6);
+                    }
+                    if (midVoice && (playInitialSound || subTick % 16 === 0)) {
+                        sfx.play(5); // Mid dialogue text SFX for characters 0 and 4
+                    }
+                }
+
+                if (subTick >= maxSubTick) subTick = 0; // Reset subTick
+                playInitialSound = false;
+            }
+        }
+
+        const Continue = function() {
+            if(lineIndex == d.lines.length - 1) {
+                dialogueFinished = true;
+            } else {
+                resetDialogueValues();
+                lineIndex++;
+            }
+            
+        }
+
+        this.DoInput = function() {
+            if(timeout > 0 || percentageDone < 99) return;
+            timeout = 15;
+            Continue();
+        }
+
+        this.Draw = function() {
+            var dialogueBoxWidth = 500;
+            var dialogueBoxHeight = 175;
+            drawDialogueBox(dialogueBoxWidth, dialogueBoxHeight);
+            drawCharacterPortrait(dialogueBoxWidth, dialogueBoxHeight);
+            drawDialogueText(dialogueBoxWidth, dialogueBoxHeight);
+            if(percentageDone > 99) {
+                drawContinuePrompt(dialogueBoxWidth, dialogueBoxHeight);
+            }
+        }
+
+        const drawDialogueBox = function(width, height) {
+            // Calculate center position and dimensions
+            var x = _buffer.width / 2;
+            var y = _buffer.height - 130; // Positioned 110 pixels up from the bottom
+            var radius = 20; // Radius for the rounded corners
+        
+            // Start drawing the dialogue box
+            buffer.beginPath();
+            buffer.moveTo(x - width / 2 + radius, y - height / 2); // Top-left corner
+            buffer.arcTo(x + width / 2, y - height / 2, x + width / 2, y + height / 2, radius); // Top-right corner
+            buffer.arcTo(x + width / 2, y + height / 2, x - width / 2, y + height / 2, radius); // Bottom-right corner
+            buffer.arcTo(x - width / 2, y + height / 2, x - width / 2, y - height / 2, radius); // Bottom-left corner
+            buffer.arcTo(x - width / 2, y - height / 2, x + width / 2, y - height / 2, radius); // Back to top-left corner
+            buffer.closePath();
+        
+            // Create gradient
+            var gradient = buffer.createLinearGradient(x, y - height / 2, x, y + height / 2);
+            gradient.addColorStop(0, 'rgb(100, 149, 237)');
+            gradient.addColorStop(1, 'darkblue');
+            buffer.fillStyle = gradient;
+            buffer.fill();
+        
+            // Draw border
+            buffer.lineWidth = 4;
+            buffer.strokeStyle = 'white';
+            buffer.stroke();
+        }
+
+        const drawCharacterPortrait = function(dialogueBoxWidth, dialogueBoxHeight) {
+            // Calculate dimensions and position
+            var padding = 16; // Padding around the image
+            var imageWidth = dialogueBoxHeight - (2 * padding); // Adjust for padding
+            var imageHeight = imageWidth; // Maintain aspect ratio
+            var x = (_buffer.width / 2) - (dialogueBoxWidth / 2) + padding; // Left position inside the dialogue box
+            var y = _buffer.height - 130 - (dialogueBoxHeight / 2) + padding; // Vertical centering
+            var borderRadius = 10; // Radius for rounded corners
+
+            // Save the current state of the canvas context
+            buffer.save();
+
+            // Draw black background with rounded corners
+            buffer.fillStyle = 'black';
+            buffer.beginPath();
+            buffer.moveTo(x + borderRadius, y);
+            buffer.arcTo(x + imageWidth, y, x + imageWidth, y + imageHeight, borderRadius);
+            buffer.arcTo(x + imageWidth, y + imageHeight, x, y + imageHeight, borderRadius);
+            buffer.arcTo(x, y + imageHeight, x, y, borderRadius);
+            buffer.arcTo(x, y, x + imageWidth, y, borderRadius);
+            buffer.closePath();
+            buffer.fill();
+
+            // Clip the image area to rounded rectangle before drawing the image
+            buffer.beginPath();
+            buffer.moveTo(x + borderRadius, y);
+            buffer.arcTo(x + imageWidth, y, x + imageWidth, y + imageHeight, borderRadius);
+            buffer.arcTo(x + imageWidth, y + imageHeight, x, y + imageHeight, borderRadius);
+            buffer.arcTo(x, y + imageHeight, x, y, borderRadius);
+            buffer.arcTo(x, y, x + imageWidth, y, borderRadius);
+            buffer.closePath();
+            buffer.clip();
+
+            // Draw image with shadow for emphasis
+            buffer.shadowBlur = 1;
+            buffer.shadowColor = 'rgb(0, 173, 239)';
+            buffer.drawImage(portraitImages[d.lines[lineIndex].character], x, y, imageWidth, imageHeight);
+            buffer.shadowBlur = 0;
+
+            // Restore the context to remove the clipping path
+            buffer.restore();
+
+            // Draw border around the image with rounded corners
+            buffer.strokeStyle = 'white';
+            buffer.lineWidth = 4;
+            buffer.beginPath();
+            buffer.moveTo(x + borderRadius, y);
+            buffer.arcTo(x + imageWidth, y, x + imageWidth, y + imageHeight, borderRadius);
+            buffer.arcTo(x + imageWidth, y + imageHeight, x, y + imageHeight, borderRadius);
+            buffer.arcTo(x, y + imageHeight, x, y, borderRadius);
+            buffer.arcTo(x, y, x + imageWidth, y, borderRadius);
+            buffer.closePath();
+            buffer.stroke();
+        }
+
+        const drawDialogueText = function(dialogueBoxWidth, dialogueBoxHeight) {
+            const fontSize = 28;
+            const lineHeight = fontSize + 4;
+            const padding = 16;
+            const fontFamily = "VT323";
+        
+            // Assuming each character in VT323 at 28px is approximately 12px wide
+            const charWidth = 12; // This value should be adjusted based on visual tests or accurate measurements
+            const portraitWidth = dialogueBoxHeight - (2 * padding);
+            const textAreaWidth = dialogueBoxWidth - portraitWidth - (3 * padding);
+            const textX = _buffer.width / 2 - dialogueBoxWidth / 2 + portraitWidth + (2 * padding);
+            const textY = _buffer.height - (dialogueBoxHeight + 28);
+        
+            const maxCharsPerLine = Math.floor(textAreaWidth / charWidth);
+
+            // To see the background of the text uncomment the following
+            // buffer.fillStyle = 'black';
+            // buffer.fillRect(textX, textY, textAreaWidth, dialogueBoxHeight - (2 * padding));
+            
+            const words = lineText.split(' ');
+            let currentLine = '';
+            let currentY = textY;
+            let guiText = [];
+        
+            words.forEach(word => {
+                if ((currentLine + word + ' ').length > maxCharsPerLine) {
+                    guiText.push(new GUIText(currentLine, textX, currentY, `${fontSize}px ${fontFamily}`, "left", "top", "white"));
+                    currentLine = word + ' ';
+                    currentY += lineHeight;
+                } else {
+                    currentLine += word + ' ';
+                }
+            });
+        
+            if (currentLine.trim()) {
+                guiText.push(new GUIText(currentLine, textX, currentY, `${fontSize}px ${fontFamily}`, "left", "top", "white"));
+            }
+        
+            guiText.forEach(text => {
+                text.Draw(_buffer);
+            });
+        }
+
+        const drawContinuePrompt = function(dialogueBoxWidth, dialogueBoxHeight) {
+            const fontSize = 28; // Smaller font for the continue prompt
+            const fontFamily = "VT323"; // Using the same monospaced font for consistency
+            const padding = 12; // Padding inside the dialogue box
+        
+            // Calculate positions
+            const textX = _buffer.width / 2 + dialogueBoxWidth / 2 - padding; // Right align the text within the dialogue box
+            const textY = _buffer.height - padding; // Position at the bottom of the dialogue box
+            const arrowX = textX - 100; // Position the arrow 70px to the left of the text
+            const arrowY = textY - 12; // Slightly adjust the arrow position for vertical alignment
+        
+            // Create GUIText object for "Continue"
+            const continueText = new GUIText("Continue", textX, textY, `${fontSize}px ${fontFamily}`, "right", "bottom", "white");
+        
+            // Draw the "Continue" text using GUIText.Draw method
+            continueText.Draw();
+        
+            // Draw the green arrow using the predefined function
+            menu.DrawArrow(3, arrowX, arrowY, 20); // Assuming `menu.DrawArrow` handles the drawing based on provided coordinates
+        }
+
+        // One dialogue per level
+        let dialogues = [
+            // Level 1
+            {lines: [
+                {character: 0, line: "Atha, we've reached the edge of the drone fleet."},
+                {character: player.captain, line: "I can see that much, Sato..."},
+                {character: player.captain, line: "...And how many times have I told you to call me Captain."},
+                {character: 0, line: "We're at the edge of it all and that's what you're worried about...?"},
+                {character: 1, line: "Focus! We have to push forward, it's the last shot we have to save everyone."},
+                {character: 0, line: "You don't have to tell me twice, all systems go CAPTAIN!"},
+                {character: player.captain, line: "Asshole... Ready yourself, here they come!"},
+            ]},
+
+            // level 2
+            {lines: [
+                {character: 0, line: "This is temporary level 2 dialogue..."},
+            ]},
+
+            // Level 3
+            {lines: [
+                {character: 0, line: "This is temporary level 3 dialogue..."},
+            ]},
+
+            // Level 4
+            {lines: [
+                {character: 0, line: "This is temporary level 4 dialogue..."},
+            ]},
+
+            // Level 5
+            {lines: [
+                {character: 0, line: "This is temporary level 5 dialogue..."},
+            ]},
+
+            // Level 6
+            {lines: [
+                {character: 0, line: "This is temporary boss level dialogue..."},
+            ]},
+        ]
     }
 
     function Menu()
@@ -1097,6 +1422,9 @@ function Game()
 		this.laser = 0; this.laserPlaying = false; // Player Laser Channel
 		this.bossLaser = 0; this.bossLaserPlaying = false; // Boss Laser Channel
         this.whooshOne = 0; // Whoosh One Channel
+        this.dialogueLow = {index: 0, channel: [], channels: 10} // Low Dialogue Channels
+        this.dialogueMid = {index: 0, channel: [], channels: 10} // Mid Dialogue Channels
+        this.dialogueHigh = {index: 0, channel: [], channels: 10} // High Dialogue Channels
 
         // Other Variables
         this.masterVolume = 0.2;
@@ -1126,6 +1454,30 @@ function Game()
             this.whooshOne = new Audio('Audio/sfx/woosh-low-long.mp3');
             this.whooshOne.volume = this.masterVolume;
             this.whooshOne.preload = 'auto';
+
+            // Low Dialogues
+            for(var i = 0; i < this.dialogueLow.channels; i++) {
+                var a = new Audio('Audio/sfx/dialogue_low.mp3');
+                a.volume = this.masterVolume;
+                a.preload = 'auto';
+                this.dialogueLow.channel.push(a);
+            }
+
+            // Mid Dialogues
+            for(var i = 0; i < this.dialogueMid.channels; i++) {
+                var a = new Audio('Audio/sfx/dialogue_mid.mp3');
+                a.volume = this.masterVolume;
+                a.preload = 'auto';
+                this.dialogueMid.channel.push(a);
+            }
+
+            // High Dialogues
+            for(var i = 0; i < this.dialogueHigh.channels; i++) {
+                var a = new Audio('Audio/sfx/dialogue_high.mp3');
+                a.volume = this.masterVolume;
+                a.preload = 'auto';
+                this.dialogueHigh.channel.push(a);
+            }
         }
 		
         this.play = function(playfx) {
@@ -1149,6 +1501,27 @@ function Game()
                 }
                 case 3: { // Whoosh One
                     this.whooshOne.play();
+                    break;
+                }
+                case 4: { // Dialogue Low
+                    if(this.dialogueLow.channel[this.dialogueLow.index]) {
+                        this.dialogueLow.channel[this.dialogueLow.index].play();
+                        this.dialogueLow.index += 1; if(this.dialogueLow.index > (this.dialogueLow.channels - 1)){this.dialogueLow.index = 0;}
+                    }
+                    break;
+                }
+                case 5: { // Dialogue Mid
+                    if(this.dialogueMid.channel[this.dialogueMid.index]) {
+                        this.dialogueMid.channel[this.dialogueMid.index].play();
+                        this.dialogueMid.index += 1; if(this.dialogueMid.index > (this.dialogueMid.channels - 1)){this.dialogueMid.index = 0;}
+                    }
+                    break;
+                }
+                case 6: { // Dialogue High
+                    if(this.dialogueHigh.channel[this.dialogueHigh.index]) {
+                        this.dialogueHigh.channel[this.dialogueHigh.index].play();
+                        this.dialogueHigh.index += 1; if(this.dialogueHigh.index > (this.dialogueHigh.channels - 1)){this.dialogueHigh.index = 0;}
+                    }
                     break;
                 }
             }
@@ -1177,6 +1550,15 @@ function Game()
             this.bossLaser.volume = value;
             this.whooshOne.volume = value;
             this.masterVolume = value;
+            for(var i = 0; i < this.dialogueLow.channel.length; i++) {
+                this.dialogueLow.channel[i].volume = value;
+            }
+            for(var i = 0; i < this.dialogueMid.channel.length; i++) {
+                this.dialogueMid.channel[i].volume = value;
+            }
+            for(var i = 0; i < this.dialogueHigh.channel.length; i++) {
+                this.dialogueHigh.channel[i].volume = value;
+            }
         }
     }
 	
@@ -1187,8 +1569,8 @@ function Game()
 		
 		this.GenerateObjectives = function()
 		{
-            let randomMultiplier = 25; // Base: 25
-            let floorAddative = 35; // Base: 35
+            let randomMultiplier = 1; // Base: 25
+            let floorAddative = 1; // Base: 35
 			for(var i = 0; i < gco.level; i++)
 			{//For each level, a new enemy type objective is placed on the mission stack.
 				if(gco.level >= 6){ this.objectives.push(0); }
@@ -2827,6 +3209,7 @@ function Game()
 		this.maxShield = this.shield * this.shieldLevel;
 		this.hasShield = false;
         this.ship = 8;
+        this.captain = 2;
 	
 		this.weapon = 0;// 0 - 48
 		this.secondary = 50;//Starts at 50, 49 = no secondary.
@@ -3171,10 +3554,20 @@ function Game()
         this.text = Text;
         this.x = X;
         this.y = Y;
-		this.fontStyle = fStyle;
-		this.alignX = aX;
-		this.alignY = aY;
-		this.color = col;
+        this.fontStyle = fStyle;
+        this.alignX = aX;
+        this.alignY = aY;
+        this.color = col;
+
+        this.Draw = function() {
+            buffer.beginPath();
+            buffer.font = this.fontStyle;
+            buffer.textAlign = this.alignX;
+            buffer.textBaseline = this.alignY;
+            buffer.fillStyle = this.color;
+            buffer.fillText(this.text, this.x, this.y);
+            buffer.closePath();
+        };
     }
 	
 	function Story()
@@ -3660,6 +4053,9 @@ function Game()
 	
 	function doMouseClick(e)
 	{
+        if(ed.eventPlaying()) {
+            ed.DoInput()
+        }
         // This function should mimic the menu.select() functionality. If something is added there, it should be here, and visa-versa
 		//State GUIs
             // 0 = Main Menu
@@ -4053,12 +4449,16 @@ function Game()
 
         // If we are currently not in an active game level gui, do input for menus...
         if(currentGui != 8) {
-            if(Keys[0] >= 1) menu.move(currentGui, 0) // W || Up
-            if(Keys[1] >= 1) menu.move(currentGui, 1) // A || Left
-            if(Keys[2] >= 1) menu.move(currentGui, 2) // S || Down
-            if(Keys[3] >= 1) menu.move(currentGui, 3) // D || Right
-            if(Keys[16] >= 1 || Keys[18] >= 1) menu.select() // Space || Enter
-            if((currentGui == 6 || currentGui == 1) && Keys[19] > 1) menu.back()
+            if(Keys[0] >= 1) menu.move(currentGui, 0); // W || Up
+            if(Keys[1] >= 1) menu.move(currentGui, 1); // A || Left
+            if(Keys[2] >= 1) menu.move(currentGui, 2); // S || Down
+            if(Keys[3] >= 1) menu.move(currentGui, 3); // D || Right
+            if(Keys[16] >= 1 || Keys[18] >= 1) menu.select(); // Space || Enter
+            if((currentGui == 6 || currentGui == 1) && Keys[19] > 1) menu.back();
+        }
+
+        if(ed.eventPlaying()) {
+            if(Keys[16] >= 1 || Keys[18] >= 1) ed.DoInput(); // Space || Enter
         }
     
         if(!paused) {
@@ -4211,6 +4611,7 @@ function Game()
         foregroundGeneration.Draw();
         
         if(gco.win){ gco.credits.Draw(); }
+        ed.Draw(); // Only Draws when needed
         self.drawGUI();
         if(gco.playStory){ gco.story.Draw(); }
 
