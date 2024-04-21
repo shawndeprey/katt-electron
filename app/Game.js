@@ -885,7 +885,7 @@ function Game()
         }
 
         this.Draw = function() {
-            var dialogueBoxWidth = 500;
+            var dialogueBoxWidth = 700;
             var dialogueBoxHeight = 175;
             drawDialogueBox(dialogueBoxWidth, dialogueBoxHeight);
             drawCharacterPortrait(dialogueBoxWidth, dialogueBoxHeight);
@@ -926,39 +926,43 @@ function Game()
         const drawCharacterPortrait = function(dialogueBoxWidth, dialogueBoxHeight) {
             // Calculate dimensions and position
             var padding = 16; // Padding around the image
-            var imageWidth = dialogueBoxHeight - (2 * padding); // Adjust for padding
+            // var imageWidth = dialogueBoxHeight - (2 * padding); // Adjust for padding
+            var imageWidth = 300; // Adjust for padding
             var imageHeight = imageWidth; // Maintain aspect ratio
-            var x = (_buffer.width / 2) - (dialogueBoxWidth / 2) + padding; // Left position inside the dialogue box
-            var y = _buffer.height - 130 - (dialogueBoxHeight / 2) + padding; // Vertical centering
+            // var x = (_buffer.width / 2) - (dialogueBoxWidth / 2) + padding; // Left position inside the dialogue box
+            var x = (_buffer.width / 2) - 360; // Left position inside the dialogue box
+            // var y = _buffer.height - 130 - (dialogueBoxHeight / 2) + padding; // Vertical centering
+            var y = _buffer.height - 344; // Vertical centering
             var borderRadius = 10; // Radius for rounded corners
 
             // Save the current state of the canvas context
             buffer.save();
 
             // Draw black background with rounded corners
-            buffer.fillStyle = 'black';
-            buffer.beginPath();
-            buffer.moveTo(x + borderRadius, y);
-            buffer.arcTo(x + imageWidth, y, x + imageWidth, y + imageHeight, borderRadius);
-            buffer.arcTo(x + imageWidth, y + imageHeight, x, y + imageHeight, borderRadius);
-            buffer.arcTo(x, y + imageHeight, x, y, borderRadius);
-            buffer.arcTo(x, y, x + imageWidth, y, borderRadius);
-            buffer.closePath();
-            buffer.fill();
+            // buffer.fillStyle = 'black';
+            // buffer.beginPath();
+            // buffer.moveTo(x + borderRadius, y);
+            // buffer.arcTo(x + imageWidth, y, x + imageWidth, y + imageHeight, borderRadius);
+            // buffer.arcTo(x + imageWidth, y + imageHeight, x, y + imageHeight, borderRadius);
+            // buffer.arcTo(x, y + imageHeight, x, y, borderRadius);
+            // buffer.arcTo(x, y, x + imageWidth, y, borderRadius);
+            // buffer.closePath();
+            // buffer.fill();
 
             // Clip the image area to rounded rectangle before drawing the image
-            buffer.beginPath();
-            buffer.moveTo(x + borderRadius, y);
-            buffer.arcTo(x + imageWidth, y, x + imageWidth, y + imageHeight, borderRadius);
-            buffer.arcTo(x + imageWidth, y + imageHeight, x, y + imageHeight, borderRadius);
-            buffer.arcTo(x, y + imageHeight, x, y, borderRadius);
-            buffer.arcTo(x, y, x + imageWidth, y, borderRadius);
-            buffer.closePath();
-            buffer.clip();
+            // buffer.beginPath();
+            // buffer.moveTo(x + borderRadius, y);
+            // buffer.arcTo(x + imageWidth, y, x + imageWidth, y + imageHeight, borderRadius);
+            // buffer.arcTo(x + imageWidth, y + imageHeight, x, y + imageHeight, borderRadius);
+            // buffer.arcTo(x, y + imageHeight, x, y, borderRadius);
+            // buffer.arcTo(x, y, x + imageWidth, y, borderRadius);
+            // buffer.closePath();
+            // buffer.clip();
 
             // Draw image with shadow for emphasis
             buffer.shadowBlur = 1;
             buffer.shadowColor = 'rgb(0, 173, 239)';
+            // buffer.drawImage(portraitImages[d.lines[lineIndex].character], x, y, imageWidth, imageHeight);
             buffer.drawImage(portraitImages[d.lines[lineIndex].character], x, y, imageWidth, imageHeight);
             buffer.shadowBlur = 0;
 
@@ -966,16 +970,16 @@ function Game()
             buffer.restore();
 
             // Draw border around the image with rounded corners
-            buffer.strokeStyle = 'white';
-            buffer.lineWidth = 4;
-            buffer.beginPath();
-            buffer.moveTo(x + borderRadius, y);
-            buffer.arcTo(x + imageWidth, y, x + imageWidth, y + imageHeight, borderRadius);
-            buffer.arcTo(x + imageWidth, y + imageHeight, x, y + imageHeight, borderRadius);
-            buffer.arcTo(x, y + imageHeight, x, y, borderRadius);
-            buffer.arcTo(x, y, x + imageWidth, y, borderRadius);
-            buffer.closePath();
-            buffer.stroke();
+            // buffer.strokeStyle = 'white';
+            // buffer.lineWidth = 4;
+            // buffer.beginPath();
+            // buffer.moveTo(x + borderRadius, y);
+            // buffer.arcTo(x + imageWidth, y, x + imageWidth, y + imageHeight, borderRadius);
+            // buffer.arcTo(x + imageWidth, y + imageHeight, x, y + imageHeight, borderRadius);
+            // buffer.arcTo(x, y + imageHeight, x, y, borderRadius);
+            // buffer.arcTo(x, y, x + imageWidth, y, borderRadius);
+            // buffer.closePath();
+            // buffer.stroke();
         }
 
         const drawDialogueText = function(dialogueBoxWidth, dialogueBoxHeight) {
@@ -987,8 +991,8 @@ function Game()
             // Assuming each character in VT323 at 28px is approximately 12px wide
             const charWidth = 12; // This value should be adjusted based on visual tests or accurate measurements
             const portraitWidth = dialogueBoxHeight - (2 * padding);
-            const textAreaWidth = dialogueBoxWidth - portraitWidth - (3 * padding);
-            const textX = _buffer.width / 2 - dialogueBoxWidth / 2 + portraitWidth + (2 * padding);
+            const textAreaWidth = dialogueBoxWidth - portraitWidth - (3 * padding) - 110;
+            const textX = _buffer.width / 2 - dialogueBoxWidth / 2 + portraitWidth + (2 * padding) + 110;
             const textY = _buffer.height - (dialogueBoxHeight + 28);
         
             const maxCharsPerLine = Math.floor(textAreaWidth / charWidth);
