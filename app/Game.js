@@ -374,8 +374,11 @@ function Game()
 		player.resetShield();
 		player.recharge = true;
 		totalShots = 0;
-        player = new player(24, 40);
-        if (player.ship == 8) new player(40, 40);
+        if (player.ship == 8) {
+            new Player(40, 40);
+        } else {
+            player = new Player(24, 40);
+        }
 		gco.bgm.pause();
 		gco = new GameControlObject();
 		gco.Init();
@@ -607,6 +610,7 @@ function Game()
         
         this.TogglePauseGame = function() {
             paused = !paused;
+            sfx.play(paused ? 8 : 9);
         }
         
         this.Update = function() {
@@ -881,6 +885,7 @@ function Game()
         this.DoInput = function() {
             if(timeout > 0 || percentageDone < 99) return;
             timeout = 15;
+            sfx.play(8);
             Continue();
         }
 
@@ -1134,6 +1139,7 @@ function Game()
 
             // Escape this function if a menu option was moved within the last n milliseconds
             if(this.timeout > 0) return;
+            sfx.play(7);
 
             if(activeMenu == 0 || activeMenu == 1 || activeMenu == 3 || activeMenu == 5 || activeMenu == 7) { // Linear Navigation Support
                 var currentIndex = this.states[activeMenu].findIndex(value => value === true);
@@ -1240,8 +1246,8 @@ function Game()
 
         this.back = function()
         {
-            if(currentGui == 6){ currentGui = lastGui; lastGui = 6; }
-            if(currentGui == 1 && !gco.win){ gco.TogglePauseGame(); currentGui = NULL_GUI_STATE; }
+            if(currentGui == 6){ currentGui = lastGui; lastGui = 6; sfx.play(9); }
+            if(currentGui == 1 && !gco.win){ gco.TogglePauseGame(); currentGui = NULL_GUI_STATE; sfx.play(9); }
         }
 
         this.select = function()
@@ -1252,73 +1258,73 @@ function Game()
                 case 0:
                 { // Main Menu
                     if(!gco.playStory) {
-                        if(this.states[0][0]) currentGui = 2; this.delayNextInput();
-                        if(this.states[0][1]) currentGui = 6; lastGui = 0;
-                        if(this.states[0][2]) gco.playStory = true;
-                        if(this.states[0][3]) ipcRenderer.send('quit-app');
+                        this.delayNextInput();
+                        if(this.states[0][0]){ currentGui = 2; sfx.play(8); }
+                        if(this.states[0][1]){ currentGui = 6; lastGui = 0; sfx.play(8); }
+                        if(this.states[0][2]){ gco.playStory = true; sfx.play(8); }
+                        if(this.states[0][3]){ ipcRenderer.send('quit-app'); }
                     }
                     break;
                 }
                 case 1: { // Pause Menu
-                    if(this.states[1][0]){ currentGui = 6; lastGui = 1; }
-                    if(this.states[1][1]){ self.hardReset(); this.delayNextInput(); }
+                    if(this.states[1][0]){ currentGui = 6; lastGui = 1; sfx.play(8); }
+                    if(this.states[1][1]){ self.hardReset(); this.delayNextInput(); sfx.play(8); }
                     if(this.states[1][2]){ ipcRenderer.send('quit-app'); }
                     break;
                 }
                 case 2: { // Upgrade Menu
-                    
                     // Options
-                    if(this.states[2][0][0]){ currentGui = 6; lastGui = 2; this.delayNextInput(); }
+                    if(this.states[2][0][0]){ currentGui = 6; lastGui = 2; this.delayNextInput(); sfx.play(8); }
                     // Quit
-                    if(this.states[2][0][1]){ self.hardReset(); }
+                    if(this.states[2][0][1]){ self.hardReset(); sfx.play(9); }
 
                     // Primary Assult
-                    if(this.states[2][1][0]){ if(gco.weaponsOwned[0]){ gco.EquipWeapon(0); } else { if(player.money >= gco.weaponPrice[0]){ gco.PurchaseWeapon(0); } else {gco.notEnoughCores = 1000;}} }
+                    if(this.states[2][1][0]){ if(gco.weaponsOwned[0]){ gco.EquipWeapon(0); sfx.play(8); } else { if(player.money >= gco.weaponPrice[0]){ gco.PurchaseWeapon(0); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); }} }
                     // Rapid Fire Assult
-                    if(this.states[2][1][1]){ if(gco.weaponsOwned[1]){ gco.EquipWeapon(1); } else { if(player.money >= gco.weaponPrice[1]){ gco.PurchaseWeapon(1); } else {gco.notEnoughCores = 1000;}} }
+                    if(this.states[2][1][1]){ if(gco.weaponsOwned[1]){ gco.EquipWeapon(1); sfx.play(8); } else { if(player.money >= gco.weaponPrice[1]){ gco.PurchaseWeapon(1); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); }} }
                     // Rapid Fire Cyclone
-                    if(this.states[2][1][2]){ if(gco.weaponsOwned[2]){ gco.EquipWeapon(2); } else { if(player.money >= gco.weaponPrice[2]){ gco.PurchaseWeapon(2); } else {gco.notEnoughCores = 1000;}} }
+                    if(this.states[2][1][2]){ if(gco.weaponsOwned[2]){ gco.EquipWeapon(2); sfx.play(8); } else { if(player.money >= gco.weaponPrice[2]){ gco.PurchaseWeapon(2); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); }} }
                     // Start Level
-                    if(this.states[2][1][3]){ if(player.weapon != 49){ gco.StartLevel(); }}
+                    if(this.states[2][1][3]){ if(player.weapon != 49){ gco.StartLevel(); sfx.play(8); }}
 
                     // Missile
-                    if(this.states[2][2][0]){ if(gco.weaponsOwned[50]){ gco.EquipWeapon(50); } else { if(player.money >= gco.weaponPrice[50]){ gco.PurchaseWeapon(50); } else {gco.notEnoughCores = 1000;}} }
+                    if(this.states[2][2][0]){ if(gco.weaponsOwned[50]){ gco.EquipWeapon(50); sfx.play(8); } else { if(player.money >= gco.weaponPrice[50]){ gco.PurchaseWeapon(50); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); }} }
                     // DM-21 Auto Strike
-                    if(this.states[2][2][1]){ if(gco.weaponsOwned[51]){ gco.EquipWeapon(51); } else { if(player.money >= gco.weaponPrice[51]){ gco.PurchaseWeapon(51); } else {gco.notEnoughCores = 1000;}} }
+                    if(this.states[2][2][1]){ if(gco.weaponsOwned[51]){ gco.EquipWeapon(51); sfx.play(8); } else { if(player.money >= gco.weaponPrice[51]){ gco.PurchaseWeapon(51); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); }} }
                     // Impact Burst Mine
-                    if(this.states[2][2][2]){ if(gco.weaponsOwned[52]){ gco.EquipWeapon(52); } else { if(player.money >= gco.weaponPrice[52]){ gco.PurchaseWeapon(52); } else {gco.notEnoughCores = 1000;}} }
+                    if(this.states[2][2][2]){ if(gco.weaponsOwned[52]){ gco.EquipWeapon(52); sfx.play(8); } else { if(player.money >= gco.weaponPrice[52]){ gco.PurchaseWeapon(52); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); }} }
                     // Laser
-                    if(this.states[2][2][3]){ if(gco.ownLaser){ gco.EquipWeapon(9000); } else { if(player.money >= gco.laserPrice){ gco.PurchaseWeapon(9000); } else {gco.notEnoughCores = 1000;}} }
+                    if(this.states[2][2][3]){ if(gco.ownLaser){ gco.EquipWeapon(9000); sfx.play(8); } else { if(player.money >= gco.laserPrice){ gco.PurchaseWeapon(9000); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); }} }
                     // Shield
-                    if(this.states[2][2][4]){ if(player.money >= (player.shieldLevel + 1) * 250){gco.PurchaseExtras(0);} else {gco.notEnoughCores = 1000;} }
+                    if(this.states[2][2][4]){ if(player.money >= (player.shieldLevel + 1) * 250){gco.PurchaseExtras(0); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); } }
                     // Ammo Capacity
-                    if(this.states[2][2][5]){ if(player.money >= (player.secondaryAmmoLevel + 1) * 50){gco.PurchaseExtras(2);} else {gco.notEnoughCores = 1000;} }
+                    if(this.states[2][2][5]){ if(player.money >= (player.secondaryAmmoLevel + 1) * 50){gco.PurchaseExtras(2); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); } }
                     // Purchase Ammo
-                    if(this.states[2][2][6]){ if(player.money >= gco.secondaryAmmoPrice && player.secondaryAmmo < player.maxSecondaryAmmo){gco.PurchaseExtras(3);} else {gco.notEnoughCores = 1000;} }
+                    if(this.states[2][2][6]){ if(player.money >= gco.secondaryAmmoPrice && player.secondaryAmmo < player.maxSecondaryAmmo){gco.PurchaseExtras(3); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); } }
 
                     break;
                 }
                 case 3: { // Continue Menu
-                    if(this.states[3][0]){ currentGui = NULL_GUI_STATE; self.softReset(); this.delayNextInput();}
-                    if(this.states[3][1]){ self.hardReset(); this.delayNextInput(); }
+                    if(this.states[3][0]){ currentGui = NULL_GUI_STATE; self.softReset(); this.delayNextInput(); sfx.play(8);}
+                    if(this.states[3][1]){ self.hardReset(); this.delayNextInput(); sfx.play(9); }
                     if(this.states[3][2]){ ipcRenderer.send('quit-app'); }
                     break;
                 }
                 case 4: { // Level Up Menu
-                    if(this.states[4][0]) { self.softReset(); gco.GoToUpgradeMenu(); this.delayNextInput(); }
+                    if(this.states[4][0]) { self.softReset(); gco.GoToUpgradeMenu(); this.delayNextInput(); sfx.play(8); }
                     break;
                 }
                 case 5: { // Game Over Menu
-                    if(this.states[5][0]){ self.hardReset(); this.delayNextInput(); }
+                    if(this.states[5][0]){ self.hardReset(); this.delayNextInput(); sfx.play(8); }
                     if(this.states[5][1]) ipcRenderer.send('quit-app');
                     break;
                 }
                 case 6: { // Options Menu
-                    if(this.states[6][3]) { currentGui = lastGui; lastGui = 6; this.delayNextInput(); }
+                    if(this.states[6][3]) { currentGui = lastGui; lastGui = 6; this.delayNextInput(); sfx.play(9); }
                     break;
                 }
                 case 7: { // Score Menu
-                    if(this.states[7][0]) { self.hardReset(); }
+                    if(this.states[7][0]) { self.hardReset(); sfx.play(8); }
                     if(this.states[7][1]) { ipcRenderer.send('quit-app'); }
                     break;
                 }
@@ -1429,6 +1435,10 @@ function Game()
         this.dialogueLow = {index: 0, channel: [], channels: 10} // Low Dialogue Channels
         this.dialogueMid = {index: 0, channel: [], channels: 10} // Mid Dialogue Channels
         this.dialogueHigh = {index: 0, channel: [], channels: 10} // High Dialogue Channels
+        this.menuBlip = {index: 0, channel: [], channels: 5} // Menu Blip Channels
+        this.menuSelect = {index: 0, channel: [], channels: 5}; // Menu Select Channels
+        this.menuBack = {index: 0, channel: [], channels: 5}; // Menu Back Channels
+        this.menuFail = {index: 0, channel: [], channels: 5}; // Menu Fail Channels
 
         // Other Variables
         this.masterVolume = 0.2;
@@ -1482,6 +1492,38 @@ function Game()
                 a.preload = 'auto';
                 this.dialogueHigh.channel.push(a);
             }
+
+            // Menu Blips
+            for(var i = 0; i < this.menuBlip.channels; i++) {
+                var a = new Audio('Audio/sfx/menu-blip-2.mp3');
+                a.volume = this.masterVolume;
+                a.preload = 'auto';
+                this.menuBlip.channel.push(a);
+            }
+
+            // Menu Select
+            for(var i = 0; i < this.menuSelect.channels; i++) {
+                var a = new Audio('Audio/sfx/menu-select.mp3');
+                a.volume = this.masterVolume;
+                a.preload = 'auto';
+                this.menuSelect.channel.push(a);
+            }
+
+            // Menu Back
+            for(var i = 0; i < this.menuBack.channels; i++) {
+                var a = new Audio('Audio/sfx/menu-back.mp3');
+                a.volume = this.masterVolume;
+                a.preload = 'auto';
+                this.menuBack.channel.push(a);
+            }
+
+            // Menu Fail
+            for(var i = 0; i < this.menuFail.channels; i++) {
+                var a = new Audio('Audio/sfx/menu-fail.mp3');
+                a.volume = this.masterVolume;
+                a.preload = 'auto';
+                this.menuFail.channel.push(a);
+            }
         }
 		
         this.play = function(playfx) {
@@ -1528,6 +1570,34 @@ function Game()
                     }
                     break;
                 }
+                case 7: { // Menu Blip
+                    if(this.menuBlip.channel[this.menuBlip.index]) {
+                        this.menuBlip.channel[this.menuBlip.index].play();
+                        this.menuBlip.index += 1; if(this.menuBlip.index > (this.menuBlip.channels - 1)){this.menuBlip.index = 0;}
+                    }
+                    break;
+                }
+                case 8: { // Menu Select
+                    if(this.menuSelect.channel[this.menuSelect.index]) {
+                        this.menuSelect.channel[this.menuSelect.index].play();
+                        this.menuSelect.index += 1; if(this.menuSelect.index > (this.menuSelect.channels - 1)){this.menuSelect.index = 0;}
+                    }
+                    break;
+                }
+                case 9: { // Menu Back
+                    if(this.menuBack.channel[this.menuBack.index]) {
+                        this.menuBack.channel[this.menuBack.index].play();
+                        this.menuBack.index += 1; if(this.menuBack.index > (this.menuBack.channels - 1)){this.menuBack.index = 0;}
+                    }
+                    break;
+                }
+                case 10: { // Menu Fail
+                    if(this.menuFail.channel[this.menuFail.index]) {
+                        this.menuFail.channel[this.menuFail.index].play();
+                        this.menuFail.index += 1; if(this.menuFail.index > (this.menuFail.channels - 1)){this.menuFail.index = 0;}
+                    }
+                    break;
+                }
             }
         }
 		
@@ -1553,7 +1623,6 @@ function Game()
             this.laser.volume = value;
             this.bossLaser.volume = value;
             this.whooshOne.volume = value;
-            this.masterVolume = value;
             for(var i = 0; i < this.dialogueLow.channel.length; i++) {
                 this.dialogueLow.channel[i].volume = value;
             }
@@ -1563,6 +1632,19 @@ function Game()
             for(var i = 0; i < this.dialogueHigh.channel.length; i++) {
                 this.dialogueHigh.channel[i].volume = value;
             }
+            for(var i = 0; i < this.menuBlip.channel.length; i++) {
+                this.menuBlip.channel[i].volume = value;
+            }
+            for(var i = 0; i < this.menuSelect.channel.length; i++) {
+                this.menuSelect.channel[i].volume = value;
+            }
+            for(var i = 0; i < this.menuBack.channel.length; i++) {
+                this.menuBack.channel[i].volume = value;
+            }
+            for(var i = 0; i < this.menuFail.channel.length; i++) {
+                this.menuFail.channel[i].volume = value;
+            }
+            this.masterVolume = value;
         }
     }
 	
@@ -4076,20 +4158,19 @@ function Game()
 			{//Main Menu
                 if(!gco.playStory)
                 {
-                    if(mouseX > (_canvas.width / 2 + 10) - 115 && mouseX < (_canvas.width / 2 + 10) + 100 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)
-                    {
+                    if(mouseX > (_canvas.width / 2 + 10) - 115 && mouseX < (_canvas.width / 2 + 10) + 100 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10) {
                         currentGui = 2;//default case will Trigger
+                        sfx.play(8);
                     }
-                    if(mouseX > (_canvas.width / 2 + 10) - 65 && mouseX < (_canvas.width / 2 + 10) + 40 && mouseY < (_canvas.height / 2 + 60) + 20 && mouseY > (_canvas.height / 2 + 60) - 10)
-                    {
-                        currentGui = 6; lastGui = 0;	
+                    if(mouseX > (_canvas.width / 2 + 10) - 65 && mouseX < (_canvas.width / 2 + 10) + 40 && mouseY < (_canvas.height / 2 + 60) + 20 && mouseY > (_canvas.height / 2 + 60) - 10) {
+                        currentGui = 6; lastGui = 0;
+                        sfx.play(8);
                     }
-                    if(mouseX > (_canvas.width / 2 + 10) - 65 && mouseX < (_canvas.width / 2 + 10) + 40 && mouseY < (_canvas.height / 2 + 110) + 20 && mouseY > (_canvas.height / 2 + 110) - 10)
-                    {
+                    if(mouseX > (_canvas.width / 2 + 10) - 65 && mouseX < (_canvas.width / 2 + 10) + 40 && mouseY < (_canvas.height / 2 + 110) + 20 && mouseY > (_canvas.height / 2 + 110) - 10) {
                         gco.playStory = true;
+                        sfx.play(8);
                     }
-                    if(mouseX > (_canvas.width / 2 + 10) - 80 && mouseX < (_canvas.width / 2 + 10) + 55 && mouseY < (_canvas.height / 2 + 150) + 20 && mouseY > (_canvas.height / 2 + 150) - 10)
-                    {
+                    if(mouseX > (_canvas.width / 2 + 10) - 80 && mouseX < (_canvas.width / 2 + 10) + 55 && mouseY < (_canvas.height / 2 + 150) + 20 && mouseY > (_canvas.height / 2 + 150) - 10) {
                         ipcRenderer.send('quit-app');
                     }
                 }
@@ -4099,9 +4180,11 @@ function Game()
             {//Pause Menu
                 if(mouseX > (_canvas.width / 2) - 50 && mouseX < (_canvas.width / 2) + 50 && mouseY < (_canvas.height / 2) + 30 && mouseY > (_canvas.height / 2)) {
                     currentGui = 6; lastGui = 1;
+                    sfx.play(8);
                 }
                 if(mouseX > (_canvas.width / 2) - 54 && mouseX < (_canvas.width / 2) + 54 && mouseY < (_canvas.height / 2) + 70 && mouseY > (_canvas.height / 2) + 45) {
                     self.hardReset();
+                    sfx.play(9);
                 }
                 if(mouseX > (_canvas.width / 2 ) - 52 && mouseX < (_canvas.width / 2 + 20) + 35 && mouseY < (_canvas.height / 2 + 110) - 3 && mouseY > (_canvas.height / 2 + 80) ) {
                     ipcRenderer.send('quit-app');
@@ -4115,55 +4198,56 @@ function Game()
                 //**********************************************************************//
                 if(mouseX > (_canvas.width - 210) && mouseX < (_canvas.width - 10) && mouseY < (278) && mouseY > (250))
                 {//Start Level
-                    if(player.weapon != 49){ gco.StartLevel(); }
+                    if(player.weapon != 49){ gco.StartLevel(); sfx.play(8);}
                 }
                 if(mouseX > (_canvas.width - 235) && mouseX < (_canvas.width - 125) && mouseY < (55) && mouseY > (15))
                 {//Options Menu
-                    currentGui = 6; lastGui = 2;
+                    currentGui = 6; lastGui = 2; sfx.play(8);
                 }
                 if(mouseX > (_canvas.width - 90) && mouseX < (_canvas.width - 25) && mouseY < (55) && mouseY > (15))
                 {//Quit
                     self.hardReset();
+                    sfx.play(9);
                 }
                 if(mouseX > 10 && mouseX < 58 && mouseY > 280 && mouseY < 328)
                 {//Primary Assult, Weapon ID: 0
-                    if(gco.weaponsOwned[0]){ gco.EquipWeapon(0); } else { if(player.money >= gco.weaponPrice[0]){ gco.PurchaseWeapon(0); } else {gco.notEnoughCores = 1000;}}
+                    if(gco.weaponsOwned[0]){ gco.EquipWeapon(0); sfx.play(8); } else { if(player.money >= gco.weaponPrice[0]){ gco.PurchaseWeapon(0); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}}
                 }
                 if(mouseX > 60 && mouseX < 108 && mouseY > 280 && mouseY < 328)
                 {//Rapid Fire Assult, Weapon ID: 1
-                    if(gco.weaponsOwned[1]){ gco.EquipWeapon(1); } else { if(player.money >= gco.weaponPrice[1]){ gco.PurchaseWeapon(1); } else {gco.notEnoughCores = 1000;}}
+                    if(gco.weaponsOwned[1]){ gco.EquipWeapon(1); sfx.play(8); } else { if(player.money >= gco.weaponPrice[1]){ gco.PurchaseWeapon(1); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}}
                 }
                 if(mouseX > 110 && mouseX < 158 && mouseY > 280 && mouseY < 328)
                 {//Rapid Fire Cyclone, Weapon ID: 2
-                    if(gco.weaponsOwned[2]){ gco.EquipWeapon(2); } else { if(player.money >= gco.weaponPrice[2]){ gco.PurchaseWeapon(2); } else {gco.notEnoughCores = 1000;}}
+                    if(gco.weaponsOwned[2]){ gco.EquipWeapon(2); sfx.play(8); } else { if(player.money >= gco.weaponPrice[2]){ gco.PurchaseWeapon(2); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}}
                 }
                 if(mouseX > 10 && mouseX < 58 && mouseY > 448 && mouseY < 496)
                 {//SD-15 Sidewinder, Weapon ID: 50
-                    if(gco.weaponsOwned[50]){ gco.EquipWeapon(50); } else { if(player.money >= gco.weaponPrice[50]){ gco.PurchaseWeapon(50); } else {gco.notEnoughCores = 1000;}}
+                    if(gco.weaponsOwned[50]){ gco.EquipWeapon(50); sfx.play(8); } else { if(player.money >= gco.weaponPrice[50]){ gco.PurchaseWeapon(50); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}}
                 }
                 if(mouseX > 60 && mouseX < 108 && mouseY > 448 && mouseY < 496)
                 {//DM-21 Auto Strike, Weapon ID: 51
-                    if(gco.weaponsOwned[51]){ gco.EquipWeapon(51); } else { if(player.money >= gco.weaponPrice[51]){ gco.PurchaseWeapon(51); } else {gco.notEnoughCores = 1000;}}
+                    if(gco.weaponsOwned[51]){ gco.EquipWeapon(51); sfx.play(8); } else { if(player.money >= gco.weaponPrice[51]){ gco.PurchaseWeapon(51); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}}
                 }
                 if(mouseX > 110 && mouseX < 158 && mouseY > 448 && mouseY < 496)
                 {//Impact Burst Mine, Weapon ID: 52
-                    if(gco.weaponsOwned[52]){ gco.EquipWeapon(52); } else { if(player.money >= gco.weaponPrice[52]){ gco.PurchaseWeapon(52); } else {gco.notEnoughCores = 1000;}}
+                    if(gco.weaponsOwned[52]){ gco.EquipWeapon(52); sfx.play(8); } else { if(player.money >= gco.weaponPrice[52]){ gco.PurchaseWeapon(52); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}}
                 }
                 if(mouseX > 160 && mouseX < 208 && mouseY > 448 && mouseY < 496)
                 {//Laser: Weapon ID: 9000
-                    if(gco.ownLaser){ gco.EquipWeapon(9000); } else { if(player.money >= gco.laserPrice){ gco.PurchaseWeapon(9000); } else {gco.notEnoughCores = 1000;}}
+                    if(gco.ownLaser){ gco.EquipWeapon(9000); sfx.play(8); } else { if(player.money >= gco.laserPrice){ gco.PurchaseWeapon(9000); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}}
                 }
                 if(mouseX > _canvas.width - 300 && mouseX < _canvas.width - 252 && mouseY > 448 && mouseY < 496)
                 {//Shield
-                    if(player.money >= (player.shieldLevel + 1) * 250){gco.PurchaseExtras(0);} else {gco.notEnoughCores = 1000;}
+                    if(player.money >= (player.shieldLevel + 1) * 250){gco.PurchaseExtras(0); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}
                 }
                 if(mouseX > _canvas.width - 250 && mouseX < _canvas.width - 202 && mouseY > 448 && mouseY < 496)
                 {//Max Ammo
-                    if(player.money >= (player.secondaryAmmoLevel + 1) * 50){gco.PurchaseExtras(2);} else {gco.notEnoughCores = 1000;}
+                    if(player.money >= (player.secondaryAmmoLevel + 1) * 50){gco.PurchaseExtras(2); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}
                 }
                 if(mouseX > _canvas.width - 200 && mouseX < _canvas.width - 152 && mouseY > 448 && mouseY < 496)
                 {//Buy Secondary Ammo
-                    if(player.money >= gco.secondaryAmmoPrice && player.secondaryAmmo < player.maxSecondaryAmmo){gco.PurchaseExtras(3);} else {gco.notEnoughCores = 1000;}
+                    if(player.money >= gco.secondaryAmmoPrice && player.secondaryAmmo < player.maxSecondaryAmmo){gco.PurchaseExtras(3); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}
                 }
                 //**********************************************************************//
                 //					  END UPGRADE MENU SECTION							//
@@ -4177,10 +4261,12 @@ function Game()
 				{
 					currentGui = NULL_GUI_STATE;
 					self.softReset();
+                    sfx.play(8);
 				}
 				if(mouseX > (_canvas.width / 2 + 10) - 61 && mouseX < (_canvas.width / 2 + 10) + 43 && mouseY < (_canvas.height / 2 + 53) + 20 && mouseY > (_canvas.height / 2 + 50) )
                 {
 					self.hardReset();
+                    sfx.play(9);
                 }
 				if(mouseX > (_canvas.width / 2 + 10) - 61 && mouseX < (_canvas.width / 2 + 10) + 43 && mouseY < (_canvas.height / 2 + 106) + 20 && mouseY > (_canvas.height / 2 + 100) )
 				{
@@ -4192,7 +4278,8 @@ function Game()
 			{// Level Up Menu
 				if(mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10) {
                     self.softReset();
-                    gco.GoToUpgradeMenu();	
+                    sfx.play(8);
+                    gco.GoToUpgradeMenu();
                 }
                 break;
 			}
@@ -4200,6 +4287,7 @@ function Game()
 			{// Game Over Menu
                 if(mouseX > (_canvas.width / 2 - 65) && mouseX < (_canvas.width / 2 + 70) && mouseY < (_canvas.height / 2 + 30) && mouseY > (_canvas.height / 2)) {
                     self.hardReset();
+                    sfx.play(8);
                 }
                 if(mouseX > (_canvas.width / 2 - 65) && mouseX < (_canvas.width / 2 + 70) && mouseY < (_canvas.height / 2 + 80) && mouseY > (_canvas.height / 2 + 48)) {
                     ipcRenderer.send('quit-app');
@@ -4209,18 +4297,20 @@ function Game()
 			case 6:
 			{//Options Menu
                 // Back button
-				if(mouseX > 0 && mouseX < 90 && mouseY < _canvas.height && mouseY > _canvas.height - 45){currentGui = lastGui; lastGui = 6;}
+				if(mouseX > 0 && mouseX < 90 && mouseY < _canvas.height && mouseY > _canvas.height - 45){currentGui = lastGui; lastGui = 6; sfx.play(9);}
                 
                 // Graphics
 				if(mouseX > 200 && mouseX < 225 && mouseY > 150 && mouseY < 200)
                 {
 					particleOffset -= 1;
 					if(particleOffset < 1){particleOffset = 1;}
+                    sfx.play(8);
 				}
 				if(mouseX >= 575 && mouseX < 600 && mouseY > 150 && mouseY < 200)
                 {
 					particleOffset += 1;
                     if(particleOffset > 5){particleOffset = 5;}
+                    sfx.play(8);
 				}
                 
                 // BGM Volume
@@ -4228,11 +4318,13 @@ function Game()
                 {
                     if(gco.bgm.volume < 0.1){break;}
                     else{gco.bgm.volume = Math.round(gco.bgm.volume * 100) / 100 - 0.1;}
+                    sfx.play(8);
 				}
 				if(mouseX >= 575 && mouseX < 600 && mouseY > 290 && mouseY < 340)
                 {
                     if(gco.bgm.volume > 0.91){break;}
                     else{gco.bgm.volume = Math.round(gco.bgm.volume * 100) / 100 + 0.1;}
+                    sfx.play(8);
 				}
 				masterBGMVolume = gco.bgm.volume;
                 
@@ -4240,12 +4332,14 @@ function Game()
                 if(mouseX > 200 && mouseX < 225 && mouseY > 430 && mouseY < 480)
                 {
                     if(sfx.masterVolume < 0.1){break;}
-                    else{sfx.volume(Math.round(sfx.masterVolume * 100) / 100 - 0.1);sfx.play(0);}
+                    else{sfx.volume(Math.round(sfx.masterVolume * 100) / 100 - 0.1);}
+                    sfx.play(8);
 				}
 				if(mouseX >= 575 && mouseX < 600 && mouseY > 430 && mouseY < 480)
                 {
                     if(sfx.masterVolume > 0.91){break;}
-                    else{sfx.volume(Math.round(sfx.masterVolume * 100) / 100 + 0.1);sfx.play(0);}
+                    else{sfx.volume(Math.round(sfx.masterVolume * 100) / 100 + 0.1);}
+                    sfx.play(8);
 				}
                 
 				break;
@@ -4256,6 +4350,7 @@ function Game()
                     // Need to figure out what to do on the submit score screen
                     // self.submitScore("http://www.blackmodulestudio.com/games/katt/update_database.php", self.buildScoresHash(), "POST");
                     self.hardReset();
+                    sfx.play(8);
                 }
                 if(mouseX > (_canvas.width / 2 + 10) - 100 && mouseX < (_canvas.width / 2 + 10) + 80 && mouseY < (_canvas.height / 2 + 58) + 20 && mouseY > (_canvas.height / 2 + 58) - 10) {
                     ipcRenderer.send('quit-app');
