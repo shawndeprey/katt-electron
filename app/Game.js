@@ -778,6 +778,7 @@ function Game()
 
         // Event 3
         this.levelDialogue = function() {
+            return this.endEvent();
             if(this.dialogue.isFinished()) {
                 this.endEvent();
             } else {
@@ -1439,6 +1440,7 @@ function Game()
         this.menuSelect = {index: 0, channel: [], channels: 5}; // Menu Select Channels
         this.menuBack = {index: 0, channel: [], channels: 5}; // Menu Back Channels
         this.menuFail = {index: 0, channel: [], channels: 5}; // Menu Fail Channels
+        this.pew = {index: 0, channel: [], channels: 40} // Explosion Channels
 
         // Other Variables
         this.masterVolume = 0.2;
@@ -1524,6 +1526,14 @@ function Game()
                 a.preload = 'auto';
                 this.menuFail.channel.push(a);
             }
+
+            // Pew
+            for(var i = 0; i < this.pew.channels; i++) {
+                var a = new Audio('Audio/sfx/laser-shot.mp3');
+                a.volume = this.masterVolume;
+                a.preload = 'auto';
+                this.pew.channel.push(a);
+            }
         }
 		
         this.play = function(playfx) {
@@ -1598,6 +1608,13 @@ function Game()
                     }
                     break;
                 }
+                case 11: { // Pew
+                    if(this.pew.channel[this.pew.index]) {
+                        this.pew.channel[this.pew.index].play();
+                        this.pew.index += 1; if(this.pew.index > (this.pew.channels - 1)){this.pew.index = 0;}
+                    }
+                    break;
+                }
             }
         }
 		
@@ -1643,6 +1660,9 @@ function Game()
             }
             for(var i = 0; i < this.menuFail.channel.length; i++) {
                 this.menuFail.channel[i].volume = value;
+            }
+            for(var i = 0; i < this.pew.channel.length; i++) {
+                this.pew.channel[i].volume = value;
             }
             this.masterVolume = value;
         }
@@ -3310,6 +3330,8 @@ function Game()
 		this.currentFuel = 60; // Base 60
 		this.MAX_FUEL = 60;
 	
+        this.isPewing = false;
+        this.pewTick = 0;
 		this.laser = false;//true if laser is on
 		this.laserX = this.x;
 		this.laserY = this.y - 25;
@@ -3503,6 +3525,13 @@ function Game()
                 this.idleAnim++;
                 if(this.idleAnim > 3) this.idleAnim = 0;
             }
+            
+            if(this.isPewing && this.pewTick >= 1) {
+                this.pewTick = 0;
+                sfx.play(11);
+            } else {
+                this.pewTick++;
+            }
             if(Keys[1] >= 1){
                 if(this.onTick % 2 == 0) {
                     this.turnAnimL++;
@@ -3549,55 +3578,47 @@ function Game()
 
         this.shoot = function()
         {
-                switch(this.weapon)
-                {
-                    case 0:
-                    {
-                        this.totalMissiles += 1;
-                        if(this.weaponFunc)
-                        {
-                            missile = new Missile(missiles.length, 300, this.weapon, this.x, this.y - 25, 1);
-                            missiles.push(missile);
-                        }
-                        this.weaponFunc = !this.weaponFunc;
-                        break;
+            this.isPewing = true;
+            switch(this.weapon) {
+                case 0: {
+                    this.totalMissiles += 1;
+                    if(this.weaponFunc) {
+                        missile = new Missile(missiles.length, 300, this.weapon, this.x, this.y - 25, 1);
+                        missiles.push(missile);
                     }
-                    case 1:
-                    {
-                        this.totalMissiles += 1;
-                        if(this.weaponFunc)
-                        {
-                            missile = new Missile(missiles.length, 300, this.weapon, this.x - 5, this.y - 25, 2);
-                            missiles.push(missile);
-                        } else
-                        {
-                            missile = new Missile(missiles.length, 300, this.weapon, this.x + 5, this.y - 25, 2);
-                            missiles.push(missile);
-                        }
-                        this.weaponFunc = !this.weaponFunc;
-                        break;
-                    }
-                    case 2:
-                    {
-                        this.totalMissiles += 1;
-                        if(this.weaponFunc)
-                        {
-                            missile = new Missile(missiles.length, 300, 1, this.x - 5, this.y - 25, 2);
-                            missiles.push(missile);
-                            missile = new Missile(missiles.length, 300, this.weapon, this.x + 5, this.y - 25, 2);
-                            missiles.push(missile);
-                        } else
-                        {
-                            missile = new Missile(missiles.length, 300, 1, this.x + 5, this.y - 25, 2);
-                            missiles.push(missile);
-                            missile = new Missile(missiles.length, 300, this.weapon, this.x - 5, this.y - 25, 3);
-                            missiles.push(missile);
-                        }
-                        this.weaponFunc = !this.weaponFunc;
-                        break;
-                    }
-                    default:{break;}
+                    this.weaponFunc = !this.weaponFunc;
+                    break;
                 }
+                case 1: {
+                    this.totalMissiles += 1;
+                    if(this.weaponFunc) {
+                        missile = new Missile(missiles.length, 300, this.weapon, this.x - 5, this.y - 25, 2);
+                        missiles.push(missile);
+                    } else {
+                        missile = new Missile(missiles.length, 300, this.weapon, this.x + 5, this.y - 25, 2);
+                        missiles.push(missile);
+                    }
+                    this.weaponFunc = !this.weaponFunc;
+                    break;
+                }
+                case 2: {
+                    this.totalMissiles += 1;
+                    if(this.weaponFunc) {
+                        missile = new Missile(missiles.length, 300, 1, this.x - 5, this.y - 25, 2);
+                        missiles.push(missile);
+                        missile = new Missile(missiles.length, 300, this.weapon, this.x + 5, this.y - 25, 2);
+                        missiles.push(missile);
+                    } else {
+                        missile = new Missile(missiles.length, 300, 1, this.x + 5, this.y - 25, 2);
+                        missiles.push(missile);
+                        missile = new Missile(missiles.length, 300, this.weapon, this.x - 5, this.y - 25, 3);
+                        missiles.push(missile);
+                    }
+                    this.weaponFunc = !this.weaponFunc;
+                    break;
+                }
+                default:{break;}
+            }
         }
 
 		this.shootSecondary = function()
@@ -4604,6 +4625,8 @@ function Game()
                     player.runOnTick();
                     if(Keys[16] >= 1) { // Space
                         player.shoot();
+                    } else {
+                        player.isPewing = false;
                     }
                 }
 				
