@@ -27,7 +27,6 @@ function Game()
     this.gameLoop = null;
     var self = this;
     var gameState = 0;
-    var levelStart = false;
     var debug = false;
 	var playerInfo = false;
 	var masterBGMVolume = 0.2;
@@ -326,9 +325,8 @@ function Game()
     {
         gco.bgm = document.getElementById('bgm_square');
         gco.init_audio();
-        sfx.Init();
     }
-	
+
 	this.RefreshSoundsOnGameLoss = function()
 	{
 		gco.bgm = document.getElementById('bgm_square');
@@ -3918,6 +3916,7 @@ function Game()
         ed = new EventDirector();
 		
 		sfx = new SFXObject();
+        sfx.Init();
     }
 
     /******************************************************/
@@ -3943,14 +3942,12 @@ function Game()
     
     this.Update = function()
     {
-		if(ticks == 0){if(self.checkAllSoundsPaused()){ swapBGM(); }}
 		if(gco.mustPurchasePrevious > 0){ gco.mustPurchasePrevious -= (delta * 1000); }
 		if(gco.notEnoughCores > 0){ gco.notEnoughCores -= (delta * 1000); }
 		if(gco.playStory){ gco.story.Update(); }
 		// Stop Sound Check
 		if((currentGui != NULL_GUI_STATE) && sfx.laserPlaying){sfx.pause(1);}
 		if((gameState != 1) && sfx.bossLaserPlaying){sfx.pause(2);}
-        if(levelStart){ bgm.play(); }
 
         // Menus
         menu.Update();
