@@ -1259,7 +1259,7 @@ function Game()
                 { // Main Menu
                     if(!gco.playStory) {
                         this.delayNextInput();
-                        if(this.states[0][0]){ currentGui = 2; sfx.play(8); }
+                        if(this.states[0][0]){ currentGui = 2; sfx.play(11); }
                         if(this.states[0][1]){ currentGui = 6; lastGui = 0; sfx.play(8); }
                         if(this.states[0][2]){ gco.playStory = true; sfx.play(8); }
                         if(this.states[0][3]){ ipcRenderer.send('quit-app'); }
@@ -1268,7 +1268,7 @@ function Game()
                 }
                 case 1: { // Pause Menu
                     if(this.states[1][0]){ currentGui = 6; lastGui = 1; sfx.play(8); }
-                    if(this.states[1][1]){ self.hardReset(); this.delayNextInput(); sfx.play(8); }
+                    if(this.states[1][1]){ self.hardReset(); this.delayNextInput(); sfx.play(8); } 
                     if(this.states[1][2]){ ipcRenderer.send('quit-app'); }
                     break;
                 }
@@ -1436,6 +1436,7 @@ function Game()
         this.dialogueMid = {index: 0, channel: [], channels: 10} // Mid Dialogue Channels
         this.dialogueHigh = {index: 0, channel: [], channels: 10} // High Dialogue Channels
         this.menuBlip = {index: 0, channel: [], channels: 5} // Menu Blip Channels
+        this.insertCoin = {index: 0, channel: [], channels: 5} // Insert Coin Channels
         this.menuSelect = {index: 0, channel: [], channels: 5}; // Menu Select Channels
         this.menuBack = {index: 0, channel: [], channels: 5}; // Menu Back Channels
         this.menuFail = {index: 0, channel: [], channels: 5}; // Menu Fail Channels
@@ -1500,6 +1501,14 @@ function Game()
                 a.volume = this.masterVolume;
                 a.preload = 'auto';
                 this.menuBlip.channel.push(a);
+            }
+
+            //Insert Coin
+            for(var i = 0; i < this.insertCoin.channels; i++) {
+                var a = new Audio('Audio/sfx/insert-coin.mp3');
+                a.volume = this.masterVolume;
+                a.preload = 'auto';
+                this.insertCoin.channel.push(a);
             }
 
             // Menu Select
@@ -1607,7 +1616,14 @@ function Game()
                     }
                     break;
                 }
-                case 11: { // Pew
+                case 11: { // Insert Coin
+                    if(this.insertCoin.channel[this.insertCoin.index]) {
+                        this.insertCoin.channel[this.insertCoin.index].play();
+                        this.insertCoin.index += 1; if(this.insertCoin.index > (this.insertCoin.channels - 1)){this.insertCoin.index = 0;}
+                    }
+                    break;
+                }
+                case 12: { // Pew
                     if(this.pew.channel[this.pew.index]) {
                         this.pew.channel[this.pew.index].play();
                         this.pew.index += 1; if(this.pew.index > (this.pew.channels - 1)){this.pew.index = 0;}
@@ -1650,6 +1666,9 @@ function Game()
             }
             for(var i = 0; i < this.menuBlip.channel.length; i++) {
                 this.menuBlip.channel[i].volume = value;
+            }
+            for(var i = 0; i < this.insertCoin.channel.length; i++) {
+                this.insertCoin.channel[i].volume = value;
             }
             for(var i = 0; i < this.menuSelect.channel.length; i++) {
                 this.menuSelect.channel[i].volume = value;
@@ -3527,7 +3546,7 @@ function Game()
             
             if(this.isPewing && this.pewTick >= 1) {
                 this.pewTick = 0;
-                sfx.play(11);
+                sfx.play(12);
             } else {
                 this.pewTick++;
             }
@@ -4180,7 +4199,7 @@ function Game()
                 {
                     if(mouseX > (_canvas.width / 2 + 10) - 115 && mouseX < (_canvas.width / 2 + 10) + 100 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10) {
                         currentGui = 2;//default case will Trigger
-                        sfx.play(8);
+                        sfx.play(11);
                     }
                     if(mouseX > (_canvas.width / 2 + 10) - 65 && mouseX < (_canvas.width / 2 + 10) + 40 && mouseY < (_canvas.height / 2 + 60) + 20 && mouseY > (_canvas.height / 2 + 60) - 10) {
                         currentGui = 6; lastGui = 0;
