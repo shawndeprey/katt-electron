@@ -3725,7 +3725,7 @@ function Game()
 				case 8:{out = " "; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
 				case 9:{out = " "; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
 				case 10:{out = "Although the future of humanity is left bleak by the Drone bombardment,"; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 11:{out = "an ace pilot now races through space towards the heart of the Drone army."; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
+				case 11:{out = "a group of rebel fighers now race through space towards the heart of the Drone army."; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
 				case 12:{out = "There is only one mission to complete now: "; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
 				case 13:{out = " "; size = "18px Helvetica"; color = "rgb(96, 255, 96)"; break;}
 				case 14:{out = "Kill all the Things"; size = "32px Thunderstrike Halftone"; color = "rgb(255, 127, 255)"; break;}
@@ -3785,7 +3785,7 @@ function Game()
 		this.overlayAlpha = 0.0;
 		this.center = _buffer.width / 2;
 		this.credits = [];
-		this.lines = 27;
+		this.lines = 31;
 		this.lineHeight = 50;
 		this.yOffset = 0;
 		this.scrollSpeed = 25;
@@ -3798,9 +3798,9 @@ function Game()
 			switch(i)
 			{
 				case 0:{out = "Humanity is Saved"; size = "28px Thunderstrike Halftone"; color = "rgb(255, 127, 255)"; break;}
-				case 1:{out = "Our ace pilot has defeated the drone core in enough time to save humanity."; size = "16px VT323"; color = "rgb(96, 255, 96)"; break;}
+				case 1:{out = "Our ace pilots has defeated the drone core in enough time to save humanity."; size = "16px VT323"; color = "rgb(96, 255, 96)"; break;}
 				case 2:{out = "The task of rebuilding civilization, however difficult, can still never"; size = "16px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 3:{out = "match the devotion and courage it took for our ace pilot to..."; size = "16px VT323"; color = "rgb(96, 255, 96)"; break;}
+				case 3:{out = "match the devotion and courage it took for our ace pilots to..."; size = "16px VT323"; color = "rgb(96, 255, 96)"; break;}
 				case 4:{out = "Kill all the Things"; size = "48px Thunderstrike Halftone"; color = "rgb(255, 127, 255)"; break;}
 				case 5:{out = " "; size = "10px VT323"; color = "rgb(96, 255, 96)"; break;}
 				case 6:{out = "Produced by"; size = "18px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
@@ -3820,11 +3820,15 @@ function Game()
 				case 19:{out = "Shawn Deprey"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
 				case 20:{out = "Drew Muller"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
 				case 21:{out = "Sound Artists"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
-				case 22:{out = "David Van Laar-Veth (The Badass)"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
+				case 22:{out = "David Van Laar-Veth"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
 				case 23:{out = "Story"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96"; break;}
 				case 24:{out = "Mico Picache"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
 				case 25:{out = " "; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 26:{out = "Thanks for playing!"; size = "28px Thunderstrike Halftone"; color = "rgb(255, 127, 255)"; break;}
+                case 26:{out = "Speacial Thanks to @Deep_Fold For the Pixel Planet Generation"; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
+				case 27:{out = " "; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 28:{out = "Speacial Thanks Justin Hammond For Additional Coding Work"; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
+				case 29:{out = " "; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 30:{out = "Thanks for playing!"; size = "28px Thunderstrike Halftone"; color = "rgb(255, 127, 255)"; break;}
 				default:{out = ""; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
 			}
 			this.credits[i] = new GUIText(out, this.center, _buffer.height + (this.lineHeight * i), size, "center", "top", color);
