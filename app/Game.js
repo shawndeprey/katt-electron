@@ -3544,11 +3544,13 @@ function Game()
                 if(this.idleAnim > 3) this.idleAnim = 0;
             }
             
-            if(this.isPewing && this.pewTick >= 1) {
+            if(this.onTick != 0 && this.isPewing && this.pewTick >= 1) {
                 this.pewTick = 0;
                 sfx.play(12);
             } else {
-                this.pewTick++;
+                if(this.onTick != 0) {
+                    this.pewTick++;
+                }
             }
             if(Keys[1] >= 1){
                 if(this.onTick % 2 == 0) {
