@@ -27,7 +27,6 @@ function Game()
     this.gameLoop = null;
     var self = this;
     var gameState = 0;
-    var levelStart = false;
     var debug = false;
 	var playerInfo = false;
 	var masterBGMVolume = 0.2;
@@ -326,9 +325,8 @@ function Game()
     {
         gco.bgm = document.getElementById('bgm_square');
         gco.init_audio();
-        sfx.Init();
     }
-	
+
 	this.RefreshSoundsOnGameLoss = function()
 	{
 		gco.bgm = document.getElementById('bgm_square');
@@ -1055,11 +1053,12 @@ function Game()
         let dialogues = [
             // Level 1
             {lines: [
-                {character: 0, line: "Atha, we've reached the edge of the drone fleet."},
+                {character: 0, line: "Athanas, we've reached the edge of the drone fleet."},
                 {character: player.captain, line: "I can see that much, Sato..."},
                 {character: player.captain, line: "...And how many times have I told you to call me Captain."},
                 {character: 0, line: "We're at the edge of it all and that's what you're worried about...?"},
-                {character: 1, line: "Focus! We have to push forward, it's the last shot we have to save everyone."},
+                {character: 3, line: "Why are you both arguing again?"},
+                {character: 1, line: "Everyone, focus! We have to push forward, it's the last shot we have to save everyone."},
                 {character: 0, line: "You don't have to tell me twice, all systems go CAPTAIN!"},
                 {character: player.captain, line: "Asshole... Ready yourself, here they come!"},
             ]},
@@ -3921,6 +3920,7 @@ function Game()
         ed = new EventDirector();
 		
 		sfx = new SFXObject();
+        sfx.Init();
     }
 
     /******************************************************/
@@ -3946,14 +3946,12 @@ function Game()
     
     this.Update = function()
     {
-		if(ticks == 0){if(self.checkAllSoundsPaused()){ swapBGM(); }}
 		if(gco.mustPurchasePrevious > 0){ gco.mustPurchasePrevious -= (delta * 1000); }
 		if(gco.notEnoughCores > 0){ gco.notEnoughCores -= (delta * 1000); }
 		if(gco.playStory){ gco.story.Update(); }
 		// Stop Sound Check
 		if((currentGui != NULL_GUI_STATE) && sfx.laserPlaying){sfx.pause(1);}
 		if((gameState != 1) && sfx.bossLaserPlaying){sfx.pause(2);}
-        if(levelStart){ bgm.play(); }
 
         // Menus
         menu.Update();

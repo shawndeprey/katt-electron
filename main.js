@@ -6,9 +6,11 @@ function createWindow () {
     width: 800,
     height: 600,
     icon: path.join(__dirname, 'app/KATT.png'),
+    frame: false,
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false
+      contextIsolation: false,
+      devTools: false,
     }
   });
 
@@ -16,7 +18,9 @@ function createWindow () {
   win.setFullScreen(true);
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  createWindow();
+});
 
 ipcMain.on('quit-app', () => {
   app.quit();

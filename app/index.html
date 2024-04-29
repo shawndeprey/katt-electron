@@ -6,7 +6,6 @@
     <script src="Game.js"></script>
     <script src="Lib/post-processing.js"></script>
     <script type="text/javascript">
-        function soundsLoaded() { play.InitSounds(); }
         window.onkeydown=function(e){
             if(e.keyCode==32){ return false; }
             if(e.keyCode==37){ return false; }
@@ -51,6 +50,8 @@
             transform: translate(-50%, -50%);
             font-smooth: never !important;
             -webkit-font-smoothing: none !important;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
         }
 
         #root {
@@ -66,37 +67,91 @@
             position: absolute;
             left: -9999px;
         }
+
+        #splash-overlay {
+            position: fixed;
+            display: flex;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; /* High z-index to cover everything else */
+            transition: opacity 2s;
+        }
+
+        #logo {
+            width: 90%; /* Logo takes up 90% of the width */
+            opacity: 0; /* Start with a hidden logo */
+            transition: opacity 3s; /* Transition for the fade effect */
+        }
+
     </style>
 </head>
 <body style="margin:0 auto;">
+    <div id="splash-overlay">
+        <img src="Graphics/Logo.png" id="logo">
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const splashOverlay = document.getElementById('splash-overlay');
+            const logo = document.getElementById('logo');
+            const audio = new Audio('Audio/sfx/splash-sound.mp3');
+            audio.onloadeddata = function() {
+                if (audio.readyState >= 4) { // Ensure it is fully loaded
+                    audio.play().then(() => {
+                        // Start the logo animation once audio playback is confirmed
+                        setTimeout(() => {
+                            logo.style.opacity = 1;
+                        });
+
+                        setTimeout(() => {
+                            splashOverlay.style.opacity = 0;
+                            play.InitSounds();
+                        }, 6000); // Delay before fading out
+
+                        setTimeout(() => {
+                            splashOverlay.style.display = 'none'; // Hide overlay
+                        }, 6000 + 2000);
+                    }).catch(error => console.error('Error playing audio:', error));
+                }
+            };
+
+            audio.load(); // Trigger loading of the sound
+        });
+
+    </script>
 
 <!-- The browser will automatically choose the format it supports. -->
-<audio id="bgm_square" onloadeddata="soundsLoaded()" preload="auto" autobuffer>
-	<source src="Audio/Square.mp3" type="audio/mp3">
+<!--  -->
+<audio id="bgm_square" preload="auto" autobuffer>
+    <source src="Audio/Square.mp3" type="audio/mp3">
 </audio>
 <audio id="bgm_fast" preload="auto" autobuffer>
-	<source src="Audio/Fast.mp3" type="audio/mp3">
+    <source src="Audio/Fast.mp3" type="audio/mp3">
 </audio>
 <audio id="bgm_soar" preload="auto" autobuffer>
-	<source src="Audio/Soar.mp3" type="audio/mp3">
+    <source src="Audio/Soar.mp3" type="audio/mp3">
 </audio>
 <audio id="bgm_dorian" preload="auto" autobuffer>
-	<source src="Audio/Dorian.mp3" type="audio/mp3">
+    <source src="Audio/Dorian.mp3" type="audio/mp3">
 </audio>
 <audio id="bgm_euphoria" preload="auto" autobuffer>
-	<source src="Audio/Euphoria.mp3" type="audio/mp3">
+    <source src="Audio/Euphoria.mp3" type="audio/mp3">
 </audio>
 <audio id="bgm_energy" preload="auto" autobuffer>
-	<source src="Audio/Energy_Rising.mp3" type="audio/mp3">
+    <source src="Audio/Energy_Rising.mp3" type="audio/mp3">
 </audio>
-
 <audio id="bgm_boss" preload="auto" autobuffer>
-	<source src="Audio/Swim_or_Sink.mp3" type="audio/mp3">
+    <source src="Audio/Swim_or_Sink.mp3" type="audio/mp3">
 </audio>
 <!-- End Audio -->
 
 
-<canvas id="canvas" class="game-canvas" width="800" height="600" style="image-rendering: pixelated; image-rendering: crisp-edges;">
+<canvas id="canvas" class="game-canvas" width="800" height="600">
     Your browser does not support the canvas element, sorry.
 </canvas>
 <script type="text/javascript">
