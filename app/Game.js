@@ -17,6 +17,8 @@ var renderStarCtx = renderStarCanvas.getContext('2d');
 
 function Game()
 {
+    let gameInitalized = false;
+
 	//Tracked Data
 	var score = 0;
 	var enemyPoints = 0;
@@ -321,10 +323,13 @@ function Game()
     // Global Functions
     /******************************************************/
 
-    this.InitSounds = function()
+    this.InitGame = function()
     {
         gco.bgm = document.getElementById('bgm_square');
         gco.init_audio();
+        setTimeout(() => {
+            gameInitalized = true;
+        }, 1500);
     }
 
 	this.RefreshSoundsOnGameLoss = function()
@@ -1207,9 +1212,9 @@ function Game()
                     } else
                     if(this.states[6][2]) {
                         if(direction == 1) {
-                            if(sfx.masterVolume >= 0.1) sfx.volume(Math.round(sfx.masterVolume * 100) / 100 - 0.1);sfx.play(0);
+                            if(sfx.masterVolume >= 0.1) sfx.volume(Math.round(sfx.masterVolume * 100) / 100 - 0.1);
                         } else {
-                            if(sfx.masterVolume < 0.91) sfx.volume(Math.round(sfx.masterVolume * 100) / 100 + 0.1);sfx.play(0);
+                            if(sfx.masterVolume < 0.91) sfx.volume(Math.round(sfx.masterVolume * 100) / 100 + 0.1);
                         }
                     }
                 }
@@ -3977,8 +3982,10 @@ function Game()
         menu.Update();
 
         // Input
-        self.doInput();
-        self.getInput();
+        if(gameInitalized) {
+            self.doInput();
+            self.getInput();
+        }
 
 		// Random Star & Foreground Generation
         if(!paused) {
@@ -4202,6 +4209,7 @@ function Game()
 	
 	function doMouseClick(e)
 	{
+        if(!gameInitalized) { return; }
         if(ed.eventPlaying()) {
             ed.DoInput()
         }
