@@ -442,7 +442,7 @@ function Game()
 	
     function GameControlObject()
     {
-        this.level = 2; // Starting at 1
+        this.level = 1; // Starting at 1
         this.win = false;
         this.enemiesKilled = []; // [enemyNum] = 126
         this.weaponsOwned = []; // [weaponNum] = true
