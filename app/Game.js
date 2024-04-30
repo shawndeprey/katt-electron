@@ -455,7 +455,7 @@ function Game()
 	
     function GameControlObject()
     {
-        this.level = 2; // Starting at 1
+        this.level = 1; // Starting at 1
         this.win = false;
         this.enemiesKilled = []; // [enemyNum] = 126
         this.weaponsOwned = []; // [weaponNum] = true
@@ -3357,7 +3357,7 @@ function Game()
 		this.weaponFunc = true;//Used for weapon effects
 		this.didShoot = false;
 		this.onTick = 0;
-		this.money = 9000;
+		this.money = 0;
 		this.currentFuel = 60; // Base 60
 		this.MAX_FUEL = 60;
 	
