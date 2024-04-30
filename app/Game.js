@@ -369,14 +369,20 @@ function Game()
         missiles = [];
 		enemies = [];
 		explosions = [];
-		money = [];
+        score = 0;        
+        totalShots = 0;
 		randomItems = [];
 		totalDestroys = 0;
 		destroys = 0;
+        totalCores = 0;
         player.life = 100;
-		player.resetShield();
+		player.shieldLevel = 0;
 		player.recharge = true;
-		totalShots = 0;
+        player.secondaryAmmoLevel = 0;
+        player.maxSecondaryAmmo = 50;
+        player.secondaryAmmo = 50;
+        player.lives = 3;
+		player.money = 0;
         if (player.ship == 8) {
             new Player(40, 40);
         } else {
@@ -385,6 +391,9 @@ function Game()
 		gco.bgm.pause();
 		gco = new GameControlObject();
 		gco.Init();
+        gco.EquipWeapon(0);
+        gco.EquipWeapon(50);        
+        gco.ResetFuel();
         menu = new Menu();
         menu.Init()
 		sfx.pause(1);
@@ -397,7 +406,6 @@ function Game()
         missiles = [];
         enemies = [];
         explosions = [];
-        money = [];
         randomItems = [];
         totalDestroys += destroys;
         destroys = 0;
@@ -447,7 +455,7 @@ function Game()
 	
     function GameControlObject()
     {
-        this.level = 1; // Starting at 1
+        this.level = 2; // Starting at 1
         this.win = false;
         this.enemiesKilled = []; // [enemyNum] = 126
         this.weaponsOwned = []; // [weaponNum] = true
@@ -3349,7 +3357,7 @@ function Game()
 		this.weaponFunc = true;//Used for weapon effects
 		this.didShoot = false;
 		this.onTick = 0;
-		this.money = 0;
+		this.money = 9000;
 		this.currentFuel = 60; // Base 60
 		this.MAX_FUEL = 60;
 	
@@ -3363,7 +3371,6 @@ function Game()
         this.idleAnim = 0; // 0-3
         this.turnAnimL = 4; // 4-11
         this.turnAnimR = 12; // 12-19  
-        this.money = 0;
         
         this.isAlive = function()
         {
