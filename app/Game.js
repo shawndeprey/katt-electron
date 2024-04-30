@@ -17,6 +17,8 @@ var renderStarCtx = renderStarCanvas.getContext('2d');
 
 function Game()
 {
+    let gameInitalized = false;
+
 	//Tracked Data
 	var score = 0;
 	var enemyPoints = 0;
@@ -321,10 +323,13 @@ function Game()
     // Global Functions
     /******************************************************/
 
-    this.InitSounds = function()
+    this.InitGame = function()
     {
         gco.bgm = document.getElementById('bgm_square');
         gco.init_audio();
+        setTimeout(() => {
+            gameInitalized = true;
+        }, 1500);
     }
 
 	this.RefreshSoundsOnGameLoss = function()
@@ -3977,8 +3982,10 @@ function Game()
         menu.Update();
 
         // Input
-        self.doInput();
-        self.getInput();
+        if(gameInitalized) {
+            self.doInput();
+            self.getInput();
+        }
 
 		// Random Star & Foreground Generation
         if(!paused) {
