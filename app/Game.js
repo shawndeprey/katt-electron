@@ -1212,9 +1212,9 @@ function Game()
                     } else
                     if(this.states[6][2]) {
                         if(direction == 1) {
-                            if(sfx.masterVolume >= 0.1) sfx.volume(Math.round(sfx.masterVolume * 100) / 100 - 0.1);sfx.play(0);
+                            if(sfx.masterVolume >= 0.1) sfx.volume(Math.round(sfx.masterVolume * 100) / 100 - 0.1);
                         } else {
-                            if(sfx.masterVolume < 0.91) sfx.volume(Math.round(sfx.masterVolume * 100) / 100 + 0.1);sfx.play(0);
+                            if(sfx.masterVolume < 0.91) sfx.volume(Math.round(sfx.masterVolume * 100) / 100 + 0.1);
                         }
                     }
                 }
@@ -4209,6 +4209,7 @@ function Game()
 	
 	function doMouseClick(e)
 	{
+        if(!gameInitalized) { return; }
         if(ed.eventPlaying()) {
             ed.DoInput()
         }
