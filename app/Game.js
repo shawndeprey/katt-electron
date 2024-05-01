@@ -789,6 +789,7 @@ function Game()
 
         // Event 3
         this.levelDialogue = function() {
+            return this.endEvent();
             if(this.dialogue.isFinished()) {
                 this.endEvent();
             } else {
@@ -1453,6 +1454,7 @@ function Game()
         this.menuBack = {index: 0, channel: [], channels: 5}; // Menu Back Channels
         this.menuFail = {index: 0, channel: [], channels: 5}; // Menu Fail Channels
         this.pew = {index: 0, channel: [], channels: 40} // Explosion Channels
+        this.hit = {index: 0, channel: [], channels: 80} // Explosion Channels
 
         // Other Variables
         this.masterVolume = 0.2;
@@ -1554,6 +1556,15 @@ function Game()
                 a.preload = 'auto';
                 this.pew.channel.push(a);
             }
+
+            // Hit
+            for(var i = 0; i < this.hit.channels; i++) {
+                var num = Math.floor(Math.random() * 8) + 1;
+                var a = new Audio(`Audio/sfx/hit_${num}.mp3`);
+                a.volume = this.masterVolume;
+                a.preload = 'auto';
+                this.hit.channel.push(a);
+            }
         }
 		
         this.play = function(playfx) {
@@ -1642,6 +1653,13 @@ function Game()
                     }
                     break;
                 }
+                case 13: { // Hit
+                    if(this.hit.channel[this.hit.index]) {
+                        this.hit.channel[this.hit.index].play();
+                        this.hit.index += 1; if(this.hit.index > (this.hit.channels - 1)){this.hit.index = 0;}
+                    }
+                    break;
+                }
             }
         }
 		
@@ -1693,6 +1711,9 @@ function Game()
             }
             for(var i = 0; i < this.pew.channel.length; i++) {
                 this.pew.channel[i].volume = value;
+            }
+            for(var i = 0; i < this.hit.channel.length; i++) {
+                this.hit.channel[i].volume = value;
             }
             this.masterVolume = value;
         }
@@ -4105,6 +4126,7 @@ function Game()
                             for(var b = 0; b < missiles.length; b++) { // Missile Collision Detection
                                 if(missiles[b].missileType > 99) { // Collision detection with enemy missiles and player
                                     if(self.Collision(player, missiles[b])) {
+                                        sfx.play(13); // Random Hit Sound
                                         explosion = new Explosion(missiles[b].x, missiles[b].y, 5, 10, 100, 1, 1, 1);
                                         explosions.push(explosion);
                                         player.DamagePlayer(missiles[b].damage);
@@ -4112,6 +4134,7 @@ function Game()
                                     }
                                 } else { // Collision detection with player missiles and enemies
                                     if(self.Collision(missiles[b], enemies[a])) {
+                                        sfx.play(13); // Random Hit Sound
                                         explosion = new Explosion(missiles[b].x, missiles[b].y, 5, 10, 100, 1, 1, 1);
                                         explosions.push(explosion);
                                         enemies[a].life -= missiles[b].damage;
