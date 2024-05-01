@@ -789,7 +789,6 @@ function Game()
 
         // Event 3
         this.levelDialogue = function() {
-            return this.endEvent();
             if(this.dialogue.isFinished()) {
                 this.endEvent();
             } else {
@@ -1441,7 +1440,7 @@ function Game()
 	function SFXObject()
 	{
 		// Audio Channels
-		this.explosion = {index: 0, channel: [], channels: 25} // Explosion Channels
+		this.explosion = {index: 0, channel: [], channels: 40} // Explosion Channels
 		this.laser = 0; this.laserPlaying = false; // Player Laser Channel
 		this.bossLaser = 0; this.bossLaserPlaying = false; // Boss Laser Channel
         this.whooshOne = 0; // Whoosh One Channel
