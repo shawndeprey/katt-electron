@@ -372,22 +372,16 @@ function Game()
         score = 0;        
         totalShots = 0;
 		randomItems = [];
+        money = [];
 		totalDestroys = 0;
 		destroys = 0;
         totalCores = 0;
-        player.life = 100;
-		player.shieldLevel = 0;
-		player.recharge = true;
-        player.secondaryAmmoLevel = 0;
-        player.maxSecondaryAmmo = 50;
-        player.secondaryAmmo = 50;
-        player.lives = 3;
-		player.money = 0;
         if (player.ship == 8) {
-            new Player(40, 40);
+            player = new Player(40, 40);
         } else {
             player = new Player(24, 40);
         }
+        play.ResetAll();
 		gco.bgm.pause();
 		gco = new GameControlObject();
 		gco.Init();
@@ -399,6 +393,7 @@ function Game()
 		sfx.pause(1);
 		self.RefreshSoundsOnGameLoss();
 		enemyGeneration = new EnemyGeneration();
+        ed.ResetAll();
     }
 	
     this.softReset = function()
@@ -667,13 +662,15 @@ function Game()
     }
 
     function EventDirector() {
-        this.onTick = 0;
-        this.activeEvent = 0; // 0 = No Active Event
-        this.eventTime = 0;
-        this.dialogue = new Dialogue();
-        
-        // Event variables other systems can watch or use
-        this.moveMultiplierOne = 1;
+        this.ResetAll = function() {
+            this.onTick = 0;
+            this.activeEvent = 0; // 0 = No Active Event
+            this.eventTime = 0;
+            this.dialogue = new Dialogue();
+            
+            // Event variables other systems can watch or use
+            this.moveMultiplierOne = 1;
+        }
 
         this.eventPlaying = function() { // Easy function for other game systems to query for event state
             return this.activeEvent !== 0;
@@ -807,6 +804,8 @@ function Game()
                 this.dialogue.DoInput();
             }
         }
+
+        this.ResetAll();
     }
 
     function Dialogue() {
@@ -3391,6 +3390,19 @@ function Game()
         this.idleAnim = 0; // 0-3
         this.turnAnimL = 4; // 4-11
         this.turnAnimR = 12; // 12-19  
+
+        this.ResetAll = function() {
+            this.life = 100;
+            this.shieldLevel = 0;
+            this.recharge = true;
+            this.secondaryAmmoLevel = 0;
+            this.maxSecondaryAmmo = 50;
+            this.secondaryAmmo = 50;
+            this.lives = 3;
+            this.money = 0;
+            this.x = _buffer.width / 2;
+            this.y = _buffer.height + this.height / 2;
+        }
         
         this.isAlive = function()
         {
@@ -3569,8 +3581,8 @@ function Game()
                     if(Keys[1] >= 1 && this.turnAnimL >= 4 && this.turnAnimL <= 7) buffer.drawImage(playerImages8[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
                     if(Keys[1] >= 1 && this.turnAnimL >= 8 && this.turnAnimL <= 11) buffer.drawImage(playerImages8[this.turnAnimL], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
                     // D || Right
-                    if(Keys[3] >= 1 && this.turnAnimR >= 12 && this.turnAnimR <= 15) buffer.drawImage(playerImages8[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height); 
-                    if(Keys[3] >= 1 && this.turnAnimR >= 16 && this.turnAnimR <= 19) buffer.drawImage(playerImages8[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);  
+                    if((Keys[3] >= 1 && Keys[1] == 0) && this.turnAnimR >= 12 && this.turnAnimR <= 15) buffer.drawImage(playerImages8[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height); 
+                    if((Keys[3] >= 1 && Keys[1] == 0) && this.turnAnimR >= 16 && this.turnAnimR <= 19) buffer.drawImage(playerImages8[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);  
                 }
             } else {
                 if(Keys[1] == 0 && Keys[3] == 0) buffer.drawImage(playerImages1[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
