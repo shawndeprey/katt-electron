@@ -239,7 +239,6 @@ function Game()
 	
     // Containers
     var stars = [];
-    var guiText = [];
     var missiles = [];
     var enemies = [];
     var explosions = [];
@@ -258,7 +257,6 @@ function Game()
 	var totalShots = 0;
 
     // Mechanics
-    var shootSwap = false;
     var colSwap = true;
     var Keys = [0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0,
@@ -381,7 +379,7 @@ function Game()
         } else {
             player = new Player(24, 40);
         }
-        play.ResetAll();
+        player.ResetAll();
 		gco.bgm.pause();
 		gco = new GameControlObject();
 		gco.Init();
@@ -394,6 +392,7 @@ function Game()
 		self.RefreshSoundsOnGameLoss();
 		enemyGeneration = new EnemyGeneration();
         ed.ResetAll();
+        playerInfo = false;
     }
 	
     this.softReset = function()
@@ -401,12 +400,13 @@ function Game()
         missiles = [];
         enemies = [];
         explosions = [];
+        money = [];
         randomItems = [];
         totalDestroys += destroys;
         destroys = 0;
-        player.life = 100;
         totalShots += player.totalMissiles;
         player.totalMissiles = 0;
+        player.life = 100;
         player.x = _buffer.width / 2;
         player.y = _buffer.height + player.height / 2;
         gco.ResetFuel();
@@ -414,6 +414,7 @@ function Game()
         player.resetShield();
         sfx.pause(1);//Pause laser sound on round end
         enemyGeneration.hasBoss = false;
+        playerInfo = false;
     }
     
     this.popArray = function(Array, popThis)
@@ -449,36 +450,35 @@ function Game()
     /******************************************************/
 	
     function GameControlObject()
-    {
-        this.level = 1; // Starting at 1
-        this.win = false;
-        this.enemiesKilled = []; // [enemyNum] = 126
-        this.weaponsOwned = []; // [weaponNum] = true
-        this.weaponPrice = []; // [weaponNum] = 486 (cores)
-        this.ownLaser = false;
-        this.laserPrice = 1000;
-        this.levelProgress = 0.0; // Percentage
-        this.levelMission = new LevelMission();
-        this.extras = [];
-        this.extraPrices = [];
-        this.fuelLevel = 1;
-        this.onTick = 0;
-        this.missionText = [];
-        this.secondaryAmmoPrice = 25;
-        this.bgm = null;
-        this.playingBossMusic = false;
-        
-        this.bossX = 0; // Final Boss X set when boss dies
-        this.bossY = 0; // Final Boss Y set when boss dies
-        
-        this.credits = new Credits();
-        this.story = new Story();
-        this.playStory = false;
-        
-        this.mustPurchasePrevious = 0;
-        this.notEnoughCores = 0;
-        
+    {   
         this.Init = function() {
+            this.level = 1; // Starting at 1
+            this.win = false;
+            this.enemiesKilled = []; // [enemyNum] = 126
+            this.weaponsOwned = []; // [weaponNum] = true
+            this.weaponPrice = []; // [weaponNum] = 486 (cores)
+            this.ownLaser = false;
+            this.laserPrice = 1000;
+            this.levelProgress = 0.0; // Percentage
+            this.levelMission = new LevelMission();
+            this.extras = [];
+            this.extraPrices = [];
+            this.fuelLevel = 1;
+            this.onTick = 0;
+            this.missionText = [];
+            this.secondaryAmmoPrice = 25;
+            this.bgm = null;
+            this.playingBossMusic = false;
+            
+            this.bossX = 0; // Final Boss X set when boss dies
+            this.bossY = 0; // Final Boss Y set when boss dies
+            
+            this.credits = new Credits();
+            this.story = new Story();
+            this.playStory = false;
+            
+            this.mustPurchasePrevious = 0;
+            this.notEnoughCores = 0;
             this.levelMission.GenerateObjectives();
             
             this.weaponsOwned[0] = true;//Primary Assult
@@ -612,6 +612,7 @@ function Game()
         this.ShowContinueScreen = function() {
             player.lives -= 1;
             currentGui = player.lives < 0 ? 5 : 3; // Game Over or Continue
+            menu.addLongDelay();
         }
         
         this.TogglePauseGame = function() {
@@ -676,7 +677,18 @@ function Game()
             return this.activeEvent !== 0;
         }
 
+        this.movementEventPlaying = function() {
+            return this.activeEvent == 1 || this.activeEvent == 2;
+        }
+
+        this.globalActionCull = function() {
+            // We needed a method to stop or pause things in the game when an event started.
+            // This function serves that need an culls things from around that app that conflict with events.
+            player.stopLaser();
+        }
+
         this.initEvent = function(event) {
+            this.globalActionCull();
             this.activeEvent = event;
             if(this.activeEvent == 1) {
                 this.eventTime = 60; // 3 Seconds
@@ -763,6 +775,12 @@ function Game()
             // Enemy ship movement multiplier for event
             for(var i = 0; i < enemies.length; i++) { // Enemy Update Ticks
                 enemies[i].y += speed * delta;
+            }
+
+            for(var i = 0; i < missiles.length; i++) { // Enemy Update Ticks
+                // Only perform this action for bombs
+                if(missiles[i].missileType != 52) { continue; }
+                missiles[i].y += speed * delta;
             }
 
             // Other items screen exit
@@ -1137,6 +1155,10 @@ function Game()
                 [true, false, false, false],
                 [true, false],
             ]
+        }
+
+        this.addLongDelay = function() {
+            this.timeout = 40; // 2 Second Delay
         }
 
         this.delayNextInput = function() {
@@ -1811,6 +1833,7 @@ function Game()
         }
 
         this.generate = function() {
+            if(ed.movementEventPlaying()) { return; }
             if(Math.random() <= 0.5) { // 0.5% chance per tick to get a foreground object
                 this.objects.push(new ForegroundObject());
             }
@@ -1840,7 +1863,7 @@ function Game()
     
             // Movement Dynamics
             this.x += ((this.speed / 2) * this.xVel) * delta;
-            this.y += (this.speed * player.yVecMulti) * delta;
+            this.y += ((this.speed * player.yVecMulti) * ed.moveMultiplierOne) * delta;
             if (this.y > this.killY) {
                 return 1;
             }
@@ -1899,7 +1922,7 @@ function Game()
                 this.onTick = ticks;
                 if(stars.length < numStars) {
                     while(stars.length < numStars) {
-                        var starType = this.genRandomStarType(ed.activeEvent == 1 || ed.activeEvent == 2); // Only gen stars in fly in and out events
+                        var starType = this.genRandomStarType(ed.movementEventPlaying()); // Only gen stars in fly in and out events
                         var X = Math.floor(Math.random() * _buffer.width);
                         var Y = 0;
                         var speed = this.starSpeed(starType);
@@ -3392,6 +3415,7 @@ function Game()
         this.turnAnimR = 12; // 12-19  
 
         this.ResetAll = function() {
+            this.totalMissiles = 0;
             this.life = 100;
             this.shieldLevel = 0;
             this.recharge = true;
@@ -3464,8 +3488,15 @@ function Game()
             }
         }
 
+        this.stopLaser = function() {
+            if(!this.laser) { return; }
+            this.laser = false;
+            if(sfx.laserPlaying){ sfx.pause(1); }
+        }
+
         this.Update = function()
         {
+            if(ed.eventPlaying()) { return; }
             this.x1 = this.x;
             this.y1 = this.y - (this.height / 2);
             this.x2 = this.x - (this.width / 2);
@@ -3482,11 +3513,9 @@ function Game()
                     this.laserY = 0;
                     this.laserHeight = this.y - 25;
                     if(ticks == 0){ this.secondaryAmmo -= 3; if(this.secondaryAmmo < 0){this.secondaryAmmo = 0;} }
-                } else { if(sfx.laserPlaying){ sfx.pause(1); } this.laser = false; }
-            } else
-            {
-                this.laser = false;
-                if(sfx.laserPlaying){ sfx.pause(1); }
+                } else { this.stopLaser(); }
+            } else {
+                this.stopLaser();
             }
             
             if(this.hasShield)
@@ -4682,8 +4711,7 @@ function Game()
             }
 
 			if(Keys[5] == 1 && gameState == 1) {
-				if(playerInfo)
-				{
+				if(playerInfo) {
 					explosion = new Explosion(135, _canvas.height - 50, 75, 10, 100, 0.1, 3, 0.1);
                     explosions.push(explosion);
 					explosion = new Explosion(135, _canvas.height - 30, 75, 10, 100, 0.1, 3, 0.1);
