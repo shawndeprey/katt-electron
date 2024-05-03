@@ -520,6 +520,7 @@ function Game()
                     if(this.weaponsOwned[wepID - 1]) {
                         this.weaponsOwned[wepID] = true;
                         player.money -= this.weaponPrice[wepID];
+                        sfx.play(15);
                         this.EquipWeapon(wepID);
                     } else {
                         this.mustPurchasePrevious = 1000;
@@ -532,6 +533,7 @@ function Game()
                         if(this.weaponsOwned[wepID - 1]) {
                             this.weaponsOwned[wepID] = true;
                             player.money -= this.weaponPrice[wepID];
+                            sfx.play(15);
                             this.EquipWeapon(wepID);
                         } else {
                             this.mustPurchasePrevious = 1000;
@@ -542,6 +544,7 @@ function Game()
                 if(this.weaponsOwned[52]) {
                     this.ownLaser = true;
                     player.money -= gco.laserPrice;
+                    sfx.play(15);
                     this.EquipWeapon(wepID);
                 } else {
                     this.mustPurchasePrevious = 1000;
@@ -550,6 +553,7 @@ function Game()
         }
         
         this.EquipWeapon = function(wepID) {
+            sfx.play(16);
             if(wepID > 48) {
                 player.secondary = wepID;
             } else {
@@ -558,6 +562,7 @@ function Game()
         }
         
         this.PurchaseExtras = function(itemNumber) {
+            sfx.play(15); sfx.play(16);
             switch(itemNumber) {
                 case 0: { // Shield
                     player.money -= (player.shieldLevel + 1) * 250;
@@ -642,6 +647,7 @@ function Game()
             menu.delayNextInput();
             currentGui = 4; // Go to level up menu
             gameState = 0;
+            sfx.play(14);
         }
         
         this.RandomBossExplosion = function() {
@@ -1473,8 +1479,15 @@ function Game()
         this.menuSelect = {index: 0, channel: [], channels: 5}; // Menu Select Channels
         this.menuBack = {index: 0, channel: [], channels: 5}; // Menu Back Channels
         this.menuFail = {index: 0, channel: [], channels: 5}; // Menu Fail Channels
-        this.pew = {index: 0, channel: [], channels: 40} // Explosion Channels
-        this.hit = {index: 0, channel: [], channels: 80} // Explosion Channels
+        this.pew = {index: 0, channel: [], channels: 40} // Pew Channels
+        this.hit = {index: 0, channel: [], channels: 80} // Hit Channels
+        this.levelUp = 0; // Level Up Channels
+        this.purchaseItem = {index: 0, channel: [], channels: 3}; // Purchase Item Channels
+        this.equipItem = {index: 0, channel: [], channels: 3}; // Equip Item Channels
+        this.pickupCoin = {index: 0, channel: [], channels: 3} // Pickup Coin Channels
+        this.pickupShield = {index: 0, channel: [], channels: 3} // Pickup Shield Channels
+        this.pickupHealth = {index: 0, channel: [], channels: 3} // Pickup Health Channels
+        this.pickupAmmo = {index: 0, channel: [], channels: 3} // Pickup Coin Channels
 
         // Other Variables
         this.masterVolume = 0.2;
@@ -1585,6 +1598,59 @@ function Game()
                 a.preload = 'auto';
                 this.hit.channel.push(a);
             }
+
+            // Level Up
+            this.levelUp = new Audio('Audio/sfx/level_up.mp3');
+            this.levelUp.volume = this.masterVolume;
+            this.levelUp.preload = 'auto';
+
+            // Purchase Item
+            for(var i = 0; i < this.purchaseItem.channels; i++) {
+                var a = new Audio('Audio/sfx/purchase_item.mp3');
+                a.volume = this.masterVolume;
+                a.preload = 'auto';
+                this.purchaseItem.channel.push(a);
+            }
+
+            // Equip Item
+            for(var i = 0; i < this.equipItem.channels; i++) {
+                var a = new Audio('Audio/sfx/equip_item.mp3');
+                a.volume = this.masterVolume;
+                a.preload = 'auto';
+                this.equipItem.channel.push(a);
+            }
+
+            // Pickup Coin
+            for(var i = 0; i < this.pickupCoin.channels; i++) {
+                var a = new Audio('Audio/sfx/pickup_coin.mp3');
+                a.volume = this.masterVolume;
+                a.preload = 'auto';
+                this.pickupCoin.channel.push(a);
+            }
+
+            // Pickup Shield
+            for(var i = 0; i < this.pickupShield.channels; i++) {
+                var a = new Audio('Audio/sfx/pickup_shield.mp3');
+                a.volume = this.masterVolume;
+                a.preload = 'auto';
+                this.pickupShield.channel.push(a);
+            }
+
+            // Pickup Health
+            for(var i = 0; i < this.pickupHealth.channels; i++) {
+                var a = new Audio('Audio/sfx/pickup_health.mp3');
+                a.volume = this.masterVolume;
+                a.preload = 'auto';
+                this.pickupHealth.channel.push(a);
+            }
+
+            // Pickup Ammo
+            for(var i = 0; i < this.pickupAmmo.channels; i++) {
+                var a = new Audio('Audio/sfx/pickup_ammo.mp3');
+                a.volume = this.masterVolume;
+                a.preload = 'auto';
+                this.pickupAmmo.channel.push(a);
+            }
         }
 		
         this.play = function(playfx) {
@@ -1680,6 +1746,52 @@ function Game()
                     }
                     break;
                 }
+                case 14: { // Level Up
+                    this.levelUp.play();
+                    break;
+                }
+                case 15: { // Purchase Item
+                    if(this.purchaseItem.channel[this.purchaseItem.index]) {
+                        this.purchaseItem.channel[this.purchaseItem.index].play();
+                        this.purchaseItem.index += 1; if(this.purchaseItem.index > (this.purchaseItem.channels - 1)){this.purchaseItem.index = 0;}
+                    }
+                    break;
+                }
+                case 16: { // Equip Item
+                    if(this.equipItem.channel[this.equipItem.index]) {
+                        this.equipItem.channel[this.equipItem.index].play();
+                        this.equipItem.index += 1; if(this.equipItem.index > (this.equipItem.channels - 1)){this.equipItem.index = 0;}
+                    }
+                    break;
+                }
+                case 17: { // Pickup Coin
+                    if(this.pickupCoin.channel[this.pickupCoin.index]) {
+                        this.pickupCoin.channel[this.pickupCoin.index].play();
+                        this.pickupCoin.index += 1; if(this.pickupCoin.index > (this.pickupCoin.channels - 1)){this.pickupCoin.index = 0;}
+                    }
+                    break;
+                }
+                case 18: { // Pickup Shield
+                    if(this.pickupShield.channel[this.pickupShield.index]) {
+                        this.pickupShield.channel[this.pickupShield.index].play();
+                        this.pickupShield.index += 1; if(this.pickupShield.index > (this.pickupShield.channels - 1)){this.pickupShield.index = 0;}
+                    }
+                    break;
+                }
+                case 19: { // Pickup Health
+                    if(this.pickupHealth.channel[this.pickupHealth.index]) {
+                        this.pickupHealth.channel[this.pickupHealth.index].play();
+                        this.pickupHealth.index += 1; if(this.pickupHealth.index > (this.pickupHealth.channels - 1)){this.pickupHealth.index = 0;}
+                    }
+                    break;
+                }
+                case 20: { // Pickup Ammo
+                    if(this.pickupAmmo.channel[this.pickupAmmo.index]) {
+                        this.pickupAmmo.channel[this.pickupAmmo.index].play();
+                        this.pickupAmmo.index += 1; if(this.pickupAmmo.index > (this.pickupAmmo.channels - 1)){this.pickupAmmo.index = 0;}
+                    }
+                    break;
+                }
             }
         }
 		
@@ -1699,42 +1811,27 @@ function Game()
         }
         
         this.volume = function(value) {
-            for(var i = 0; i < this.explosion.channel.length; i++) {
-                this.explosion.channel[i].volume = value;
-            }
+            for(var i = 0; i < this.explosion.channel.length; i++) { this.explosion.channel[i].volume = value; }
             this.laser.volume = value;
             this.bossLaser.volume = value;
             this.whooshOne.volume = value;
-            for(var i = 0; i < this.dialogueLow.channel.length; i++) {
-                this.dialogueLow.channel[i].volume = value;
-            }
-            for(var i = 0; i < this.dialogueMid.channel.length; i++) {
-                this.dialogueMid.channel[i].volume = value;
-            }
-            for(var i = 0; i < this.dialogueHigh.channel.length; i++) {
-                this.dialogueHigh.channel[i].volume = value;
-            }
-            for(var i = 0; i < this.menuBlip.channel.length; i++) {
-                this.menuBlip.channel[i].volume = value;
-            }
-            for(var i = 0; i < this.insertCoin.channel.length; i++) {
-                this.insertCoin.channel[i].volume = value;
-            }
-            for(var i = 0; i < this.menuSelect.channel.length; i++) {
-                this.menuSelect.channel[i].volume = value;
-            }
-            for(var i = 0; i < this.menuBack.channel.length; i++) {
-                this.menuBack.channel[i].volume = value;
-            }
-            for(var i = 0; i < this.menuFail.channel.length; i++) {
-                this.menuFail.channel[i].volume = value;
-            }
-            for(var i = 0; i < this.pew.channel.length; i++) {
-                this.pew.channel[i].volume = value;
-            }
-            for(var i = 0; i < this.hit.channel.length; i++) {
-                this.hit.channel[i].volume = value;
-            }
+            for(var i = 0; i < this.dialogueLow.channel.length; i++) { this.dialogueLow.channel[i].volume = value; }
+            for(var i = 0; i < this.dialogueMid.channel.length; i++) { this.dialogueMid.channel[i].volume = value; }
+            for(var i = 0; i < this.dialogueHigh.channel.length; i++) { this.dialogueHigh.channel[i].volume = value; }
+            for(var i = 0; i < this.menuBlip.channel.length; i++) { this.menuBlip.channel[i].volume = value; }
+            for(var i = 0; i < this.insertCoin.channel.length; i++) { this.insertCoin.channel[i].volume = value; }
+            for(var i = 0; i < this.menuSelect.channel.length; i++) { this.menuSelect.channel[i].volume = value; }
+            for(var i = 0; i < this.menuBack.channel.length; i++) { this.menuBack.channel[i].volume = value; }
+            for(var i = 0; i < this.menuFail.channel.length; i++) { this.menuFail.channel[i].volume = value; }
+            for(var i = 0; i < this.pew.channel.length; i++) { this.pew.channel[i].volume = value; }
+            for(var i = 0; i < this.hit.channel.length; i++) { this.hit.channel[i].volume = value; }
+            this.levelUp.volume = value;
+            for(var i = 0; i < this.purchaseItem.channel.length; i++) { this.purchaseItem.channel[i].volume = value; }
+            for(var i = 0; i < this.equipItem.channel.length; i++) { this.equipItem.channel[i].volume = value; }
+            for(var i = 0; i < this.pickupCoin.channel.length; i++) { this.pickupCoin.channel[i].volume = value; }
+            for(var i = 0; i < this.pickupShield.channel.length; i++) { this.pickupShield.channel[i].volume = value; }
+            for(var i = 0; i < this.pickupHealth.channel.length; i++) { this.pickupHealth.channel[i].volume = value; }
+            for(var i = 0; i < this.pickupAmmo.channel.length; i++) { this.pickupCoin.channel[i].volume = value; }
             this.masterVolume = value;
         }
     }
@@ -1746,8 +1843,8 @@ function Game()
 		
 		this.GenerateObjectives = function()
 		{
-            let randomMultiplier = 25; // Base: 25
-            let floorAddative = 35; // Base: 35
+            let randomMultiplier = 1; // Base: 25
+            let floorAddative = 1; // Base: 35
 			for(var i = 0; i < gco.level; i++)
 			{//For each level, a new enemy type objective is placed on the mission stack.
 				if(gco.level >= 6){ this.objectives.push(0); }
@@ -3087,6 +3184,12 @@ function Game()
             this.y += this.speed * delta;
 			if(this.used || this.y > _canvas.height)
 			{
+                if(this.used) {
+                    if(this.itemNum == 3) { sfx.play(17); } // Corez!!!
+                    if(this.itemNum == 1) { sfx.play(18); } // Shield
+                    if(this.itemNum == 0) { sfx.play(19); } // Health
+                    if(this.itemNum == 2) { sfx.play(20); } // Ammo
+                }
 				return 1;
 			}
 			return 0;
@@ -3149,6 +3252,7 @@ function Game()
             this.y += this.speed * delta;
 			if(this.used || this.y > _canvas.height)
 			{
+                if(this.used) { sfx.play(17); }
 				return 1;
 			}
 			return 0;
@@ -4287,7 +4391,7 @@ function Game()
 		//State GUIs
             // 0 = Main Menu
             // 1 = Pause Menu
-            // 2 = Level Up Menu
+            // 2 = Upgrade Menu
             // 3 = Continue Menu
             // 4 = Level Up Menu
             // 5 = Game Over Menu
