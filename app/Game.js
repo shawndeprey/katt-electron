@@ -810,7 +810,6 @@ function Game()
 
         // Event 3
         this.levelDialogue = function() {
-            return this.endEvent();
             if(this.dialogue.isFinished()) {
                 this.endEvent();
             } else {
