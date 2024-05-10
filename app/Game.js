@@ -449,7 +449,6 @@ function Game()
     /******************************************************/
     // Objects
     /******************************************************/
-	
     function GameControlObject()
     {   
         this.Init = function() {
@@ -627,7 +626,7 @@ function Game()
             if(this.onTick != ticks) {
                 this.onTick = ticks;
                 if(!gco.win) {
-                    if(this.levelMission.CheckCompletion()) {
+                    if(this.levelMission.GauntletComplete()) {
                         ed.initEvent(2); // Fly out of level event
                     }
                 } else {
@@ -1922,39 +1921,40 @@ function Game()
         }
     }
 	
-	function LevelMission()
-	{
-        this.bossNums = [100, 101, 102, 103, 104, 105, 106, 107, 109, 110, 111]
-		this.objectives = [
-            {0: 1, boss: false}, // Tutorial
-            {0: 1, boss: false}, // Level 1 Gauntlet
-            {1: 1, boss: true}, // Level 1 Boss
-            {0: 1, 1: 1, boss: false}, // Level 2 Gauntlet
-            {2: 1, boss: true}, // Level 2 Boss
-            {0: 1, 1: 1, 2: 1, boss: false}, // Level 3 Gauntlet
-            {2: 2, boss: true}, // Level 3 Boss
-            {0: 1, 1: 1, 2: 1, 3: 1, boss: false}, // Level 4 Gauntlet
-            {3: 1, boss: true}, // Level 4 Boss
-            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, boss: false}, // Level 5 Gauntlet
-            {3: 2, boss: true}, // Level 5 Boss
-            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, boss: false}, // Level 6 Gauntlet
-            {4: 1, boss: true}, // Level 6 Boss
-            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, boss: false}, // Level 7 Gauntlet
-            {4: 2, boss: true}, // Level 7 Boss
-            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, boss: false}, // Level 8 Gauntlet
-            {4: 3, boss: true}, // Level 8 Boss
-            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, boss: false}, // Level 9 Gauntlet
-            {4: 4, boss: true}, // Level 9 Boss
-            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, boss: false}, // Level 10 Gauntlet
-            {4: 5, boss: true}, // Level 10 Boss
-            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, boss: false}, // Level 11 Gauntlet
-            {4: 6, boss: true}, // Level 11 Boss
-            {100: 1, boss: true}, // Level 12 Boss
+    function LevelMission()
+    {
+        this.bossNums = [100, 101, 102, 103, 104, 105, 106, 107, 109, 110, 111];
+        this.levelsWithBoss = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 23];
+        this.objectives = [
+            {0: 1}, // Tutorial
+            {0: 1}, // Level 1 Gauntlet
+            {1: 1}, // Level 1 Boss
+            {0: 1, 1: 1}, // Level 2 Gauntlet
+            {2: 1}, // Level 2 Boss
+            {0: 1, 1: 1, 2: 1}, // Level 3 Gauntlet
+            {2: 2}, // Level 3 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1}, // Level 4 Gauntlet
+            {3: 1}, // Level 4 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}, // Level 5 Gauntlet
+            {3: 2}, // Level 5 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}, // Level 6 Gauntlet
+            {4: 1}, // Level 6 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}, // Level 7 Gauntlet
+            {4: 2}, // Level 7 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}, // Level 8 Gauntlet
+            {4: 3}, // Level 8 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}, // Level 9 Gauntlet
+            {4: 4}, // Level 9 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}, // Level 10 Gauntlet
+            {4: 5}, // Level 10 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}, // Level 11 Gauntlet
+            {4: 6}, // Level 11 Boss
+            {100: 1}, // Level 12 Boss
         ];
-		this.progress = {};
+        this.progress = {};
 
         this.onBoss = function() {
-            return this.objectives[gco.level].boss
+            return this.levelsWithBoss.includes(gco.level);
         }
 
         this.enemyTypesForLevel = function() {
@@ -1967,9 +1967,11 @@ function Game()
             if(!this.progress[enType]) { this.progress[enType] = 0; }
             this.progress[enType] += 1;
         }
-		
-        this.CheckCompletion = function() { // returns true if level is complete, else returns false
+        
+        this.GauntletComplete = function() { // returns true if level is complete, else returns false
             let types = this.enemyTypesForLevel();
+            const includesBossNums = types.some(type => this.bossNums.includes(type));
+            if(includesBossNums) { return false; }
             let keys = Object.keys(this.progress);
             if(keys.length < types.length) { return false; }
             let obj = this.objectives[gco.level];
@@ -1983,7 +1985,7 @@ function Game()
         this.resetProgress = function() {
             this.progress = {};
         }
-	}
+    }
 
     function ForegroundGeneration()
     {
@@ -3036,8 +3038,7 @@ function Game()
                         break;
                         }
                     }
-					if(this.life <= 0)
-					{
+					if(this.life <= 0) {
 						destroys += 1;
 						explosion = new Explosion(this.x, this.y, 75, 4, 200, 3, 3, 3);
 						explosions.push(explosion);
@@ -3051,22 +3052,23 @@ function Game()
 						this.circleYStop = this.y + 25;
 						this.phaseSave++;
 						bossPhase = this.phaseSave;
-                        if(this.phaseSave >= 5)
-                        {
+                        if(this.phaseSave >= 5) {
                             //Update Mission Data
                             gco.levelMission.UpdateProgress(this.type);
                             gco.win = true;
 							gco.bossX = this.x;
 							gco.bossY = this.y;
                             return 3;
-                        }
-                        else
-                        {
+                        } else {
 							this.Model++;
 							this.laser = false;
 							this.inCenter = false;
-                            this.life = this.baseLife * this.phaseSave;
-							this.currentMaxLife = this.life;
+
+                            // Temporarily make the boss easier
+                            // this.life = this.baseLife * this.phaseSave;
+                            // this.currentMaxLife = this.life;
+                            this.life = 500;
+
 							this.phase = -1;
 							sfx.play(0);
                         }
