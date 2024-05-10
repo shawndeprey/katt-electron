@@ -3569,7 +3569,7 @@ function Game()
         this.weaponFunc = true;//Used for weapon effects
         this.didShoot = false;
         this.onTick = 0;
-        this.money = 20000;
+        this.money = 50000;
 
         this.isPewing = false;
         this.pewTick = 0;
