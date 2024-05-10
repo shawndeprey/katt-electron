@@ -3683,8 +3683,9 @@ function Game()
                     this.laserX = this.x;
                     this.laserY = 0;
                     this.laserHeight = this.y - 25;
-                    if(ticks == 0){ this.secondaryAmmo -= 3; if(this.secondaryAmmo < 0){this.secondaryAmmo = 0;} }
-                } else { this.stopLaser(); }
+                } else { 
+                    this.stopLaser();
+                }
             } else {
                 this.stopLaser();
             }
@@ -3834,6 +3835,13 @@ function Game()
         {
             if(this.boosting) {
                 playerTrails.push(new PlayerTrail(this.ship, this.x, this.y, this.width, this.height, this.activeAnim))
+            }
+
+            if(Keys[19] != 0 && this.secondaryAmmo > 0) {
+                if(this.onTick == 0) {
+                    this.secondaryAmmo -= 2;
+                    if(this.secondaryAmmo < 0) { this.secondaryAmmo = 0; }
+                }
             }
 
             if(this.onTick % 2 == 0) {
