@@ -296,6 +296,7 @@ function Game()
 	document.querySelector("#bgm_dorian").addEventListener("ended",swapBGM,false);
 	document.querySelector("#bgm_euphoria").addEventListener("ended",swapBGM,false);
 	document.querySelector("#bgm_energy").addEventListener("ended",swapBGM,false);
+	document.querySelector("#bgm_boss").addEventListener("ended",swapBGM,false);
 	//Error Detection
 	document.querySelector("#bgm_square").addEventListener("error",swapBGM,false);
 	document.querySelector("#bgm_fast").addEventListener("error",swapBGM,false);
@@ -303,6 +304,7 @@ function Game()
 	document.querySelector("#bgm_dorian").addEventListener("error",swapBGM,false);
 	document.querySelector("#bgm_euphoria").addEventListener("error",swapBGM,false);
 	document.querySelector("#bgm_energy").addEventListener("error",swapBGM,false);
+	document.querySelector("#bgm_boss").addEventListener("error",swapBGM,false);
 
     // Event listener for gamepad connection
     window.addEventListener("gamepadconnected", (e) => {
@@ -385,8 +387,7 @@ function Game()
 		gco = new GameControlObject();
 		gco.Init();
         gco.EquipWeapon(0);
-        gco.EquipWeapon(50);        
-        gco.ResetFuel();
+        gco.EquipWeapon(50);
         menu = new Menu();
         menu.Init()
 		sfx.pause(1);
@@ -409,9 +410,7 @@ function Game()
         player.totalMissiles = 0;
         player.life = 100;
         player.boost = 100;
-        player.x = _buffer.width / 2;
-        player.y = _buffer.height + player.height / 2;
-        gco.ResetFuel();
+        player.resetPosition();
         gco.GoToUpgradeMenu();
         player.resetShield();
         sfx.pause(1);//Pause laser sound on round end
@@ -454,23 +453,37 @@ function Game()
     function GameControlObject()
     {   
         this.Init = function() {
-            this.level = 1; // Starting at 1
+            // Levels
+            this.level = 0;
+            this.levelDefs = {
+                0: {title: "Tutorial"},
+                1: {title: "Level 1 Gauntlet"}, 2: {title: "Level 1 Boss"},
+                3: {title: "Level 2 Gauntlet"}, 4: {title: "Level 2 Boss"},
+                5: {title: "Level 3 Gauntlet"}, 6: {title: "Level 3 Boss"},
+                7: {title: "Level 4 Gauntlet"}, 8: {title: "Level 4 Boss"},
+                9: {title: "Level 5 Gauntlet"}, 10: {title: "Level 5 Boss"},
+                11: {title: "Level 6 Gauntlet"}, 12: {title: "Level 6 Boss"},
+                13: {title: "Level 7 Gauntlet"}, 14: {title: "Level 7 Boss"},
+                15: {title: "Level 8 Gauntlet"}, 16: {title: "Level 8 Boss"},
+                17: {title: "Level 9 Gauntlet"}, 18: {title: "Level 9 Boss"},
+                19: {title: "Level 10 Gauntlet"}, 20: {title: "Level 10 Boss"},
+                21: {title: "Level 11 Gauntlet"}, 22: {title: "Level 11 Boss"},
+                23: {title: "Level 12 Boss"}
+            }
+            this.finalLevel = 23
             this.win = false;
+
             this.enemiesKilled = []; // [enemyNum] = 126
             this.weaponsOwned = []; // [weaponNum] = true
             this.weaponPrice = []; // [weaponNum] = 486 (cores)
             this.ownLaser = false;
             this.laserPrice = 1000;
-            this.levelProgress = 0.0; // Percentage
             this.levelMission = new LevelMission();
             this.extras = [];
             this.extraPrices = [];
-            this.fuelLevel = 1;
             this.onTick = 0;
-            this.missionText = [];
             this.secondaryAmmoPrice = 25;
             this.bgm = null;
-            this.playingBossMusic = false;
             
             this.bossX = 0; // Final Boss X set when boss dies
             this.bossY = 0; // Final Boss Y set when boss dies
@@ -481,7 +494,6 @@ function Game()
             
             this.mustPurchasePrevious = 0;
             this.notEnoughCores = 0;
-            this.levelMission.GenerateObjectives();
             
             this.weaponsOwned[0] = true;//Primary Assult
             this.weaponsOwned[1] = false;//Rapid Fire Assult
@@ -507,13 +519,13 @@ function Game()
             this.bgm.play();
         }
         
-        this.CheckLevelCompletion = function() {
-            if(this.levelMission.CheckCompletion()) {
-                this.level += 1;
-                this.levelMission.ResetObjectives();
-                player.life = 100;
-                player.resetShield();
-            }
+        this.ProgressLevel = function() {
+            this.level += 1;
+            this.levelMission.resetProgress();
+        }
+
+        this.levelTitle = function() {
+            return this.levelDefs[this.level].title;
         }
         
         this.PurchaseWeapon = function(wepID) { //assumes player has the cash/doesn't own weapon
@@ -571,9 +583,6 @@ function Game()
                     player.upgradeShield();
                     break;
                 }
-                case 1: { // Fuel
-                    break;
-                }
                 case 2: { // Secondary Ammo Level
                     player.money -= (player.secondaryAmmoLevel + 1) * 50;
                     player.upgradeSecondaryAmmo();
@@ -588,31 +597,18 @@ function Game()
             }
         }
         
-        this.ResetFuel = function() {
-            let fuelMultiplier = 60; // Base: 60
-            player.currentFuel = this.fuelLevel * fuelMultiplier;
-        }
-        
         this.GoToUpgradeMenu = function() {
             currentGui = 2;//Go to upgradeMenu
             gameState = 0;//Take game out of live mode
             menu.delayNextInput();
             playerInfo = false;
-            this.levelProgress = this.levelMission.GetCompletionPercent();
-            this.CheckLevelCompletion();
             sfx.pause(1);
         }
         
         this.StartLevel = function() {
             currentGui = NULL_GUI_STATE;//default case will Trigger
             gameState = 1;//Put Game in live mode
-            if(this.level > 5 && !this.playingBossMusic) {
-                this.playingBossMusic = true;
-                this.bgm.pause();
-                this.bgm = document.getElementById('bgm_boss');
-                this.bgm.loop = true;
-                this.init_audio();
-            }
+            player.resetPosition();
             ed.initEvent(1); // Fly in to level event
         }
         
@@ -631,16 +627,11 @@ function Game()
             if(this.onTick != ticks) {
                 this.onTick = ticks;
                 if(!gco.win) {
-                    if(this.onTick == 19 && player.isAlive() && this.level < 6) { // Update Fuel
-                        if(player.currentFuel == 0) {
-                            ed.initEvent(2); // Fly out of level event
-                        }
-                        player.currentFuel -= 1;
+                    if(this.levelMission.CheckCompletion()) {
+                        ed.initEvent(2); // Fly out of level event
                     }
                 } else {
-                    if(Math.floor(Math.random() * 4) == 1) {
-                        this.RandomBossExplosion();
-                    }
+                    if(Math.floor(Math.random() * 4) == 1) { this.RandomBossExplosion(); }
                 }
             }
         }
@@ -749,9 +740,7 @@ function Game()
 
             if(this.eventTime <= 0) {
                 this.endEvent();
-                if(!this.dialogue.didDialogueForLevel()) {
-                    this.initEvent(3)
-                }
+                this.initEvent(3);
             }
         }
 
@@ -800,13 +789,13 @@ function Game()
             }
 
             if(this.eventTime <= 0) {
-                if(gco.levelMission.CheckCompletion()) {
-                    gco.goToLevelUpMenu()
+                gco.ProgressLevel();
+                if(gco.levelMission.onBoss()) {
+                    gco.StartLevel();
                 } else {
-                    self.softReset();
-                    gco.GoToUpgradeMenu();	
+                    gco.goToLevelUpMenu();
+                    this.endEvent();
                 }
-                this.endEvent();
             }
         }
 
@@ -836,7 +825,6 @@ function Game()
 
     function Dialogue() {
         let onTick = 0;
-        let dialogueForLevel = [false, false, false, false, false, false];
         let d = null;
         let lineIndex = 0;
         let lineText = "";
@@ -851,13 +839,8 @@ function Game()
             return dialogueFinished;
         }
 
-        this.didDialogueForLevel = function() {
-            return dialogueForLevel[gco.level - 1];
-        }
-
         this.initDialogueForLevel = function() {
-            d = dialogues[gco.level - 1];
-            dialogueForLevel[gco.level - 1] = true;
+            d = introDialogues[gco.level];
 
             // Reset all values controlling the dialogue progression
             dialogueFinished = false;
@@ -966,61 +949,22 @@ function Game()
 
         const drawCharacterPortrait = function(dialogueBoxWidth, dialogueBoxHeight) {
             // Calculate dimensions and position
-            var padding = 16; // Padding around the image
-            // var imageWidth = dialogueBoxHeight - (2 * padding); // Adjust for padding
             var imageWidth = 300; // Adjust for padding
             var imageHeight = imageWidth; // Maintain aspect ratio
-            // var x = (_buffer.width / 2) - (dialogueBoxWidth / 2) + padding; // Left position inside the dialogue box
             var x = (_buffer.width / 2) - 360; // Left position inside the dialogue box
-            // var y = _buffer.height - 130 - (dialogueBoxHeight / 2) + padding; // Vertical centering
             var y = _buffer.height - 344; // Vertical centering
-            var borderRadius = 10; // Radius for rounded corners
 
             // Save the current state of the canvas context
             buffer.save();
 
-            // Draw black background with rounded corners
-            // buffer.fillStyle = 'black';
-            // buffer.beginPath();
-            // buffer.moveTo(x + borderRadius, y);
-            // buffer.arcTo(x + imageWidth, y, x + imageWidth, y + imageHeight, borderRadius);
-            // buffer.arcTo(x + imageWidth, y + imageHeight, x, y + imageHeight, borderRadius);
-            // buffer.arcTo(x, y + imageHeight, x, y, borderRadius);
-            // buffer.arcTo(x, y, x + imageWidth, y, borderRadius);
-            // buffer.closePath();
-            // buffer.fill();
-
-            // Clip the image area to rounded rectangle before drawing the image
-            // buffer.beginPath();
-            // buffer.moveTo(x + borderRadius, y);
-            // buffer.arcTo(x + imageWidth, y, x + imageWidth, y + imageHeight, borderRadius);
-            // buffer.arcTo(x + imageWidth, y + imageHeight, x, y + imageHeight, borderRadius);
-            // buffer.arcTo(x, y + imageHeight, x, y, borderRadius);
-            // buffer.arcTo(x, y, x + imageWidth, y, borderRadius);
-            // buffer.closePath();
-            // buffer.clip();
-
             // Draw image with shadow for emphasis
             buffer.shadowBlur = 1;
             buffer.shadowColor = 'rgb(0, 173, 239)';
-            // buffer.drawImage(portraitImages[d.lines[lineIndex].character], x, y, imageWidth, imageHeight);
             buffer.drawImage(portraitImages[d.lines[lineIndex].character], x, y, imageWidth, imageHeight);
             buffer.shadowBlur = 0;
 
             // Restore the context to remove the clipping path
             buffer.restore();
-
-            // Draw border around the image with rounded corners
-            // buffer.strokeStyle = 'white';
-            // buffer.lineWidth = 4;
-            // buffer.beginPath();
-            // buffer.moveTo(x + borderRadius, y);
-            // buffer.arcTo(x + imageWidth, y, x + imageWidth, y + imageHeight, borderRadius);
-            // buffer.arcTo(x + imageWidth, y + imageHeight, x, y + imageHeight, borderRadius);
-            // buffer.arcTo(x, y + imageHeight, x, y, borderRadius);
-            // buffer.arcTo(x, y, x + imageWidth, y, borderRadius);
-            // buffer.closePath();
-            // buffer.stroke();
         }
 
         const drawDialogueText = function(dialogueBoxWidth, dialogueBoxHeight) {
@@ -1035,13 +979,7 @@ function Game()
             const textAreaWidth = dialogueBoxWidth - portraitWidth - (3 * padding) - 110;
             const textX = _buffer.width / 2 - dialogueBoxWidth / 2 + portraitWidth + (2 * padding) + 110;
             const textY = _buffer.height - (dialogueBoxHeight + 28);
-        
             const maxCharsPerLine = Math.floor(textAreaWidth / charWidth);
-
-            // To see the background of the text uncomment the following
-            // buffer.fillStyle = 'black';
-            // buffer.fillRect(textX, textY, textAreaWidth, dialogueBoxHeight - (2 * padding));
-            
             const words = lineText.split(' ');
             let currentLine = '';
             let currentY = textY;
@@ -1088,44 +1026,127 @@ function Game()
         }
 
         // One dialogue per level
-        let dialogues = [
-            // Level 1
+        let introDialogues = [
+            // Level 0
             {lines: [
-                {character: 0, line: "Athanas, we've reached the edge of the drone fleet."},
-                {character: player.captain, line: "I can see that much, Sato..."},
-                {character: player.captain, line: "...And how many times have I told you to call me Captain."},
-                {character: 0, line: "We're at the edge of it all and that's what you're worried about...?"},
-                {character: 3, line: "Why are you both arguing again?"},
-                {character: 1, line: "Everyone, focus! We have to push forward, it's the last shot we have to save everyone."},
-                {character: 0, line: "You don't have to tell me twice, all systems go CAPTAIN!"},
-                {character: player.captain, line: "Asshole... Ready yourself, here they come!"},
+                {character: 1, line: "Tutorial Dialogue."},
             ]},
 
-            // level 2
+            // Level 1
             {lines: [
-                {character: 0, line: "This is temporary level 2 dialogue..."},
+                {character: 0, line: "Level 1 Dialogue."},
+            ]},
+
+            // Level 2
+            {lines: [
+                {character: 0, line: "Level 1 Boss Dialogue."},
             ]},
 
             // Level 3
             {lines: [
-                {character: 0, line: "This is temporary level 3 dialogue..."},
+                {character: 0, line: "Level 2 Dialogue."},
             ]},
 
             // Level 4
             {lines: [
-                {character: 0, line: "This is temporary level 4 dialogue..."},
+                {character: 0, line: "Level 2 Boss Dialogue."},
             ]},
 
             // Level 5
             {lines: [
-                {character: 0, line: "This is temporary level 5 dialogue..."},
+                {character: 0, line: "Level 3 Dialogue."},
             ]},
 
             // Level 6
             {lines: [
-                {character: 0, line: "This is temporary boss level dialogue..."},
+                {character: 0, line: "Level 3 Boss Dialogue."},
             ]},
-        ]
+
+            // Level 7
+            {lines: [
+                {character: 0, line: "Level 4 Dialogue."},
+            ]},
+
+            // Level 8
+            {lines: [
+                {character: 0, line: "Level 4 Boss Dialogue."},
+            ]},
+
+            // Level 9
+            {lines: [
+                {character: 0, line: "Level 5 Dialogue."},
+            ]},
+
+            // Level 10
+            {lines: [
+                {character: 0, line: "Level 5 Boss Dialogue."},
+            ]},
+
+            // Level 11
+            {lines: [
+                {character: 0, line: "Level 6 Dialogue."},
+            ]},
+
+            // Level 12
+            {lines: [
+                {character: 0, line: "Level 6 Boss Dialogue."},
+            ]},
+
+            // Level 13
+            {lines: [
+                {character: 0, line: "Level 7 Dialogue."},
+            ]},
+
+            // Level 14
+            {lines: [
+                {character: 0, line: "Level 7 Boss Dialogue."},
+            ]},
+
+            // Level 15
+            {lines: [
+                {character: 0, line: "Level 8 Dialogue."},
+            ]},
+
+            // Level 16
+            {lines: [
+                {character: 0, line: "Level 8 Boss Dialogue."},
+            ]},
+
+            // Level 17
+            {lines: [
+                {character: 0, line: "Level 9 Dialogue."},
+            ]},
+
+            // Level 18
+            {lines: [
+                {character: 0, line: "Level 9 Boss Dialogue."},
+            ]},
+
+            // Level 19
+            {lines: [
+                {character: 0, line: "Level 10 Dialogue."},
+            ]},
+
+            // Level 20
+            {lines: [
+                {character: 0, line: "Level 10 Boss Dialogue."},
+            ]},
+
+            // Level 21
+            {lines: [
+                {character: 0, line: "Level 11 Dialogue."},
+            ]},
+
+            // Level 22
+            {lines: [
+                {character: 0, line: "Level 11 Boss Dialogue - Final Boss."},
+            ]},
+
+            // Level 23
+            {lines: [
+                {character: 0, line: "Level 12 Boss Dialogue - Real Final Boss."},
+            ]},
+        ];
     }
 
     function Menu()
@@ -1429,7 +1450,7 @@ function Game()
 	
 	function swapBGM()
 	{
-		switch(Math.floor(Math.random() * 6))
+		switch(Math.floor(Math.random() * 7))
 		{
 			case 0:
 			{
@@ -1461,6 +1482,11 @@ function Game()
 				gco.bgm = document.getElementById('bgm_energy');
 				break;
 			}
+            case 6:
+			{
+				gco.bgm = document.getElementById('bgm_boss');
+				break;
+			}
 			default:{}
 		}
 		gco.init_audio();
@@ -1472,7 +1498,7 @@ function Game()
 		this.explosion = {index: 0, channel: [], channels: 40} // Explosion Channels
 		this.laser = 0; this.laserPlaying = false; // Player Laser Channel
 		this.bossLaser = 0; this.bossLaserPlaying = false; // Boss Laser Channel
-        this.whooshOne = 0; // Whoosh One Channel
+        this.whooshOne = {index: 0, channel: [], channels: 3}; // Whoosh One Channels
         this.dialogueLow = {index: 0, channel: [], channels: 10} // Low Dialogue Channels
         this.dialogueMid = {index: 0, channel: [], channels: 10} // Mid Dialogue Channels
         this.dialogueHigh = {index: 0, channel: [], channels: 10} // High Dialogue Channels
@@ -1520,9 +1546,12 @@ function Game()
             this.bossLaser.loop = true;
 
             // Whoose One
-            this.whooshOne = new Audio('Audio/sfx/woosh-low-long.mp3');
-            this.whooshOne.volume = this.masterVolume;
-            this.whooshOne.preload = 'auto';
+            for(var i = 0; i < this.whooshOne.channels; i++) {
+                var a = new Audio('Audio/sfx/woosh-low-long.mp3');
+                a.volume = this.masterVolume;
+                a.preload = 'auto';
+                this.whooshOne.channel.push(a);
+            }
 
             // Low Dialogues
             for(var i = 0; i < this.dialogueLow.channels; i++) {
@@ -1703,7 +1732,10 @@ function Game()
                     break;
                 }
                 case 3: { // Whoosh One
-                    this.whooshOne.play();
+                    if(this.whooshOne.channel[this.whooshOne.index]) {
+                        this.whooshOne.channel[this.whooshOne.index].play();
+                        this.whooshOne.index += 1; if(this.whooshOne.index > (this.whooshOne.channels - 1)){this.whooshOne.index = 0;}
+                    }
                     break;
                 }
                 case 4: { // Dialogue Low
@@ -1865,7 +1897,7 @@ function Game()
             for(var i = 0; i < this.explosion.channel.length; i++) { this.explosion.channel[i].volume = value; }
             this.laser.volume = value;
             this.bossLaser.volume = value;
-            this.whooshOne.volume = value;
+            for(var i = 0; i < this.whooshOne.channel.length; i++) { this.whooshOne.channel[i].volume = value; }
             for(var i = 0; i < this.dialogueLow.channel.length; i++) { this.dialogueLow.channel[i].volume = value; }
             for(var i = 0; i < this.dialogueMid.channel.length; i++) { this.dialogueMid.channel[i].volume = value; }
             for(var i = 0; i < this.dialogueHigh.channel.length; i++) { this.dialogueHigh.channel[i].volume = value; }
@@ -1892,65 +1924,65 @@ function Game()
 	
 	function LevelMission()
 	{
-		this.objectives = [];
-		this.progress = [];
+        this.bossNums = [100, 101, 102, 103, 104, 105, 106, 107, 109, 110, 111]
+		this.objectives = [
+            {0: 1, boss: false}, // Tutorial
+            {0: 1, boss: false}, // Level 1 Gauntlet
+            {1: 1, boss: true}, // Level 1 Boss
+            {0: 1, 1: 1, boss: false}, // Level 2 Gauntlet
+            {2: 1, boss: true}, // Level 2 Boss
+            {0: 1, 1: 1, 2: 1, boss: false}, // Level 3 Gauntlet
+            {2: 2, boss: true}, // Level 3 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, boss: false}, // Level 4 Gauntlet
+            {3: 1, boss: true}, // Level 4 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, boss: false}, // Level 5 Gauntlet
+            {3: 2, boss: true}, // Level 5 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, boss: false}, // Level 6 Gauntlet
+            {4: 1, boss: true}, // Level 6 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, boss: false}, // Level 7 Gauntlet
+            {4: 2, boss: true}, // Level 7 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, boss: false}, // Level 8 Gauntlet
+            {4: 3, boss: true}, // Level 8 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, boss: false}, // Level 9 Gauntlet
+            {4: 4, boss: true}, // Level 9 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, boss: false}, // Level 10 Gauntlet
+            {4: 5, boss: true}, // Level 10 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, boss: false}, // Level 11 Gauntlet
+            {4: 6, boss: true}, // Level 11 Boss
+            {100: 1, boss: true}, // Level 12 Boss
+        ];
+		this.progress = {};
+
+        this.onBoss = function() {
+            return this.objectives[gco.level].boss
+        }
+
+        this.enemyTypesForLevel = function() {
+            // Returns an array of enemy types: [1, 2, 3]
+            let keys = Object.keys(this.objectives[gco.level]);
+            return keys.filter(item => Number.isInteger(parseInt(item))).map(item => parseInt(item));
+        }
+        
+        this.UpdateProgress = function(enType) {
+            if(!this.progress[enType]) { this.progress[enType] = 0; }
+            this.progress[enType] += 1;
+        }
 		
-		this.GenerateObjectives = function()
-		{
-            let randomMultiplier = 25; // Base: 25
-            let floorAddative = 35; // Base: 35
-			for(var i = 0; i < gco.level; i++)
-			{//For each level, a new enemy type objective is placed on the mission stack.
-				if(gco.level >= 6){ this.objectives.push(0); }
-				else{ this.objectives.push(Math.floor(Math.random() * randomMultiplier) + floorAddative); }
-				this.progress.push(0);
-			}
-		}
-		
-		this.UpdateProgress = function(enType)
-		{
-			this.progress[enType] += 1;
-		}
-		
-		this.CheckCompletion = function()
-		{//returns true if level is complete, else returns false
-			if(gco.level < 6)
-			{
-				var completion = [];
-				for(var i = 0; i < gco.level; i++)
-				{
-					if(this.progress[i] >= this.objectives[i])
-					{
-						//Awesome
-					} else
-					{
-						return false;
-					}
-				}
-				return true;
-			} else
-			{
-				return false;
-			}
-		}
-		
-		this.GetCompletionPercent = function()
-		{
-			var total = 0; var kills = 0;
-			for(var i = 0; i < gco.level; i++)
-			{
-				total += this.objectives[i];
-				if(this.progress[i] > this.objectives[i]){kills += this.objectives[i];} else { kills += this.progress[i]; }
-			}
-			return (kills / total);
-		}
-		
-		this.ResetObjectives = function()
-		{
-			this.objectives = [];
-			this.progress = [];
-			this.GenerateObjectives();
-		}
+        this.CheckCompletion = function() { // returns true if level is complete, else returns false
+            let types = this.enemyTypesForLevel();
+            let keys = Object.keys(this.progress);
+            if(keys.length < types.length) { return false; }
+            let obj = this.objectives[gco.level];
+            for(let i = 0; i < types.length; i++) {
+                if(obj[types[i]] == undefined) { continue; } // Skip if the enemy type is not required to progress the level
+                if(this.progress[types[i]] < obj[types[i]]) { return false; }
+            }
+            return true;
+        }
+
+        this.resetProgress = function() {
+            this.progress = {};
+        }
 	}
 
     function ForegroundGeneration()
@@ -2384,155 +2416,123 @@ function Game()
 	{
 		this.hasBoss = false;
 		this.onTick = 0;
-		this.generate = function(lev)
-		{
-            if(!this.hasBoss || (bossPhase != -1 && bossPhase > 3))
-            {
-                if(ticks != this.onTick)
-                {
-                    this.onTick = ticks;
-                    //Random enemy spawning with random levels
-                    for(var i = 0; i <= lev; i++)
-                    {
-                        var rand = Math.floor(Math.random() * 30);
-                        if(rand == 10)
-                        {
-                            var theType = -1;
-                            while(true)
-                            {//logic to only generate 1 boss
-                                theType = Math.round(Math.random() * (lev - 1));
-                                if(gco.level > 5)
-                                {
-                                    if(theType == 5 && this.hasBoss)
-                                    {
-                                        continue;
-                                    } else {
-                                        break;
-                                    }
-                                } else {
-                                    break;
-                                }
+		this.generate = function() {
+            if(this.hasBoss && (bossPhase == -1 || bossPhase <= 3)) { return; }
+
+            if(ticks != this.onTick) {
+                this.onTick = ticks;
+                let types = gco.levelMission.enemyTypesForLevel();
+                for(var i = 0; i <= types.length; i++) {
+                    if(Math.floor(Math.random() * 30) != 10) { continue; } // 1 in 30 chance
+                    let type = types[i];
+                    // Only Generates 1 boss ship at a time
+                    let isBossType = gco.levelMission.bossNums.includes(type);
+                    if(isBossType && this.hasBoss) { type = Math.floor(Math.random() * 5); }
+                    var startingX = Math.floor(Math.random() * _buffer.width);
+                    var theSpeed = 0;
+                    var theDmg = 0;
+                    var theLife = 0;
+                    var Cores = 0;
+                    var height = 0;
+                    var width = 0;
+                    var model = 0;
+                    var points = 0;
+                    switch(type) {
+                        case 0: { // Drones
+                            theLife = Math.round(Math.random() * 4) + 2;
+                            theSpeed = Math.round(Math.random() * 50) + 50;
+                            theDmg = Math.round(Math.random() * 5) + 5;
+                            Cores = Math.round(Math.random() * 2) + 1;
+                            if(theDmg > 7){model = 1; points = 2;} else {model = 0; points = 1;}
+                            width = 15;
+                            height = 25;
+                            break;
+                        }
+                        case 1: { // Weavers
+                            theLife = Math.round(Math.random() * 10) + 7;
+                            theSpeed = Math.round(Math.random() * 50) + 50;
+                            theDmg = Math.round(Math.random() * 7) + 7;
+                            Cores = Math.round(Math.random() * 5) + 1;
+                            if(theDmg > 10){model = 3; points = 4;} else {model = 2; points = 3;}
+                            width = 31;
+                            height = 21;
+                            break;
+                        }
+                        case 2: { // Kamakaze Ships
+                            theLife = Math.round(Math.random() * 15) + 10;
+                            theSpeed = Math.round(Math.random() * 150) + 200;
+                            theDmg = Math.round(Math.random() * 10) + 10;
+                            if(theDmg >= 16) {
+                                model = 5;
+                                theDmg = Math.round(Math.random() * 10) + 10;
+                                Cores = Math.round(Math.random() * 15) + 10;
+                                points = 6;
+                            } else {
+                                points = 5;
+                                model = 4;
+                                theDmg = Math.round(Math.random() * 9) + 9;
+                                Cores = Math.round(Math.random() * 5) + 1;
                             }
-                            var startingX = Math.floor(Math.random() * _buffer.width);
-                            var theSpeed = 0;
-                            var theDmg = 0;
-                            var theLife = 0;
-                            var Cores = 0;
-                            var height = 0;
-                            var width = 0;
-                            var model = 0;
-                            var points = 0;
-                            switch(theType)
-                            {
-                                case 0:
-                                {//Drones
-                                    theLife = Math.round(Math.random() * 4) + 2;
-                                    theSpeed = Math.round(Math.random() * 50) + 50;
-                                    theDmg = Math.round(Math.random() * 5) + 5;
-                                    Cores = Math.round(Math.random() * 2) + 1;
-                                    if(theDmg > 7){model = 1; points = 2;} else {model = 0; points = 1;}
-                                    width = 15;
-                                    height = 25;
-                                    break;
-                                }
-                                case 1:
-                                {//Weavers
-                                    theLife = Math.round(Math.random() * 10) + 7;
-                                    theSpeed = Math.round(Math.random() * 50) + 50;
-                                    theDmg = Math.round(Math.random() * 7) + 7;
-                                    Cores = Math.round(Math.random() * 5) + 1;
-                                    if(theDmg > 10){model = 3; points = 4;} else {model = 2; points = 3;}
-                                    width = 31;
-                                    height = 21;
-                                    break;
-                                }
-                                case 2:
-                                {//Kamakaze Ships
-                                    theLife = Math.round(Math.random() * 15) + 10;
-                                    theSpeed = Math.round(Math.random() * 150) + 200;
-                                    theDmg = Math.round(Math.random() * 10) + 10;
-                                    if(theDmg >= 16)
-                                    {
-                                        model = 5;
-                                        theDmg = Math.round(Math.random() * 10) + 10;
-                                        Cores = Math.round(Math.random() * 15) + 10;
-                                        points = 6;
-                                    }else 
-                                    {
-                                        points = 5;
-                                        model = 4;
-                                        theDmg = Math.round(Math.random() * 9) + 9;
-                                        Cores = Math.round(Math.random() * 5) + 1;
-                                    }
-                                    width = 21;
-                                    height = 31;
-                                    break;
-                                }
-                                case 3:
-                                {//Splitters
-                                    theLife = Math.round(Math.random() * 20) + 20;
-                                    theSpeed = Math.round(Math.random() * 35) + 35;
-                                    theDmg = Math.round(Math.random() * 15) + 15;
-                                    if(theDmg >= 23)
-                                    {
-                                        points = 8;
-                                        model = 8;
-                                        theDmg = Math.round(Math.random() * 17) + 17;
-                                        Cores = Math.round(Math.random() * 30) + 20;
-                                        width = 37;
-                                        height = 31;
-                                    }else 
-                                    {
-                                        points = 7;
-                                        model = 6;
-                                        Cores = Math.round(Math.random() * 25) + 10;
-                                        width = 29;
-                                        height = 30;
-                                    }//Missiles 15 x 31
-                                    break;
-                                }
-                                case 4:
-                                {//Teleporters
-                                    theLife = Math.round(Math.random() * 25) + 15;
-                                    theSpeed = Math.round(Math.random() * 35) + 35;
-                                    theDmg = Math.round(Math.random() * 17) + 17;
-                                    if(theDmg >= 28)
-                                    {
-                                        points = 10;
-                                        theLife = Math.round(Math.random() * 25) + 25;
-                                        model = 11;
-                                        Cores = Math.round(Math.random() * 30) + 20;
-                                        width = 26;
-                                        height = 21;
-                                    }else 
-                                    {
-                                        points = 9;
-                                        model = 10;
-                                        Cores = Math.round(Math.random() * 25) + 10;
-                                        width = 26;
-                                        height = 21;
-                                    }//Missiles 15 x 31
-                                    break;
-                                }
-                                case 5:
-                                {//Boss
-                                    this.hasBoss = true;
-                                    theLife = 500;
-                                    theSpeed = 75;
-                                    theDmg = 75;
-                                    model = 16;
-                                    points = 1000;
-                                    Cores = 1000;
-                                    width = 116;
-                                    height = 72;
-                                    break;
-                                }
-                            }
-                            
-                            enemy = new Enemy(theSpeed, theDmg, theLife, Cores, width, height, model, startingX, 0, theType, points);
-                            enemies.push(enemy);
+                            width = 21;
+                            height = 31;
+                            break;
+                        }
+                        case 3: { // Splitters
+                            theLife = Math.round(Math.random() * 20) + 20;
+                            theSpeed = Math.round(Math.random() * 35) + 35;
+                            theDmg = Math.round(Math.random() * 15) + 15;
+                            if(theDmg >= 23) {
+                                points = 8;
+                                model = 8;
+                                theDmg = Math.round(Math.random() * 17) + 17;
+                                Cores = Math.round(Math.random() * 30) + 20;
+                                width = 37;
+                                height = 31;
+                            } else {
+                                points = 7;
+                                model = 6;
+                                Cores = Math.round(Math.random() * 25) + 10;
+                                width = 29;
+                                height = 30;
+                            }//Missiles 15 x 31
+                            break;
+                        }
+                        case 4: { //Teleporters
+                            theLife = Math.round(Math.random() * 25) + 15;
+                            theSpeed = Math.round(Math.random() * 35) + 35;
+                            theDmg = Math.round(Math.random() * 17) + 17;
+                            if(theDmg >= 28) {
+                                points = 10;
+                                theLife = Math.round(Math.random() * 25) + 25;
+                                model = 11;
+                                Cores = Math.round(Math.random() * 30) + 20;
+                                width = 26;
+                                height = 21;
+                            } else {
+                                points = 9;
+                                model = 10;
+                                Cores = Math.round(Math.random() * 25) + 10;
+                                width = 26;
+                                height = 21;
+                            }//Missiles 15 x 31
+                            break;
+                        }
+                        case 100: { // Main Boss
+                            this.hasBoss = true;
+                            theLife = 500;
+                            theSpeed = 75;
+                            theDmg = 75;
+                            model = 16;
+                            points = 1000;
+                            Cores = 1000;
+                            width = 116;
+                            height = 72;
+                            break;
                         }
                     }
+                    
+                    enemy = new Enemy(theSpeed, theDmg, theLife, Cores, width, height, model, startingX, 0, type, points);
+                    enemies.push(enemy);
                 }
             }
 		}
@@ -2627,7 +2627,7 @@ function Game()
 				}
 				break;
 			}
-			case 5:
+			case 100:
 			{
 				this.ystop = 200;
 				this.circleYStop = 165;
@@ -2849,8 +2849,8 @@ function Game()
 					}
 					return 0;
 				}
-				case 5:
-				{//Boss
+				case 100:
+				{// Final Boss
                     switch(this.phase)
                     {
                         case -1:
@@ -3204,7 +3204,7 @@ function Game()
 	function RandomItemGeneration()
 	{// randomItems[]
 		this.onTick = 0;
-		this.generate = function(lev)
+		this.generate = function()
 		{
 			if(ticks != this.onTick)
 			{
@@ -3282,7 +3282,7 @@ function Game()
 					case 3:
 					{// Corez!!!
 						this.used = true;
-						var newAmount = 25 * gco.level;
+						var newAmount = 25 * self.clamp(gco.level + 1, 1, 8);
 						player.money += newAmount;
 						totalCores += newAmount;
 						break;	
@@ -3569,9 +3569,7 @@ function Game()
         this.weaponFunc = true;//Used for weapon effects
         this.didShoot = false;
         this.onTick = 0;
-        this.money = 0;
-        this.currentFuel = 60; // Base 60
-        this.MAX_FUEL = 60;
+        this.money = 20000;
 
         this.isPewing = false;
         this.pewTick = 0;
@@ -3595,6 +3593,10 @@ function Game()
             this.secondaryAmmo = 50;
             this.lives = 3;
             this.money = 0;
+            this.resetPosition();
+        }
+
+        this.resetPosition = function() {
             this.x = _buffer.width / 2;
             this.y = _buffer.height + this.height / 2;
         }
@@ -4328,7 +4330,7 @@ function Game()
         if(!ed.eventPlaying()) { // If event is not playing
             if(!paused && gameState == 1 && !gco.win) {
                 gco.Update(); // Game Control Object Update
-                enemyGeneration.generate(gco.level); // Random Enemy Generation
+                enemyGeneration.generate(); // Random Enemy Generation
                 itemGeneration.generate(); // Random Item Generation
 
                 if(player.isAlive()) { // Update Player
@@ -5424,7 +5426,6 @@ function Game()
 		self.drawAmmoGui();
         self.drawLifeMeter();
         self.drawShieldMeter();
-        self.drawFuelMeter();
         self.drawBoostMeter();
 		self.drawPlayerLives();
     }
@@ -5595,39 +5596,6 @@ function Game()
 			buffer.closePath();
 		}
     }
-    
-    this.drawFuelMeter = function()
-    {
-        var width = 100;
-        var height = 15;
-        var x1 = 0;
-        var y1 = _buffer.height - 75;
-        var x2 = width;
-        var y2 = y1 + height;
-
-        buffer.beginPath();
-            buffer.fillStyle = "rgba(80, 73, 113, 0.5)";
-            buffer.fillRect(x1, y1, width, height);
-        buffer.closePath();
-        
-        var grd = buffer.createLinearGradient(x1, y1, x2, y2);
-        grd.addColorStop(0, "rgb(80, 73, 113)");
-        grd.addColorStop(1, "rgb(148, 116, 180)");
-		buffer.beginPath();
-            buffer.fillStyle = grd;
-            buffer.fillRect(x1, y1, (player.currentFuel / player.MAX_FUEL) * width, height);
-        buffer.closePath();
-        
-        buffer.beginPath();
-            buffer.strokeStyle = "rgb(255, 255, 255)";
-                buffer.moveTo(x1, y1);
-                buffer.lineTo(x2, y1);
-                buffer.lineTo(x2, y2);
-                buffer.lineTo(x1, y2);
-                buffer.lineTo(x1, y1);
-            buffer.stroke();
-        buffer.closePath();
-    }
 
     this.drawBoostMeter = function()
     {
@@ -5742,99 +5710,9 @@ function Game()
                 guiText[2] = new GUIText("Artillery", 10, 420, "20px VT323", "left", "top", "rgb(230, 230, 255)");
                 guiText[3] = new GUIText("Cores: " + player.money, _canvas.width - 100, _canvas.height - 53, "20px VT323", "left", "top", "rgb(230, 230, 255)");
                 guiText[4] = new GUIText("Extra Items", _canvas.width - 300, 420, "20px VT323", "left", "top", "rgb(230, 230, 255)");
-                guiText[7] = new GUIText("Level " + gco.level, 5, _buffer.height / 2 - 76, "20px VT323", "left", "top", "rgb(230, 230, 255)");
+                guiText[7] = new GUIText(gco.levelTitle(), 5, _buffer.height / 2 - 76, "20px VT323", "left", "top", "rgb(230, 230, 255)");
 				guiText[8] = new GUIText("", _canvas.width - 271, 448, "20px VT323", "left", "top", "rgb(0, 0, 0)");
 				guiText[9] = new GUIText("", _canvas.width - 221, 448, "20px VT323", "left", "top", "rgb(0, 0, 0)");
-
-
-//**********************************************************************//
-//					    MISSION MENU SECTION							//
-//**********************************************************************//
-                var drawX = 10;
-                var drawY = 50;
-                var j = 0;
-                for(var i = 0; i < gco.levelMission.objectives.length; i++)
-                {
-                    j++;
-                    var outText = "";
-                    switch(i)
-                    {//Case Cooresponds to enemy types, enemy type missions cooresponds to level.
-                        case 0:{outText += "Drone Kills: "; break;}
-                        case 1:{outText += "Weaver Kills: "; break;}
-                        case 2:{outText += "Kamakaze Kills: "; break;}
-                        case 3:{outText += "Splitter Kills: "; break;}
-                        case 4:{outText += "Teleporter Kills: "; break;}
-						case 5:{outText += "Drone Core... Time to Kill all the Things! Ready yourself, there is no turning back! "; break;}
-                        default:{outText += "Level Not Added: "; break;}
-                    }
-					if(i != 5)
-					{
-						gco.missionText[i] = new GUIText(outText + gco.levelMission.progress[i] + "/" + gco.levelMission.objectives[i], drawX, drawY, "16px VT323", "left", "top", "rgb(230, 230, 255)");
-					} else
-					{
-						gco.missionText[i] = new GUIText(outText, drawX, drawY, "16px VT323", "left", "top", "rgb(230, 230, 255)");
-					}
-                    if(j == 4)
-                    {
-                        j = 0;
-                        drawY = 50;
-                        drawX += 200;
-                    } else
-                    {
-                        drawY += 35;
-                    }
-                }
-//**********************************************************************//
-//					   END MISSION MENU SECTION							//
-//**********************************************************************//
-									
-				var xDrawOffset = 160;
-                buffer.beginPath();
-                for(var i = 0; i < gco.missionText.length; i++)
-                {
-                    buffer.fillStyle = gco.missionText[i].color;
-                    buffer.font = gco.missionText[i].fontStyle;
-                    buffer.textAlign = gco.missionText[i].alignX;
-                    buffer.textBaseline = gco.missionText[i].alignY;
-                    buffer.fillText(gco.missionText[i].text, gco.missionText[i].x, gco.missionText[i].y);
-					switch(i){
-						case 0:{ buffer.drawImage(enemyImages[0], gco.missionText[i].x + xDrawOffset, gco.missionText[i].y - 5, enemyImages[0].width, enemyImages[0].height); break;}
-						case 1:{ buffer.drawImage(enemyImages[2], gco.missionText[i].x + xDrawOffset, gco.missionText[i].y - 5, enemyImages[2].width, enemyImages[2].height); break;}
-						case 2:{ buffer.drawImage(enemyImages[4], gco.missionText[i].x + xDrawOffset, gco.missionText[i].y - 5, enemyImages[4].width, enemyImages[4].height); break;}
-						case 3:{ buffer.drawImage(enemyImages[6], gco.missionText[i].x + xDrawOffset, gco.missionText[i].y - 5, enemyImages[6].width, enemyImages[6].height); break;}
-						case 4:{ buffer.drawImage(enemyImages[11], gco.missionText[i].x + xDrawOffset, gco.missionText[i].y - 5, enemyImages[11].width, enemyImages[11].height); break;}
-					}
-                }
-                buffer.closePath();
-            // Level Progress Meter
-                var LPM_width = _buffer.width;
-                var LPM_height = 20;
-                var LPM_x1 = 0;
-                var LPM_y1 = _buffer.height / 2 - 75;
-                var LPM_x2 = LPM_width;
-                var LPM_y2 = LPM_y1 + LPM_height;
-
-                buffer.beginPath();
-                    buffer.fillStyle = "rgba(0, 192, 255, 0.5)";
-                    buffer.fillRect(LPM_x1, LPM_y1, LPM_width, LPM_height);
-                buffer.closePath();
-                var LPM_grd = buffer.createLinearGradient(LPM_x1, LPM_y1, LPM_x2, LPM_y2);
-                LPM_grd.addColorStop(0, "rgb(0, 0, 255)");
-                LPM_grd.addColorStop(1, "rgb(0, 192, 255)");
-                buffer.beginPath();
-                    buffer.fillStyle = LPM_grd;
-                    buffer.fillRect(LPM_x1, LPM_y1, LPM_width * gco.levelProgress, LPM_height);
-                buffer.closePath();
-                
-                buffer.beginPath();
-                    buffer.strokeStyle = "rgb(255, 255, 255)";
-                        buffer.moveTo(LPM_x1, LPM_y1);
-                        buffer.lineTo(LPM_x2, LPM_y1);
-                        buffer.lineTo(LPM_x2, LPM_y2);
-                        buffer.lineTo(LPM_x1, LPM_y2);
-                        buffer.lineTo(LPM_x1, LPM_y1);
-                    buffer.stroke();
-                buffer.closePath();
                 
                 if(menu.states[2][1][3] || (mouseX > (_canvas.width - 210) && mouseX < (_canvas.width - 10) && mouseY < (278) && mouseY > (250)))
                 {//Start Level
@@ -5847,7 +5725,6 @@ function Game()
                 }
 
                 // Bottom text tooltip initialization
-                //guiText[6] = new GUIText("Select item to purchase.", _canvas.width / 2, _canvas.height - 33, "16px VT323", "center", "top", "rgb(230, 230, 255)");
 				guiText[6] = new GUIText("", _canvas.width / 2, _canvas.height - 53, "18px VT323", "center", "top", "rgb(230, 230, 255)");
 				guiText[10] = new GUIText("", _canvas.width / 2, _canvas.height - 303, "16px VT323", "center", "top", "rgb(230, 230, 255)");
 				guiText[11] = new GUIText("", _canvas.width / 2, _canvas.height - 303, "16px VT323", "center", "top", "rgb(230, 230, 255)");
@@ -6260,7 +6137,7 @@ function Game()
 			case 4:
 			{// Level Up Menu
                 guiText[0] = new GUIText("Level Up!", _canvas.width / 2, _canvas.height / 2 - 150, "44px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
-                guiText[1] = new GUIText("Now on level: " + (gco.level + 1), _canvas.width / 2, _canvas.height / 2 - 100, "28px VT323", "center", "top", "rgb(255, 0, 0)");						 
+                guiText[1] = new GUIText("Now on " + gco.levelTitle(), _canvas.width / 2, _canvas.height / 2 - 100, "28px VT323", "center", "top", "rgb(255, 0, 0)");						 
                 if(menu.states[4][0] || (mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)) {
                     if(menu.states[4][0]) menu.DrawArrow(3, _canvas.width / 2 - 65, _canvas.height / 2 + 15);
                     guiText[2] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(210, 210, 210)");
@@ -6436,7 +6313,6 @@ function Game()
 			var guiText = [];
 			if(playerInfo)
 			{
-				guiText[0] = new GUIText("Fuel: " + player.currentFuel, 105, _canvas.height - 78, "18px VT323", "left", "top", "rgb(96, 255, 96)");
 				guiText[1] = new GUIText(player.hasShield ? "Shield: " + Math.floor(player.shield) : "" , 105, _canvas.height - 53, "18px VT323", "left", "top", "rgb(96, 255, 96)");
 				guiText[2] = new GUIText("Hull: " + player.life, 105, _canvas.height - 28, "18px VT323", "left", "top", "rgb(96, 255, 96)");
 				guiText[3] = new GUIText("Destroyed: " + destroys, _canvas.width / 2, _canvas.height - 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
