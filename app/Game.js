@@ -789,7 +789,7 @@ function Game()
 
             if(this.eventTime <= 0) {
                 gco.ProgressLevel();
-                if(gco.levelMission.onBoss()) {
+                if(gco.levelMission.shouldImmediatelyStartLevel()) {
                     gco.StartLevel();
                 } else {
                     gco.goToLevelUpMenu();
@@ -1925,6 +1925,7 @@ function Game()
     {
         this.bossNums = [100, 101, 102, 103, 104, 105, 106, 107, 109, 110, 111];
         this.levelsWithBoss = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 23];
+        this.skipLevelUp = [1];
         this.objectives = [
             {0: 1}, // Tutorial
             {0: 1}, // Level 1 Gauntlet
@@ -1955,6 +1956,12 @@ function Game()
 
         this.onBoss = function() {
             return this.levelsWithBoss.includes(gco.level);
+        }
+
+        this.shouldImmediatelyStartLevel = function() {
+            if(this.onBoss()) { return true; }
+            if(this.skipLevelUp.includes(gco.level)) { return true; }
+            return false;
         }
 
         this.enemyTypesForLevel = function() {
