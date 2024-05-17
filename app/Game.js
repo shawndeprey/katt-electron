@@ -104,134 +104,120 @@ function Game()
 		}
 	}
 	var numImagesLoaded = 0;
-        // Graphics
-        var starImages = [];
-        for(var i = 0; i < starTypes; i++)
-        {
-            starImages[i] = new Image();
-            starImages[i].addEventListener('load', self.loadedImage, false);
-            starImages[i].addEventListener('error', function() {
-                console.log('Error loading image: Graphics/Stars/star_' + i + '.png');
-            });
-            starImages[i].src = ('Graphics/Stars/star_' + i + '.png');
-        }
+    // Graphics
+    var starImages = [];
+    for(var i = 0; i < starTypes; i++) {
+        starImages[i] = new Image();
+        starImages[i].addEventListener('load', self.loadedImage, false);
+        starImages[i].addEventListener('error', function() {
+            console.log('Error loading image: Graphics/Stars/star_' + i + '.png');
+        });
+        starImages[i].src = ('Graphics/Stars/star_' + i + '.png');
+    }
 
-        var portraitImages = [];
-        for(var i = 0; i < 6; i++)
-        {
-            portraitImages[i] = new Image();
-            portraitImages[i].addEventListener('load', self.loadedImage, false);
-            portraitImages[i].addEventListener('error', function() {
-                console.log('Error loading image: Graphics/NPC/portrait_' + i + '.png');
-            });
-            portraitImages[i].src = ('Graphics/NPC/portrait_' + i + '.png');
-        }
+    var portraitImages = [];
+    for(var i = 0; i < 6; i++) {
+        portraitImages[i] = new Image();
+        portraitImages[i].addEventListener('load', self.loadedImage, false);
+        portraitImages[i].addEventListener('error', function() {
+            console.log('Error loading image: Graphics/NPC/portrait_' + i + '.png');
+        });
+        portraitImages[i].src = ('Graphics/NPC/portrait_' + i + '.png');
+    }
 
-        var fgImages = [];
-        for(var i = 0; i < 12; i++) {
-            fgImages[i] = new Image();
-            fgImages[i].addEventListener('load', self.loadedImage, false);
-            fgImages[i].addEventListener('error', function() {
-                console.log('Error loading image: Graphics/Foreground/fg_' + i + '.png');
-            });
-            fgImages[i].src = ('Graphics/Foreground/fg_' + i + '.png');
-        }
-		
-        var images = [];
-        for(var i = 0; i < 14; i++)
-        {
-            images[i] = new Image();
-			images[i].addEventListener('load', self.loadedImage, false);
-            images[i].src = ('Graphics/GUI_0' + i + '.png');
-        }
-        
-        var enemyImages = [];
-        for(var i = 0; i < 21; i++)
-        {
-            enemyImages[i] = new Image();
-			enemyImages[i].addEventListener('load', self.loadedImage, false);
-            enemyImages[i].src = ('Graphics/ship_' + i + '.png');
-        }
-        
-        var playerImages1 = [];
-        for(var i = 0; i < 20; i++)
-        {
-            playerImages1[i] = new Image();
-			playerImages1[i].addEventListener('load', self.loadedImage, false);
-            playerImages1[i].src = ('Graphics/Player/ship1/normal/player_' + i + '.png');
-        }
+    var fgImages = [];
+    for(var i = 0; i < 12; i++) {
+        fgImages[i] = new Image();
+        fgImages[i].addEventListener('load', self.loadedImage, false);
+        fgImages[i].addEventListener('error', function() {
+            console.log('Error loading image: Graphics/Foreground/fg_' + i + '.png');
+        });
+        fgImages[i].src = ('Graphics/Foreground/fg_' + i + '.png');
+    }
+    
+    var images = [];
+    for(var i = 0; i < 14; i++) {
+        images[i] = new Image();
+        images[i].addEventListener('load', self.loadedImage, false);
+        images[i].src = ('Graphics/GUI_0' + i + '.png');
+    }
+    
+    var enemyImages = [];
+    for(var i = 0; i < 21; i++) {
+        enemyImages[i] = new Image();
+        enemyImages[i].addEventListener('load', self.loadedImage, false);
+        enemyImages[i].src = ('Graphics/ship_' + i + '.png');
+    }
+    
+    var playerImages1 = [];
+    for(var i = 0; i < 20; i++) {
+        playerImages1[i] = new Image();
+        playerImages1[i].addEventListener('load', self.loadedImage, false);
+        playerImages1[i].src = ('Graphics/Player/ship1/normal/player_' + i + '.png');
+    }
 
-        var playerImages2 = [];
-        for(var i = 0; i < 20; i++)
-        {
-            playerImages2[i] = new Image();
-			playerImages2[i].addEventListener('load', self.loadedImage, false);
-            playerImages2[i].src = ('Graphics/Player/ship2/normal/player_' + i + '.png');
-        }
+    var playerImages2 = [];
+    for(var i = 0; i < 20; i++) {
+        playerImages2[i] = new Image();
+        playerImages2[i].addEventListener('load', self.loadedImage, false);
+        playerImages2[i].src = ('Graphics/Player/ship2/normal/player_' + i + '.png');
+    }
 
-        var playerImages3 = [];
-        for(var i = 0; i < 20; i++)
-        {
-            playerImages3[i] = new Image();
-			playerImages3[i].addEventListener('load', self.loadedImage, false);
-            playerImages3[i].src = ('Graphics/Player/ship3/normal/player_' + i + '.png');
-        }
+    var playerImages3 = [];
+    for(var i = 0; i < 20; i++) {
+        playerImages3[i] = new Image();
+        playerImages3[i].addEventListener('load', self.loadedImage, false);
+        playerImages3[i].src = ('Graphics/Player/ship3/normal/player_' + i + '.png');
+    }
 
-        var playerImages4 = [];
-        for(var i = 0; i < 20; i++)
-        {
-            playerImages4[i] = new Image();
-			playerImages4[i].addEventListener('load', self.loadedImage, false);
-            playerImages4[i].src = ('Graphics/Player/ship4/normal/player_' + i + '.png');
-        }
+    var playerImages4 = [];
+    for(var i = 0; i < 20; i++) {
+        playerImages4[i] = new Image();
+        playerImages4[i].addEventListener('load', self.loadedImage, false);
+        playerImages4[i].src = ('Graphics/Player/ship4/normal/player_' + i + '.png');
+    }
 
-        var playerImages5 = [];
-        for(var i = 0; i < 20; i++)
-        {
-            playerImages5[i] = new Image();
-			playerImages5[i].addEventListener('load', self.loadedImage, false);
-            playerImages5[i].src = ('Graphics/Player/ship5/normal/player_' + i + '.png');
-        }
+    var playerImages5 = [];
+    for(var i = 0; i < 20; i++) {
+        playerImages5[i] = new Image();
+        playerImages5[i].addEventListener('load', self.loadedImage, false);
+        playerImages5[i].src = ('Graphics/Player/ship5/normal/player_' + i + '.png');
+    }
 
-        var playerImages6 = [];
-        for(var i = 0; i < 20; i++)
-        {
-            playerImages6[i] = new Image();
-			playerImages6[i].addEventListener('load', self.loadedImage, false);
-            playerImages6[i].src = ('Graphics/Player/ship6/normal/player_' + i + '.png');
-        }
+    var playerImages6 = [];
+    for(var i = 0; i < 20; i++) {
+        playerImages6[i] = new Image();
+        playerImages6[i].addEventListener('load', self.loadedImage, false);
+        playerImages6[i].src = ('Graphics/Player/ship6/normal/player_' + i + '.png');
+    }
 
-        var playerImages7 = [];
-        for(var i = 0; i < 20; i++)
-        {
-            playerImages7[i] = new Image();
-			playerImages7[i].addEventListener('load', self.loadedImage, false);
-            playerImages7[i].src = ('Graphics/Player/ship7/normal/player_' + i + '.png');
-        }
+    var playerImages7 = [];
+    for(var i = 0; i < 20; i++) {
+        playerImages7[i] = new Image();
+        playerImages7[i].addEventListener('load', self.loadedImage, false);
+        playerImages7[i].src = ('Graphics/Player/ship7/normal/player_' + i + '.png');
+    }
 
-        var playerImages8 = [];
-        for(var i = 0; i < 20; i++)
-        {
-            playerImages8[i] = new Image();
-			playerImages8[i].addEventListener('load', self.loadedImage, false);
-            playerImages8[i].src = ('Graphics/Player/ship8/normal/player_' + i + '.png');
-        }
-        
-        var itemImages = [];
-        for(var i = 0; i < 5; i++)
-        {
-            itemImages[i] = new Image();
-			itemImages[i].addEventListener('load', self.loadedImage, false);
-            itemImages[i].src = ('Graphics/item_0' + i + '.png')
-        }
+    var playerImages8 = [];
+    for(var i = 0; i < 20; i++) {
+        playerImages8[i] = new Image();
+        playerImages8[i].addEventListener('load', self.loadedImage, false);
+        playerImages8[i].src = ('Graphics/Player/ship8/normal/player_' + i + '.png');
+    }
+    
+    var itemImages = [];
+    for(var i = 0; i < 5; i++) {
+        itemImages[i] = new Image();
+        itemImages[i].addEventListener('load', self.loadedImage, false);
+        itemImages[i].src = ('Graphics/item_0' + i + '.png')
+    }
 
-		var logoImages = [];
-        for(var i = 0; i < 1; i++)
-        {
-            logoImages[i] = new Image();
-			logoImages[i].addEventListener('load', self.loadedImage, false);
-            logoImages[i].src = ('Graphics/Logo.png')
-        }
+    var logoImages = [];
+    for(var i = 0; i < 1; i++) {
+        logoImages[i] = new Image();
+        logoImages[i].addEventListener('load', self.loadedImage, false);
+        logoImages[i].src = ('Graphics/Logo.png')
+    }
 
 	var numOfImages = (starImages.length + images.length + enemyImages.length + playerImages1.length + playerImages2.length + playerImages3.length 
         + playerImages4.length + playerImages5.length + playerImages6.length + playerImages7.length + playerImages8.length  
@@ -408,10 +394,9 @@ function Game()
         destroys = 0;
         totalShots += player.totalMissiles;
         player.totalMissiles = 0;
-        player.life = 100;
-        player.boost = 100;
+        player.resetLife();
+        player.resetBoost();
         player.resetPosition();
-        gco.GoToUpgradeMenu();
         player.resetShield();
         sfx.pause(1);//Pause laser sound on round end
         enemyGeneration.hasBoss = false;
@@ -612,8 +597,7 @@ function Game()
         }
         
         this.ShowContinueScreen = function() {
-            player.lives -= 1;
-            currentGui = player.lives < 0 ? 5 : 3; // Game Over or Continue
+            currentGui = 3; // Continue(3), Game Over(5)
             menu.addLongDelay();
         }
         
@@ -789,6 +773,7 @@ function Game()
 
             if(this.eventTime <= 0) {
                 gco.ProgressLevel();
+                // 
                 if(gco.levelMission.shouldImmediatelyStartLevel()) {
                     gco.StartLevel();
                 } else {
@@ -1366,7 +1351,7 @@ function Game()
                     break;
                 }
                 case 3: { // Continue Menu
-                    if(this.states[3][0]){ currentGui = NULL_GUI_STATE; self.softReset(); this.delayNextInput(); sfx.play(8);}
+                    if(this.states[3][0]){ gco.levelMission.nextOnDeath(); }
                     if(this.states[3][1]){ self.hardReset(); this.delayNextInput(); sfx.play(9); }
                     if(this.states[3][2]){ ipcRenderer.send('quit-app'); }
                     break;
@@ -1954,6 +1939,19 @@ function Game()
         ];
         this.progress = {};
 
+        this.nextOnDeath = function() {
+            currentGui = NULL_GUI_STATE;
+            self.softReset();
+            if([0, 1, 2].includes(gco.level)) {
+                this.resetProgress();
+                gco.StartLevel();
+            } else {
+                gco.GoToUpgradeMenu();
+                menu.delayNextInput();
+                sfx.play(8);
+            }
+        }
+
         this.onBoss = function() {
             return this.levelsWithBoss.includes(gco.level);
         }
@@ -1976,6 +1974,7 @@ function Game()
         }
         
         this.GauntletComplete = function() { // returns true if level is complete, else returns false
+            if(!player.isAlive()) { return; }
             let types = this.enemyTypesForLevel();
             const includesBossNums = types.some(type => this.bossNums.includes(type));
             if(includesBossNums) { return false; }
@@ -3559,7 +3558,6 @@ function Game()
         this.height = Height;
         this.totalMissiles = 0;
         this.life = 100;
-        this.lives = 3;
         this.maxLife = 100;
         this.shieldLevel = 0;
         this.shield = 100;
@@ -3594,15 +3592,23 @@ function Game()
 
         this.ResetAll = function() {
             this.totalMissiles = 0;
-            this.life = 100;
+            this.resetLife();
+            this.resetBoost();
             this.shieldLevel = 0;
             this.recharge = true;
             this.secondaryAmmoLevel = 0;
             this.maxSecondaryAmmo = 50;
             this.secondaryAmmo = 50;
-            this.lives = 3;
             this.money = 0;
             this.resetPosition();
+        }
+
+        this.resetLife = function() {
+            this.life = this.maxLife;
+        }
+
+        this.resetBoost = function() {
+            this.boost = this.maxBoost;
         }
 
         this.resetPosition = function() {
@@ -3617,18 +3623,15 @@ function Game()
     
         this.DamagePlayer = function(dmg)
         {
-            if(this.hasShield && this.shield > 0)
-            {
+            if(this.hasShield && this.shield > 0) {
                 this.shield -= dmg * 3;
-            } else
-            {
-                if(this.invicibility == false){
+            } else {
+                if(this.invicibility == false) {
                     this.life -= dmg;
-                    if(this.life < 0){this.life = 0;}
+                    if(this.life < 0){ this.life = 0; }
                 }
             }
-            if(!this.isAlive())
-            { 
+            if(!this.isAlive()) { 
                 gco.ShowContinueScreen();
                 sfx.play(0);
                 explosion = new Explosion(player.x, player.y, 350, 5, 200, 0.1, 3, 0.1);
@@ -4662,13 +4665,9 @@ function Game()
 			}
 			case 3:
 			{// Continue Menu
-				if(mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 &&
-				   mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)
-				{
-					currentGui = NULL_GUI_STATE;
-					self.softReset();
-                    sfx.play(8);
-				}
+                if(mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10) {
+                    gco.levelMission.nextOnDeath();
+                }
 				if(mouseX > (_canvas.width / 2 + 10) - 61 && mouseX < (_canvas.width / 2 + 10) + 43 && mouseY < (_canvas.height / 2 + 53) + 20 && mouseY > (_canvas.height / 2 + 50) )
                 {
 					self.hardReset();
@@ -5444,36 +5443,7 @@ function Game()
         self.drawLifeMeter();
         self.drawShieldMeter();
         self.drawBoostMeter();
-		self.drawPlayerLives();
     }
-	
-	this.drawPlayerLives = function()
-	{
-		var xOffset = 0;
-		for(var i = 0; i < player.lives; i++)
-		{
-            if(player.ship == 2){
-                buffer.drawImage(playerImages2[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }else if (player.ship == 3){
-                buffer.drawImage(playerImages3[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }else if (player.ship == 4){
-                buffer.drawImage(playerImages4[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }else if (player.ship == 5){
-                buffer.drawImage(playerImages5[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }else if (player.ship == 6){
-                buffer.drawImage(playerImages6[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }else if (player.ship == 7){
-                buffer.drawImage(playerImages7[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }else if (player.ship == 8){
-                buffer.drawImage(playerImages8[0], _buffer.width - (84 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }else{
-                buffer.drawImage(playerImages1[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }
-			
-            if(player.ship == 8) xOffset += 28;
-            else xOffset += 20;
-		}
-	}
 	
 	this.drawAmmoGui = function()
 	{
@@ -5619,7 +5589,7 @@ function Game()
         var width = 100;
         var height = 15;
         var x1 = 0;
-        var y1 = _buffer.height - 150;
+        var y1 = _buffer.height - 75;
         var x2 = width;
         var y2 = y1 + height;
 
@@ -6325,35 +6295,31 @@ function Game()
 			}
 			delete guiText;
 			//End Debug
-			
+
 			// Player Info
-			var guiText = [];
-			if(playerInfo)
-			{
-				guiText[1] = new GUIText(player.hasShield ? "Shield: " + Math.floor(player.shield) : "" , 105, _canvas.height - 53, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[2] = new GUIText("Hull: " + player.life, 105, _canvas.height - 28, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[3] = new GUIText("Destroyed: " + destroys, _canvas.width / 2, _canvas.height - 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[4] = new GUIText("Cores: " + player.money, _canvas.width / 2, _canvas.height - 53, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[5] = new GUIText("Score: " + score, _canvas.width - 100, 20, "12px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[6] = new GUIText("Boost: " + Math.round(player.boost), 105, _canvas.height - 152, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-			} else
-			{
-                if(gameState == 1)
-                {
+            var guiText = [];
+            if(playerInfo) {
+                guiText[0] = new GUIText(player.hasShield ? "Shield: " + Math.floor(player.shield) : "" , 105, _canvas.height - 53, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[1] = new GUIText("Hull: " + player.life, 105, _canvas.height - 28, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[2] = new GUIText("Destroyed: " + destroys, _canvas.width / 2, _canvas.height - 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[3] = new GUIText("Cores: " + player.money, _canvas.width / 2, _canvas.height - 53, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[4] = new GUIText("Score: " + score, _canvas.width - 100, 20, "12px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[5] = new GUIText("Boost: " + Math.round(player.boost), 105, _canvas.height - 77, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+            } else {
+                if(gameState == 1) {
                     guiText[0] = new GUIText("[E] Ship Info", 105, _canvas.height - 28, "18px VT323", "left", "top", "rgb(96, 255, 96)");
                 }
-			}
-			buffer.beginPath();
-				for(var i = 0; i < guiText.length; i++)
-				{
-					buffer.fillStyle = guiText[i].color;
-					buffer.font = guiText[i].fontStyle;
-					buffer.textAlign = guiText[i].alignX;
-					buffer.textBaseline = guiText[i].alignY;
-					buffer.fillText(guiText[i].text, guiText[i].x, guiText[i].y);
-				}
-			buffer.closePath();
-			delete guiText;
+            }
+            buffer.beginPath();
+                for(var i = 0; i < guiText.length; i++) {
+                    buffer.fillStyle = guiText[i].color;
+                    buffer.font = guiText[i].fontStyle;
+                    buffer.textAlign = guiText[i].alignX;
+                    buffer.textBaseline = guiText[i].alignY;
+                    buffer.fillText(guiText[i].text, guiText[i].x, guiText[i].y);
+                }
+            buffer.closePath();
+            delete guiText;
 			//Must Purchase Previous Weapon Dialogue
 			var guiText = [];
 			if(gameState != 1 && gco.mustPurchasePrevious > 0)
