@@ -3749,6 +3749,9 @@ function Game()
         }
 
         this.drawPlayer = function() {
+            if(this.boosting) {
+                buffer.filter = 'blur(2px)';
+            }
             if(this.ship == 2){
                 if (Keys[1] == 0 && Keys[3] == 0) buffer.drawImage(playerImages2[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
                 if(ed.eventPlaying()) buffer.drawImage(playerImages2[0], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
@@ -3842,7 +3845,7 @@ function Game()
                     if(Keys[3] >= 1 && this.turnAnimR >= 16 && this.turnAnimR <= 19) buffer.drawImage(playerImages1[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);  
                 }  
             }
-
+            buffer.filter = 'none';
         }
 
         this.runOnTick = function()
