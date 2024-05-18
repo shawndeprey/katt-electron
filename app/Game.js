@@ -590,8 +590,8 @@ function Game()
         }
         
         this.StartLevel = function() {
-            currentGui = NULL_GUI_STATE;//default case will Trigger
-            gameState = 1;//Put Game in live mode
+            currentGui = NULL_GUI_STATE; // default case will Trigger
+            gameState = 1; // Put Game in live mode
             player.resetPosition();
             ed.initEvent(1); // Fly in to level event
         }
@@ -680,7 +680,9 @@ function Game()
                 this.eventTime = 60; // 3 Seconds
                 sfx.play(3);
             } else if(this.activeEvent == 3) {
-                this.dialogue.initDialogueForLevel();
+                this.dialogue.initDialogueForLevelIntro();
+            } else if(this.activeEvent == 4) {
+                this.dialogue.initDialogueForLevelOutro();
             }
         }
 
@@ -696,7 +698,7 @@ function Game()
             // Event Updates
             if(this.activeEvent == 1) this.levelIntroUpdate();
             if(this.activeEvent == 2) this.levelOutroUpdate();
-            if(this.activeEvent == 3) this.levelDialogue();
+            if(this.activeEvent == 3 || this.activeEvent == 4) this.dialogueUpdate();
         }
 
         // Event 1
@@ -772,34 +774,36 @@ function Game()
             }
 
             if(this.eventTime <= 0) {
-                gco.ProgressLevel();
-                // 
-                if(gco.levelMission.shouldImmediatelyStartLevel()) {
-                    gco.StartLevel();
-                } else {
-                    gco.goToLevelUpMenu();
-                    this.endEvent();
-                }
+                this.initEvent(4);
             }
         }
 
-        // Event 3
-        this.levelDialogue = function() {
+        this.dialogueUpdate = function() {
             if(this.dialogue.isFinished()) {
-                this.endEvent();
+                if(this.activeEvent == 4) {
+                    gco.ProgressLevel();
+                    if(gco.levelMission.shouldImmediatelyStartLevel()) {
+                        gco.StartLevel();
+                    } else {
+                        this.endEvent();
+                        gco.goToLevelUpMenu();
+                    }
+                } else {
+                    this.endEvent();
+                }
             } else {
                 this.dialogue.Update();
             }
         }
 
         this.Draw = function() {
-            if(this.activeEvent == 3) {
+            if([3, 4].includes(this.activeEvent)) {
                 this.dialogue.Draw();
             }
         }
 
         this.DoInput = function() {
-            if(this.activeEvent == 3) {
+            if([3, 4].includes(this.activeEvent)) {
                 this.dialogue.DoInput();
             }
         }
@@ -823,13 +827,20 @@ function Game()
             return dialogueFinished;
         }
 
-        this.initDialogueForLevel = function() {
+        this.initDialogueForLevelIntro = function() {
             d = introDialogues[gco.level];
+            resetDialogueSteppingValues();
+        }
 
-            // Reset all values controlling the dialogue progression
+        this.initDialogueForLevelOutro = function() {
+            d = outroDialogues[gco.level];
+            resetDialogueSteppingValues();
+        }
+
+        const resetDialogueSteppingValues = function() {
             dialogueFinished = false;
             lineIndex = 0;
-            resetDialogueValues()
+            resetDialogueValues();
         }
 
         const resetDialogueValues = function() {
@@ -1130,6 +1141,127 @@ function Game()
             {lines: [
                 {character: 0, line: "Level 12 Boss Dialogue - Real Final Boss."},
             ]},
+        ];
+
+        // One dialogue per level
+        let outroDialogues = [
+            // Level 0
+            {lines: [
+                {character: 1, line: "Tutorial Outro Dialogue."},
+            ]},
+
+            // Level 1
+            {lines: [
+                {character: 0, line: "Level 1 Outro Dialogue."},
+            ]},
+
+            // Level 2
+            {lines: [
+                {character: 0, line: "Level 1 Boss Outro Dialogue."},
+            ]},
+
+            // Level 3
+            {lines: [
+                {character: 0, line: "Level 2 Outro Dialogue."},
+            ]},
+
+            // Level 4
+            {lines: [
+                {character: 0, line: "Level 2 Boss Outro Dialogue."},
+            ]},
+
+            // Level 5
+            {lines: [
+                {character: 0, line: "Level 3 Outro Dialogue."},
+            ]},
+
+            // Level 6
+            {lines: [
+                {character: 0, line: "Level 3 Boss Outro Dialogue."},
+            ]},
+
+            // Level 7
+            {lines: [
+                {character: 0, line: "Level 4 Outro Dialogue."},
+            ]},
+
+            // Level 8
+            {lines: [
+                {character: 0, line: "Level 4 Boss Outro Dialogue."},
+            ]},
+
+            // Level 9
+            {lines: [
+                {character: 0, line: "Level 5 Outro Dialogue."},
+            ]},
+
+            // Level 10
+            {lines: [
+                {character: 0, line: "Level 5 Boss Outro Dialogue."},
+            ]},
+
+            // Level 11
+            {lines: [
+                {character: 0, line: "Level 6 Outro Dialogue."},
+            ]},
+
+            // Level 12
+            {lines: [
+                {character: 0, line: "Level 6 Boss Outro Dialogue."},
+            ]},
+
+            // Level 13
+            {lines: [
+                {character: 0, line: "Level 7 Outro Dialogue."},
+            ]},
+
+            // Level 14
+            {lines: [
+                {character: 0, line: "Level 7 Boss Outro Dialogue."},
+            ]},
+
+            // Level 15
+            {lines: [
+                {character: 0, line: "Level 8 Outro Dialogue."},
+            ]},
+
+            // Level 16
+            {lines: [
+                {character: 0, line: "Level 8 Boss Outro Dialogue."},
+            ]},
+
+            // Level 17
+            {lines: [
+                {character: 0, line: "Level 9 Outro Dialogue."},
+            ]},
+
+            // Level 18
+            {lines: [
+                {character: 0, line: "Level 9 Boss Outro Dialogue."},
+            ]},
+
+            // Level 19
+            {lines: [
+                {character: 0, line: "Level 10 Outro Dialogue."},
+            ]},
+
+            // Level 20
+            {lines: [
+                {character: 0, line: "Level 10 Boss Outro Dialogue."},
+            ]},
+
+            // Level 21
+            {lines: [
+                {character: 0, line: "Level 11 Outro Dialogue."},
+            ]},
+
+            // Level 22
+            {lines: [
+                {character: 0, line: "Level 11 Boss Outro Dialogue - Final Boss."},
+            ]},
+
+            // Level 23
+            // This level doesn't have an outro dialogue as the final cutscene is triggered by the boss. Search for: gco.win = true
         ];
     }
 
