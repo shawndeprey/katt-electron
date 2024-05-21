@@ -219,9 +219,16 @@ function Game()
         logoImages[i].src = ('Graphics/Logo.png')
     }
 
+    var transitionImages = [];
+    for(var i = 0; i < 1; i++) {
+        transitionImages[i] = new Image();
+        transitionImages[i].addEventListener('load', self.loadedImage, false);
+        transitionImages[i].src = ('Graphics/UI/transition.png')
+    }
+
 	var numOfImages = (starImages.length + images.length + enemyImages.length + playerImages1.length + playerImages2.length + playerImages3.length 
         + playerImages4.length + playerImages5.length + playerImages6.length + playerImages7.length + playerImages8.length  
-        + itemImages.length + logoImages.length + fgImages.length + portraitImages.length);
+        + itemImages.length + logoImages.length + fgImages.length + portraitImages.length + transitionImages.length);
 	
 	
     // Containers
@@ -474,6 +481,8 @@ function Game()
             
             this.credits = new Credits();
             this.story = new Story();
+            this.transition = new Transition();
+            this.transition.Init();
             this.playStory = false;
             
             this.mustPurchasePrevious = 0;
@@ -609,14 +618,22 @@ function Game()
         this.Update = function() {
             if(this.onTick != ticks) {
                 this.onTick = ticks;
-                if(!gco.win) {
-                    if(this.levelMission.GauntletComplete()) {
+                if(gameState == 1 && !ed.eventPlaying()) {
+                    if(!paused && !this.win && this.levelMission.GauntletComplete()) {
                         ed.initEvent(2); // Fly out of level event
                     }
-                } else {
-                    if(Math.floor(Math.random() * 4) == 1) { this.RandomBossExplosion(); }
+                    if(this.win && !gco.credits.isBlackedOut) {
+                        if(Math.floor(Math.random() * 4) == 1) { this.RandomBossExplosion(); }
+                    }
                 }
             }
+            this.transition.Update();
+        }
+
+        this.Draw = function() {
+            this.transition.Draw();
+            if(this.win){ this.credits.Draw(); }
+            if(this.playStory){ this.story.Draw(); }
         }
 
         this.goToLevelUpMenu = function() {
@@ -780,13 +797,13 @@ function Game()
 
         this.dialogueUpdate = function() {
             if(this.dialogue.isFinished()) {
-                if(this.activeEvent == 4) {
+                if(this.activeEvent == 4) { // End of Level Dialogue
                     gco.ProgressLevel();
                     if(gco.levelMission.shouldImmediatelyStartLevel()) {
                         gco.StartLevel();
                     } else {
                         this.endEvent();
-                        gco.goToLevelUpMenu();
+                        gco.transition.toUpgrade();
                     }
                 } else {
                     this.endEvent();
@@ -1265,6 +1282,77 @@ function Game()
         ];
     }
 
+    function Transition() {
+        this.Init = function() {
+            this.active = false;
+            this.transitionId = 0;
+            this.onTick = 0;
+            this.timer = 0;
+        }
+
+        this.Update = function() {
+            if(!this.active) { return; }
+            if(this.onTick != ticks) {
+                this.onTick = ticks;
+                this.timer += 1;
+            }
+            if(this.transitionId == 0) { this.updateTransitionToUpgrade(); }
+        }
+
+        this.Draw = function() {
+            if(!this.active) { return; }
+            if(this.transitionId == 0) { this.drawTransitionToUpgrade(); }
+        }
+
+        // Transition To Upgrade Menu
+        this.toUpgrade = function() {
+            gameState = 0; // Take game out of playing
+            this.transitionId = 0;
+            this.active = true;
+            this.width = _canvas.width;
+            this.height = _canvas.height;
+            this.x = 0;
+            this.startY = -_canvas.height;
+            this.y = this.startY;
+            this.targetY = 0;
+            this.speed = 600;
+            this.timer = 0;
+            this.reachedApex = false;
+            this.exitPlayed = false;
+            sfx.play(24);
+        }
+
+        this.updateTransitionToUpgrade = function() {
+            let moveY = this.speed * delta;
+            if(!this.reachedApex) {
+                if(this.y < this.targetY) {
+                    this.y += moveY;
+                    if(this.y > this.targetY) { this.y = this.targetY; }
+                } else {
+                    this.reachedApex = true;
+                    this.timer = 0;
+                    gco.GoToUpgradeMenu();
+                }
+            } else {
+                if(this.timer < 30) { return; } // Spend 1 second on transition screen
+                if(!this.exitPlayed) {
+                    this.exitPlayed = true;
+                    sfx.play(24);
+                }
+                if(this.y > this.startY) {
+                    this.y -= moveY;
+                    if(this.y < this.startY) { this.y = this.startY; }
+                } else {
+                    this.active = false; // Full Exit Clause
+                }
+            }
+        }
+
+        this.drawTransitionToUpgrade = function() {
+            buffer.drawImage(transitionImages[0], this.x, this.y, this.width, this.height);
+        }
+    }
+
     function Menu()
     {
         this.states = []
@@ -1625,7 +1713,7 @@ function Game()
         this.menuFail = {index: 0, channel: [], channels: 5}; // Menu Fail Channels
         this.pew = {index: 0, channel: [], channels: 40} // Pew Channels
         this.hit = {index: 0, channel: [], channels: 80} // Hit Channels
-        this.levelUp = 0; // Level Up Channels
+        this.levelUp = 0; // Level Up Channel
         this.purchaseItem = {index: 0, channel: [], channels: 3}; // Purchase Item Channels
         this.equipItem = {index: 0, channel: [], channels: 3}; // Equip Item Channels
         this.pickupCoin = {index: 0, channel: [], channels: 3} // Pickup Coin Channels
@@ -1635,7 +1723,7 @@ function Game()
         this.startBoost = {index: 0, channel: [], channels: 5} // Pickup Coin Channels
         this.repeatBoost = {index: 0, channel: [], channels: 30} // Pickup Coin Channels
         this.stopBoost = {index: 0, channel: [], channels: 5} // Pickup Coin Channels
-
+        this.transition = {index: 0, channel: [], channels: 2} // Transition Channels
 
         // Other Variables
         this.masterVolume = 0.2;
@@ -1826,6 +1914,14 @@ function Game()
                 a.preload = 'auto';
                 this.stopBoost.channel.push(a);
             }
+
+            // Transition
+            for(var i = 0; i < this.transition.channels; i++) {
+                var a = new Audio('Audio/sfx/transition.mp3');
+                a.volume = this.masterVolume;
+                a.preload = 'auto';
+                this.transition.channel.push(a);
+            }
         }
 		
         this.play = function(playfx) {
@@ -1991,6 +2087,13 @@ function Game()
                     }
                     break;
                 }
+                case 24: { // Transition
+                    if(this.transition.channel[this.transition.index]) {
+                        this.transition.channel[this.transition.index].play();
+                        this.transition.index += 1; if(this.transition.index > (this.transition.channels - 1)){this.transition.index = 0;}
+                    }
+                    break;
+                }
             }
         }
 		
@@ -2034,6 +2137,7 @@ function Game()
             for(var i = 0; i < this.startBoost.channel.length; i++) { this.startBoost.channel[i].volume = value; }
             for(var i = 0; i < this.repeatBoost.channel.length; i++) { this.repeatBoost.channel[i].volume = value; }
             for(var i = 0; i < this.stopBoost.channel.length; i++) { this.stopBoost.channel[i].volume = value; }
+            for(var i = 0; i < this.transition.channel.length; i++) { this.transition.channel[i].volume = value; }
             this.masterVolume = value;
         }
     }
@@ -4482,9 +4586,9 @@ function Game()
             }
         }
 
+        gco.Update(); // Game Control Object Update
         if(!ed.eventPlaying()) { // If event is not playing
             if(!paused && gameState == 1 && !gco.win) {
-                gco.Update(); // Game Control Object Update
                 enemyGeneration.generate(); // Random Enemy Generation
                 itemGeneration.generate(); // Random Item Generation
 
@@ -4598,7 +4702,6 @@ function Game()
             } else if(gameState == 1 && gco.win) {
                 if(sfx.laserPlaying){sfx.pause(1);}
                 gco.credits.Update();
-                if(!gco.credits.isBlackedOut){ gco.Update(); }//Will do random boss explosions
                 for(var i = 0; i < explosions.length; i++){
                     if(explosions[i].Update() != 0) {
                         self.popArray(explosions, i);
@@ -4682,7 +4785,8 @@ function Game()
 	
 	function doMouseClick(e)
 	{
-        if(!gameInitalized) { return; }
+        // Disallow Any Input
+        if(!gameInitalized || gco.transition.active) { return; }
         if(ed.eventPlaying()) {
             ed.DoInput()
         }
@@ -5081,6 +5185,9 @@ function Game()
     
     this.getInput = function()
     {
+        // Disallow Any Input
+        if(gco.transition.active) { return; }
+
         if(Keys[17] == 1) { // Escape/Pause
 			if(gameState == 1 && player.isAlive() && !ed.eventPlaying()) {
                 if(!gco.win){ if(currentGui != 6){ gco.TogglePauseGame(); } }
@@ -5228,8 +5335,7 @@ function Game()
         // Stars
         self.drawStars();
         
-        if(gameState == 1 && !gco.credits.isBlackedOut)
-        {
+        if(gameState == 1 && !gco.credits.isBlackedOut) {
             //Money
             self.drawMoney();
             
@@ -5266,10 +5372,10 @@ function Game()
         // Foreground
         foregroundGeneration.Draw();
         
-        if(gco.win){ gco.credits.Draw(); }
+        
         ed.Draw(); // Only Draws when needed
         self.drawGUI();
-        if(gco.playStory){ gco.story.Draw(); }
+        gco.Draw();
 
         if(postProcessing.bloom) {
             applyPostProcessing(_buffer, buffer);
