@@ -2182,9 +2182,8 @@ function Game()
                 this.resetProgress();
                 gco.StartLevel();
             } else {
-                gco.GoToUpgradeMenu();
-                menu.delayNextInput();
                 sfx.play(8);
+                gco.transition.toUpgrade();
             }
         }
 
@@ -3793,7 +3792,7 @@ function Game()
         this.width = Width;
         this.height = Height;
         this.totalMissiles = 0;
-        this.life = 100;
+        this.life = 1;
         this.maxLife = 100;
         this.shieldLevel = 0;
         this.shield = 100;
