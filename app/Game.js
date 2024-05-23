@@ -2147,6 +2147,7 @@ function Game()
         this.bossNums = [100, 101, 102, 103, 104, 105, 106, 107, 109, 110, 111];
         this.levelsWithBoss = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 23];
         this.skipLevelUp = [1];
+        this.skipBossLevelStart = [23];
         this.objectives = [
             {0: 1}, // Tutorial
             {0: 1}, // Level 1 Gauntlet
@@ -2192,6 +2193,7 @@ function Game()
         }
 
         this.shouldImmediatelyStartLevel = function() {
+            if(this.skipBossLevelStart.includes(gco.level)) { return false; }
             if(this.onBoss()) { return true; }
             if(this.skipLevelUp.includes(gco.level)) { return true; }
             return false;
@@ -3792,7 +3794,7 @@ function Game()
         this.width = Width;
         this.height = Height;
         this.totalMissiles = 0;
-        this.life = 1;
+        this.life = 100;
         this.maxLife = 100;
         this.shieldLevel = 0;
         this.shield = 100;
