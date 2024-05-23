@@ -445,21 +445,21 @@ function Game()
     {   
         this.Init = function() {
             // Levels
-            this.level = 0;
+            this.level = 1;
             this.levelDefs = {
-                0: {title: "Tutorial"},
-                1: {title: "Level 1 Gauntlet"}, 2: {title: "Level 1 Boss"},
-                3: {title: "Level 2 Gauntlet"}, 4: {title: "Level 2 Boss"},
-                5: {title: "Level 3 Gauntlet"}, 6: {title: "Level 3 Boss"},
-                7: {title: "Level 4 Gauntlet"}, 8: {title: "Level 4 Boss"},
-                9: {title: "Level 5 Gauntlet"}, 10: {title: "Level 5 Boss"},
-                11: {title: "Level 6 Gauntlet"}, 12: {title: "Level 6 Boss"},
-                13: {title: "Level 7 Gauntlet"}, 14: {title: "Level 7 Boss"},
-                15: {title: "Level 8 Gauntlet"}, 16: {title: "Level 8 Boss"},
-                17: {title: "Level 9 Gauntlet"}, 18: {title: "Level 9 Boss"},
-                19: {title: "Level 10 Gauntlet"}, 20: {title: "Level 10 Boss"},
-                21: {title: "Level 11 Gauntlet"}, 22: {title: "Level 11 Boss"},
-                23: {title: "Level 12 Boss"}
+                0: {title: "Tutorial", upgradeTutorial: false},
+                1: {title: "Level 1 Gauntlet", upgradeTutorial: false}, 2: {title: "Level 1 Boss", upgradeTutorial: false},
+                3: {title: "Level 2 Gauntlet", upgradeTutorial: true}, 4: {title: "Level 2 Boss", upgradeTutorial: false},
+                5: {title: "Level 3 Gauntlet", upgradeTutorial: false}, 6: {title: "Level 3 Boss", upgradeTutorial: false},
+                7: {title: "Level 4 Gauntlet", upgradeTutorial: true}, 8: {title: "Level 4 Boss", upgradeTutorial: false},
+                9: {title: "Level 5 Gauntlet", upgradeTutorial: false}, 10: {title: "Level 5 Boss", upgradeTutorial: false},
+                11: {title: "Level 6 Gauntlet", upgradeTutorial: false}, 12: {title: "Level 6 Boss", upgradeTutorial: false},
+                13: {title: "Level 7 Gauntlet", upgradeTutorial: true}, 14: {title: "Level 7 Boss", upgradeTutorial: false},
+                15: {title: "Level 8 Gauntlet", upgradeTutorial: false}, 16: {title: "Level 8 Boss", upgradeTutorial: false},
+                17: {title: "Level 9 Gauntlet", upgradeTutorial: false}, 18: {title: "Level 9 Boss", upgradeTutorial: false},
+                19: {title: "Level 10 Gauntlet", upgradeTutorial: true}, 20: {title: "Level 10 Boss", upgradeTutorial: false},
+                21: {title: "Level 11 Gauntlet", upgradeTutorial: false}, 22: {title: "Level 11 Boss", upgradeTutorial: false},
+                23: {title: "Level 12 Boss", upgradeTutorial: false}
             }
             this.finalLevel = 23
             this.win = false;
@@ -519,6 +519,14 @@ function Game()
 
         this.levelTitle = function() {
             return this.levelDefs[this.level].title;
+        }
+
+        this.hasDialogueForUpgrade = function() {
+            if(this.levelDefs[this.level].upgradeTutorial) {
+                this.levelDefs[this.level].upgradeTutorial = false;
+                return true;
+            }
+            return false
         }
         
         this.PurchaseWeapon = function(wepID) { //assumes player has the cash/doesn't own weapon
@@ -677,13 +685,18 @@ function Game()
         }
 
         this.movementEventPlaying = function() {
-            return this.activeEvent == 1 || this.activeEvent == 2;
+            return [1, 2].includes(this.activeEvent);
+        }
+
+        this.dialogueEventPlaying = function() {
+            return [3, 4, 5].includes(this.activeEvent);
         }
 
         this.globalActionCull = function() {
             // We needed a method to stop or pause things in the game when an event started.
             // This function serves that need an culls things from around that app that conflict with events.
             player.stopLaser();
+            player.turnOffBoost();
         }
 
         this.initEvent = function(event) {
@@ -700,6 +713,8 @@ function Game()
                 this.dialogue.initDialogueForLevelIntro();
             } else if(this.activeEvent == 4) {
                 this.dialogue.initDialogueForLevelOutro();
+            } else if(this.activeEvent == 5) {
+                this.dialogue.initDialogueForUpgrade();
             }
         }
 
@@ -715,7 +730,7 @@ function Game()
             // Event Updates
             if(this.activeEvent == 1) this.levelIntroUpdate();
             if(this.activeEvent == 2) this.levelOutroUpdate();
-            if(this.activeEvent == 3 || this.activeEvent == 4) this.dialogueUpdate();
+            if(this.dialogueEventPlaying()) this.dialogueUpdate();
         }
 
         // Event 1
@@ -814,13 +829,13 @@ function Game()
         }
 
         this.Draw = function() {
-            if([3, 4].includes(this.activeEvent)) {
+            if(this.dialogueEventPlaying()) {
                 this.dialogue.Draw();
             }
         }
 
         this.DoInput = function() {
-            if([3, 4].includes(this.activeEvent)) {
+            if(this.dialogueEventPlaying()) {
                 this.dialogue.DoInput();
             }
         }
@@ -851,6 +866,12 @@ function Game()
 
         this.initDialogueForLevelOutro = function() {
             d = outroDialogues[gco.level];
+            resetDialogueSteppingValues();
+        }
+
+        this.initDialogueForUpgrade = function() {
+            let onUpgradeDialogue = {3: 0, 7: 1, 13: 2, 19: 3}[gco.level];
+            d = upgradeDialogues[onUpgradeDialogue];
             resetDialogueSteppingValues();
         }
 
@@ -905,6 +926,7 @@ function Game()
 
         const Continue = function() {
             if(lineIndex == d.lines.length - 1) {
+                menu.delayNextInput();
                 dialogueFinished = true;
             } else {
                 resetDialogueValues();
@@ -1280,6 +1302,21 @@ function Game()
             // Level 23
             // This level doesn't have an outro dialogue as the final cutscene is triggered by the boss. Search for: gco.win = true
         ];
+
+        let upgradeDialogues = [
+            {lines: [
+                {character: 1, line: "Level 1 Upgrade Tutorial."},
+            ]},
+            {lines: [
+                {character: 1, line: "Level 3 Upgrade Tutorial."},
+            ]},
+            {lines: [
+                {character: 1, line: "Level 6 Upgrade Tutorial."},
+            ]},
+            {lines: [
+                {character: 1, line: "Level 9 Upgrade Tutorial."},
+            ]},
+        ]
     }
 
     function Transition() {
@@ -1343,6 +1380,9 @@ function Game()
                     this.y -= moveY;
                     if(this.y < this.startY) { this.y = this.startY; }
                 } else {
+                    if(gco.hasDialogueForUpgrade()) {
+                        ed.initEvent(5);
+                    }
                     this.active = false; // Full Exit Clause
                 }
             }
@@ -1402,6 +1442,7 @@ function Game()
         {
             // activeMenu - is whatever currentGui is active, which correlates to the index of states.
             // direction - 0, 1, 2, 3 - up, left, down, right - Depending on the activeMenu, this will correlate to moves in the menu.
+            if(ed.eventPlaying()) return; // Skip all menu input if an event is playing
 
             // Escape this function if a menu option was moved within the last n milliseconds
             if(this.timeout > 0) return;
@@ -1518,6 +1559,7 @@ function Game()
 
         this.select = function()
         { // This function should mimic the doMouseClick functionality. If something is added there, it should be here, and visa-versa
+            if(ed.eventPlaying()) return; // Skip all menu input if an event is playing
             if(this.timeout > 0) return;
             this.timeout = 5; // 250 ms delay before next action
             switch(currentGui) {
@@ -3794,8 +3836,8 @@ function Game()
         this.width = Width;
         this.height = Height;
         this.totalMissiles = 0;
-        this.life = 100;
-        this.maxLife = 100;
+        this.life = 100; // Default: 100
+        this.maxLife = 100; // Default: 100
         this.shieldLevel = 0;
         this.shield = 100;
         this.maxShield = this.shield * this.shieldLevel;
@@ -3846,6 +3888,10 @@ function Game()
 
         this.resetBoost = function() {
             this.boost = this.maxBoost;
+        }
+
+        this.turnOffBoost = function() {
+            this.boosting = false;
         }
 
         this.resetPosition = function() {
@@ -4789,7 +4835,8 @@ function Game()
         // Disallow Any Input
         if(!gameInitalized || gco.transition.active) { return; }
         if(ed.eventPlaying()) {
-            ed.DoInput()
+            ed.DoInput();
+            return; // Escape all other input for mouse event if event is playing.
         }
         // This function should mimic the menu.select() functionality. If something is added there, it should be here, and visa-versa
 		//State GUIs
@@ -5373,10 +5420,10 @@ function Game()
         // Foreground
         foregroundGeneration.Draw();
         
-        
-        ed.Draw(); // Only Draws when needed
+        // GUI
         self.drawGUI();
         gco.Draw();
+        ed.Draw(); // Only Draws when needed
 
         if(postProcessing.bloom) {
             applyPostProcessing(_buffer, buffer);
