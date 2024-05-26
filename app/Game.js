@@ -452,7 +452,7 @@ function Game()
     {   
         this.Init = function() {
             // Levels
-            this.level = 23;
+            this.level = 0;
             this.levelDefs = {
                 0: {title: "Tutorial", upgradeTutorial: false},
                 1: {title: "Level 1 Gauntlet", upgradeTutorial: false}, 2: {title: "Level 1 Boss", upgradeTutorial: false},
