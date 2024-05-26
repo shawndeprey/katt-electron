@@ -226,9 +226,16 @@ function Game()
         transitionImages[i].src = ('Graphics/UI/transition.png')
     }
 
+    var cutsceneImages = [];
+    for(var i = 0; i < 1; i++) {
+        cutsceneImages[i] = new Image();
+        cutsceneImages[i].addEventListener('load', self.loadedImage, false);
+        cutsceneImages[i].src = (`Graphics/Cutscene/cs_${i}.jpg`)
+    }
+
 	var numOfImages = (starImages.length + images.length + enemyImages.length + playerImages1.length + playerImages2.length + playerImages3.length 
         + playerImages4.length + playerImages5.length + playerImages6.length + playerImages7.length + playerImages8.length  
-        + itemImages.length + logoImages.length + fgImages.length + portraitImages.length + transitionImages.length);
+        + itemImages.length + logoImages.length + fgImages.length + portraitImages.length + transitionImages.length + cutsceneImages.length);
 	
 	
     // Containers
@@ -445,7 +452,7 @@ function Game()
     {   
         this.Init = function() {
             // Levels
-            this.level = 1;
+            this.level = 23;
             this.levelDefs = {
                 0: {title: "Tutorial", upgradeTutorial: false},
                 1: {title: "Level 1 Gauntlet", upgradeTutorial: false}, 2: {title: "Level 1 Boss", upgradeTutorial: false},
@@ -502,6 +509,10 @@ function Game()
             this.weaponPrice[50] = 0;//SD-15 Sidewinder
             this.weaponPrice[51] = 250;//DM-21 Auto Strike
             this.weaponPrice[52] = 500;//Impact Burst Mine
+        }
+
+        this.Ended = function() {
+            return this.credits.isBlackedOut || currentGui == 7;
         }
         
         this.init_audio = function() {
@@ -626,21 +637,22 @@ function Game()
         this.Update = function() {
             if(this.onTick != ticks) {
                 this.onTick = ticks;
-                if(gameState == 1 && !ed.eventPlaying()) {
-                    if(!paused && !this.win && this.levelMission.GauntletComplete()) {
+                if(gameState == 1) {
+                    if(!ed.eventPlaying() && !paused && !this.win && this.levelMission.GauntletComplete()) {
                         ed.initEvent(2); // Fly out of level event
                     }
-                    if(this.win && !gco.credits.isBlackedOut) {
+                    if(this.win && !ed.cutscene.isBlackedOut()) {
                         if(Math.floor(Math.random() * 4) == 1) { this.RandomBossExplosion(); }
                     }
                 }
             }
             this.transition.Update();
+            if(this.credits.active) { this.credits.Update(); }
         }
 
         this.Draw = function() {
             this.transition.Draw();
-            if(this.win){ this.credits.Draw(); }
+            if(this.credits.active){ this.credits.Draw(); }
             if(this.playStory){ this.story.Draw(); }
         }
 
@@ -675,6 +687,7 @@ function Game()
             this.activeEvent = 0; // 0 = No Active Event
             this.eventTime = 0;
             this.dialogue = new Dialogue();
+            this.cutscene = new Cutscene();
             
             // Event variables other systems can watch or use
             this.moveMultiplierOne = 1;
@@ -690,6 +703,10 @@ function Game()
 
         this.dialogueEventPlaying = function() {
             return [3, 4, 5].includes(this.activeEvent);
+        }
+
+        this.cutsceneEventPlaying = function() {
+            return [6].includes(this.activeEvent);
         }
 
         this.globalActionCull = function() {
@@ -715,6 +732,8 @@ function Game()
                 this.dialogue.initDialogueForLevelOutro();
             } else if(this.activeEvent == 5) {
                 this.dialogue.initDialogueForUpgrade();
+            } else if(this.activeEvent == 6) {
+                this.cutscene.initCutscene();
             }
         }
 
@@ -731,6 +750,7 @@ function Game()
             if(this.activeEvent == 1) this.levelIntroUpdate();
             if(this.activeEvent == 2) this.levelOutroUpdate();
             if(this.dialogueEventPlaying()) this.dialogueUpdate();
+            if(this.cutsceneEventPlaying()) this.cutsceneUpdate();
         }
 
         // Event 1
@@ -817,8 +837,12 @@ function Game()
                     if(gco.levelMission.shouldImmediatelyStartLevel()) {
                         gco.StartLevel();
                     } else {
-                        this.endEvent();
-                        gco.transition.toUpgrade();
+                        if(this.cutscene.shouldPlay()) {
+                            this.initEvent(6);
+                        } else {
+                            this.endEvent();
+                            gco.transition.toUpgrade();
+                        }
                     }
                 } else {
                     this.endEvent();
@@ -828,15 +852,37 @@ function Game()
             }
         }
 
+        this.cutsceneUpdate = function() {
+            if(this.cutscene.isFinished()) {
+                if(gco.level == 0) {
+                    gco.StartLevel();
+                } else {
+                    this.endEvent();
+                }
+            } else {
+                this.cutscene.Update();
+            }
+        }
+
         this.Draw = function() {
             if(this.dialogueEventPlaying()) {
                 this.dialogue.Draw();
             }
+
+            if(this.cutsceneEventPlaying()) {
+                this.cutscene.Draw();
+            }
         }
 
         this.DoInput = function() {
+            if(gco.credits.active) { return; } // Disable input if credits are active
+
             if(this.dialogueEventPlaying()) {
                 this.dialogue.DoInput();
+            }
+
+            if(this.cutsceneEventPlaying()) {
+                this.cutscene.DoInput();
             }
         }
 
@@ -1319,6 +1365,352 @@ function Game()
         ]
     }
 
+    function Cutscene() {
+        let levelsWithCutscenes = [7, 13, 19];
+        let onTick = 0;
+        let c = null;
+        let frameIndex = 0;
+        let frameText = "";
+        let subTick = 0;
+        let maxSubTick = 16;
+        let playInitialSound = true;
+        let percentageDone = 0;
+        let timeout = 0;
+        let cutsceneFinished = false;
+        let x = 0;
+        let maxX = 480;
+        let y = 0;
+        let width = 1067; // Pre-calculate scale down from 1280
+        let height = 600; // Pre-calculate scale down from 720
+        let textBoxWidth = 700;
+        let textBoxHeight = 175;
+
+        let blackedOut = false;
+        let bgAlpha = 0;
+        let animateNext = false;
+        let imageAlpha = 0;
+        let maxBlur = 15;
+        let imageBlur = maxBlur;
+
+        const resetCutsceneSteppingValues = function() {
+            cutsceneFinished = false;
+            frameIndex = 0;
+            blackedOut = false;
+            bgAlpha = 0;
+            animateNext = false;
+            imageAlpha = 0;
+            imageBlur = maxBlur;
+            resetCutsceneValues();
+        }
+
+        const resetCutsceneValues = function() {
+            subTick = 0;
+            frameText = "";
+            playInitialSound = true;
+            percentageDone = 0;
+        }
+
+        this.initCutscene = function() {
+            if(gco.level == 0) { c = introCutscene; }
+            if(gco.level == 7) { c = actOneCutscene; }
+            if(gco.level == 13) { c = actTwoCutscene; }
+            if(gco.level == 19) { c = actThreeCutscene; }
+            if(gco.level == gco.finalLevel) { c = outroCutscene; }
+            resetCutsceneSteppingValues();
+        }
+
+        this.isBlackedOut = function() {
+            return blackedOut;
+        }
+
+        this.isActive = function() {
+            return !cutsceneFinished;
+        }
+
+        this.isFinished = function() {
+            return cutsceneFinished;
+        }
+
+        this.shouldPlay = function() {
+            return levelsWithCutscenes.includes(gco.level);
+        }
+
+        this.DoInput = function() {
+            if(timeout > 0 || percentageDone < 99) return;
+            timeout = 15;
+            sfx.play(8);
+            Continue();
+        }
+
+        this.Update = function() {
+            if(!blackedOut) {
+                bgAlpha += blackoutSpeed();
+                if(bgAlpha >= 1.0) {
+                    bgAlpha = 1;
+                    blackedOut = true;
+                }
+            } else {
+                animateNext ? animNext() : animFrame();
+                if (ticks !== onTick) { // Ticks go 0-19 every second in 50 ms intervals
+                    onTick = ticks;
+                    subTick++;
+                    if(timeout > 0) { timeout--; } // Count down timeout
+                    if(imageAlpha < 1) { return; } // Only progress text if the image is loaded in fully
+                    animText();
+                }
+            }
+        }
+
+        this.Draw = function() {
+            drawBackground();
+            if(!blackedOut) { return; }
+            drawImage();
+            drawFrameText();
+            if(percentageDone > 99) {
+                drawContinuePrompt();
+            }
+        }
+
+        const Continue = function() {
+            if(OnLastFrame() && gco.level == gco.finalLevel) {
+                gco.credits.roll();
+            } else {
+                animateNext = true;
+                preFadeEvent();
+            }
+                
+        }
+
+        const Progress = function() {
+            resetCutsceneValues();
+            frameIndex++;
+            animateNext = false;
+            imageAlpha = 0;
+        }
+
+        const Finish = function() {
+            menu.delayNextInput();
+            cutsceneFinished = true;
+        }
+
+        const OnLastFrame = function() {
+            return frameIndex == c.frames.length - 1;
+        }
+
+        const OnFirstFrame = function() {
+            return frameIndex == 0;
+        }
+
+        const blackoutSpeed = function() {
+            if(OnFirstFrame() && gco.level == gco.finalLevel) {
+                return delta / 10;
+            } else {
+                return delta / 2
+            }
+        }
+
+        const preFadeEvent = function() {
+            if(OnLastFrame()) { // If we're on the last frame and about to fade out...
+                if(gco.level == 0) { // If we're on the tutorial...
+                    currentGui = NULL_GUI_STATE;
+                } else {
+                    self.softReset();
+                    gco.GoToUpgradeMenu();
+                }
+            }
+        }
+
+        const animNext = function() {
+            if(OnLastFrame() && bgAlpha > 0) {
+                bgAlpha -= delta;
+                if(bgAlpha < 0) { bgAlpha = 0; }
+            }
+
+            if(imageBlur < maxBlur) {
+                imageBlur += delta * maxBlur;
+                if(imageBlur > maxBlur) { imageBlur = maxBlur; }
+            }
+
+            if(imageAlpha > 0) {
+                imageAlpha -= delta;
+                if(imageAlpha < 0) { imageAlpha = 0; }
+            }
+
+            if(OnLastFrame()) {
+                if(bgAlpha <= 0) {
+                    Finish();
+                }
+            } else {
+                if(imageBlur == maxBlur && imageAlpha == 0) {
+                    Progress();
+                }
+            }
+            
+        }
+
+        const animFrame = function() {
+            if(imageBlur > 0) {
+                imageBlur -= delta * maxBlur;
+                if(imageBlur < 0) { imageBlur = 0; }
+            }
+
+            if(imageAlpha < 1) {
+                imageAlpha += delta;
+                if(imageAlpha > 1) { imageAlpha = 1; }
+            }
+
+            if(x < maxX) {
+                x -= delta * 2;
+                if(x < -maxX) { x = -maxX; }
+            }
+        }
+
+        const animText = function() {
+            if(percentageDone >= 100) { return; }
+            // Determine the maximum sub-tick interval based on the character's voice type
+            const voiceType = c.frames[frameIndex].character;
+            maxSubTick = [2, 5, 1, 3].includes(voiceType) ? 10 : 16;
+
+            // Read through the text, 1 letter at a time, into the rendered cache state
+            if (frameText.length < c.frames[frameIndex].text.length) {
+                frameText += c.frames[frameIndex].text[frameText.length];  // Append next character
+            }
+
+            // Calculate the percentage of the text that has been displayed
+            percentageDone = (frameText.length / c.frames[frameIndex].text.length) * 100;
+    
+            // Play sound effects based on the current tick interval and voice type
+            if (percentageDone < 90) {
+                const midVoice = [0, 4].includes(voiceType);
+                if (!midVoice && (playInitialSound || subTick % 10 === 0)) {
+                    sfx.play([2, 5].includes(voiceType) ? 4 : 6);
+                }
+                if (midVoice && (playInitialSound || subTick % 16 === 0)) {
+                    sfx.play(5); // Mid dialogue text SFX for characters 0 and 4
+                }
+            }
+
+            if (subTick >= maxSubTick) subTick = 0; // Reset subTick
+            playInitialSound = false;
+        }
+
+        const drawBackground = function() {
+            buffer.fillStyle = "rgba(0, 0, 0, " + bgAlpha + ")";
+            buffer.fillRect(0, 0, _buffer.width, _buffer.height);
+        }
+
+        const drawImage = function() {
+            const currentAlpha = buffer.globalAlpha;
+            buffer.globalAlpha = imageAlpha;
+            if(imageBlur > 0) { buffer.filter = `blur(${imageBlur}px)`; }
+            buffer.drawImage(cutsceneImages[c.frames[frameIndex].image], x, y, width, height);
+            buffer.globalAlpha = currentAlpha;
+            buffer.filter = 'none';
+        }
+
+        const drawFrameText = function() {
+            const fontSize = 28;
+            const lineHeight = fontSize + 4;
+            const fontFamily = "VT323";
+        
+            // Assuming each character in VT323 at 28px is approximately 12px wide
+            const charWidth = 12; // This value should be adjusted based on visual tests or accurate measurements
+            const textX = _buffer.width / 2 - textBoxWidth / 2;
+            const textY = _buffer.height - (textBoxHeight + 28);
+            const maxCharsPerLine = Math.floor(textBoxWidth / charWidth);
+            const words = frameText.split(' ');
+            let currentLine = '';
+            let currentY = textY;
+            let guiText = [];
+        
+            words.forEach(word => {
+                if ((currentLine + word + ' ').length > maxCharsPerLine) {
+                    guiText.push(new GUIText(currentLine, textX, currentY, `${fontSize}px ${fontFamily}`, "left", "top", "white"));
+                    currentLine = word + ' ';
+                    currentY += lineHeight;
+                } else {
+                    currentLine += word + ' ';
+                }
+            });
+        
+            if (currentLine.trim()) {
+                guiText.push(new GUIText(currentLine, textX, currentY, `${fontSize}px ${fontFamily}`, "left", "top", "white"));
+            }
+        
+            const currentAlpha = buffer.globalAlpha;
+            buffer.globalAlpha = imageAlpha;
+            if(imageBlur > 0) { buffer.filter = `blur(${imageBlur}px)`; }
+            guiText.forEach(text => {
+                text.Draw(_buffer);
+            });
+            buffer.globalAlpha = currentAlpha;
+            buffer.filter = 'none';
+        }
+
+        const drawContinuePrompt = function() {
+            const fontSize = 28; // Smaller font for the continue prompt
+            const fontFamily = "VT323"; // Using the same monospaced font for consistency
+            const padding = 12; // Padding inside the dialogue box
+        
+            // Calculate positions
+            const textX = _buffer.width / 2 + textBoxWidth / 2 - padding; // Right align the text within the dialogue box
+            const textY = _buffer.height - padding; // Position at the bottom of the dialogue box
+            const arrowX = textX - 100; // Position the arrow 70px to the left of the text
+            const arrowY = textY - 12; // Slightly adjust the arrow position for vertical alignment
+        
+            // Create GUIText object for "Continue"
+            const continueText = new GUIText("Continue", textX, textY, `${fontSize}px ${fontFamily}`, "right", "bottom", "white");
+        
+            // Draw the "Continue" text using GUIText.Draw method
+            const currentAlpha = buffer.globalAlpha;
+            buffer.globalAlpha = imageAlpha;
+            if(imageBlur > 0) { buffer.filter = `blur(${imageBlur}px)`; }
+            continueText.Draw();
+            buffer.globalAlpha = currentAlpha;
+            buffer.filter = 'none';
+        
+            // Draw the green arrow using the predefined function
+            menu.DrawArrow(3, arrowX, arrowY, 20); // Assuming `menu.DrawArrow` handles the drawing based on provided coordinates
+        }
+
+        // Cutscene Definitions
+        let introCutscene = {
+            frames: [
+                {character: 1, text: "Intro Cutscene.", image: 0},
+                // {character: 1, text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", image: 0},
+                // {character: 1, text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.", image: 0},
+            ]
+        }
+
+        let actOneCutscene = {
+            frames: [
+                {character: 1, text: "Act One Cutscene.", image: 0},
+                // {character: 1, text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", image: 0},
+            ]
+        }
+
+        let actTwoCutscene = {
+            frames: [
+                {character: 1, text: "Act Two Cutscene.", image: 0},
+                // {character: 1, text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", image: 0},
+            ]
+        }
+
+        let actThreeCutscene = {
+            frames: [
+                {character: 1, text: "Act Three Cutscene.", image: 0},
+                // {character: 1, text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", image: 0},
+            ]
+        }
+
+        let outroCutscene = {
+            frames: [
+                {character: 1, text: "Outro Cutscene.", image: 0},
+                // {character: 1, text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", image: 0},
+            ]
+        }
+    }
+
     function Transition() {
         this.Init = function() {
             this.active = false;
@@ -1343,7 +1735,6 @@ function Game()
 
         // Transition To Upgrade Menu
         this.toUpgrade = function() {
-            gameState = 0; // Take game out of playing
             this.transitionId = 0;
             this.active = true;
             this.width = _canvas.width;
@@ -1369,6 +1760,7 @@ function Game()
                     this.reachedApex = true;
                     this.timer = 0;
                     gco.GoToUpgradeMenu();
+                    self.softReset();
                 }
             } else {
                 if(this.timer < 30) { return; } // Spend 1 second on transition screen
@@ -1567,7 +1959,14 @@ function Game()
                 { // Main Menu
                     if(!gco.playStory) {
                         this.delayNextInput();
-                        if(this.states[0][0]){ currentGui = 2; sfx.play(11); }
+                        if(this.states[0][0]){
+                            if(gco.level == 0) {
+                                ed.initEvent(6);
+                            } else {
+                                currentGui = 2;
+                            }
+                            sfx.play(11);
+                        }
                         if(this.states[0][1]){ currentGui = 6; lastGui = 0; sfx.play(8); }
                         if(this.states[0][2]){ gco.playStory = true; sfx.play(8); }
                         if(this.states[0][3]){ ipcRenderer.send('quit-app'); }
@@ -2209,19 +2608,19 @@ function Game()
             {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}, // Level 8 Gauntlet
             {4: 3}, // Level 8 Boss
             {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}, // Level 9 Gauntlet
-            {4: 4}, // Level 9 Boss
+            {4: 1}, // Level 9 Boss
             {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}, // Level 10 Gauntlet
-            {4: 5}, // Level 10 Boss
+            {4: 1}, // Level 10 Boss
             {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}, // Level 11 Gauntlet
-            {4: 6}, // Level 11 Boss
+            {4: 1}, // Level 11 Boss
             {100: 1}, // Level 12 Boss
         ];
         this.progress = {};
 
         this.nextOnDeath = function() {
             currentGui = NULL_GUI_STATE;
-            self.softReset();
             if([0, 1, 2].includes(gco.level)) {
+                self.softReset();
                 this.resetProgress();
                 gco.StartLevel();
             } else {
@@ -3137,12 +3536,15 @@ function Game()
 					return 0;
 				}
 				case 100:
-				{// Final Boss
+                {// Final Boss
                     switch(this.phase)
                     {
                         case -1:
                         {
-							this.life = this.currentMaxLife;
+                            // Temp Override for boss life.
+							// this.life = this.currentMaxLife;
+                            this.life = 10
+
                             // Move to proper position
                             if(Math.round(this.y) <= this.ystop){ this.y += this.speed * delta; this.speed = this.ystop - this.y; }
 							if(Math.abs(this.y - this.ystop) < 5){ this.didTeleport = true;}
@@ -3341,21 +3743,23 @@ function Game()
                             //Update Mission Data
                             gco.levelMission.UpdateProgress(this.type);
                             gco.win = true;
-							gco.bossX = this.x;
-							gco.bossY = this.y;
+                            sfx.pause(1); // Stop Laser Sounds
+                            gco.bossX = this.x;
+                            gco.bossY = this.y;
+                            ed.initEvent(6);
                             return 3;
                         } else {
-							this.Model++;
-							this.laser = false;
-							this.inCenter = false;
+                            this.Model++;
+                            this.laser = false;
+                            this.inCenter = false;
 
                             // Temporarily make the boss easier
                             // this.life = this.baseLife * this.phaseSave;
                             // this.currentMaxLife = this.life;
-                            this.life = 500;
+                            this.life = 10;
 
-							this.phase = -1;
-							sfx.play(0);
+                            this.phase = -1;
+                            sfx.play(0);
                         }
 						return 2;
 					}
@@ -3367,8 +3771,7 @@ function Game()
 					if(this.Model == 7)
 					{
 						if(Math.round(Math.random() * 700) == 1){ this.shoot(100); }
-					} else
-					{
+					} else {
 						if(this.x < player.x){this.direction = 1;} else if(this.x > player.x){this.direction = 0;} else {}
 						if(this.direction != this.lastDirection){this.momentum = this.xMoveSpeed * 2; this.lastDirection = this.direction;}
 						if(this.y < player.y)
@@ -3386,17 +3789,14 @@ function Game()
 						}
 						if(Math.round(Math.random() * 700) == 1){ this.shoot(100); }
 					}
-					if(this.life <= 0)
-					{
+					if(this.life <= 0) {
 						destroys += 1;
 						explosion = new Explosion(this.x, this.y, 75, 4, 200, 3, 0.1, 0.1);
 						explosions.push(explosion);
 						//Update Mission Data
 						gco.levelMission.UpdateProgress(this.type);
 						return 1;
-					}
-					else if(this.y > _canvas.height)
-					{
+					} else if(this.y > _canvas.height) {
 						return 1;
 					}
 					return 0;
@@ -4422,100 +4822,126 @@ function Game()
 	
 	function Credits()
 	{
-		this.overlayAlpha = 0.0;
-		this.center = _buffer.width / 2;
-		this.credits = [];
-		this.lines = 31;
-		this.lineHeight = 50;
-		this.yOffset = 0;
-		this.scrollSpeed = 25;
-		this.isBlackedOut = false;
-		var out = "";
-		var size = "";
-		var color = "";
-		for(var i = 0; i < this.lines; i++)
-		{
-			switch(i)
-			{
-				case 0:{out = "Humanity is Saved"; size = "28px Thunderstrike Halftone"; color = "rgb(255, 127, 255)"; break;}
-				case 1:{out = "Our ace pilots has defeated the drone core in enough time to save humanity."; size = "16px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 2:{out = "The task of rebuilding civilization, however difficult, can still never"; size = "16px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 3:{out = "match the devotion and courage it took for our ace pilots to..."; size = "16px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 4:{out = "Kill all the Things"; size = "48px Thunderstrike Halftone"; color = "rgb(255, 127, 255)"; break;}
-				case 5:{out = " "; size = "10px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 6:{out = "Produced by"; size = "18px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
-				//case 7:{out = "Insert Last Bonfire Logo Here"; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 7:{out = ""; size = "32px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 8:{out = ""; size = "32px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 9:{out = ""; size = "32px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 10:{out = "Program Managers"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
-				case 11:{out = "Shawn Deprey"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
-				case 12:{out = "Lead Game System Designers"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
-				case 13:{out = "Shawn Deprey"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
-				case 14:{out = "Lead Software Engineers"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
-				case 15:{out = "Shawn Deprey"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
-				case 16:{out = "Software Engineers"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
-				case 17:{out = "Drew Muller"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
-				case 18:{out = "Graphic Designers"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
-				case 19:{out = "Shawn Deprey"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
-				case 20:{out = "Drew Muller"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
-				case 21:{out = "Sound Artists"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
-				case 22:{out = "David Van Laar-Veth"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
-				case 23:{out = "Story"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96"; break;}
-				case 24:{out = "Mico Picache"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
-				case 25:{out = " "; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
+        this.active = false;
+        this.overlayAlpha = 0.0;
+        this.center = _buffer.width / 2;
+        this.credits = [];
+        this.lines = 31;
+        this.lineHeight = 50;
+        this.yOffset = 0;
+        this.scrollSpeed = 25;
+        this.isBlackedOut = false;
+        var out = "";
+        var size = "";
+        var color = "";
+        for(var i = 0; i < this.lines; i++) {
+            switch(i) {
+                case 0:{out = "Humanity is Saved"; size = "28px Thunderstrike Halftone"; color = "rgb(255, 127, 255)"; break;}
+                case 1:{out = "Our ace pilots has defeated the drone core in enough time to save humanity."; size = "16px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 2:{out = "The task of rebuilding civilization, however difficult, can still never"; size = "16px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 3:{out = "match the devotion and courage it took for our ace pilots to..."; size = "16px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 4:{out = "Kill all the Things"; size = "48px Thunderstrike Halftone"; color = "rgb(255, 127, 255)"; break;}
+                case 5:{out = " "; size = "10px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 6:{out = "Produced by"; size = "18px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
+                //case 7:{out = "Insert Last Bonfire Logo Here"; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 7:{out = ""; size = "32px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 8:{out = ""; size = "32px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 9:{out = ""; size = "32px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 10:{out = "Program Managers"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
+                case 11:{out = "Shawn Deprey"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
+                case 12:{out = "Lead Game System Designers"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
+                case 13:{out = "Shawn Deprey"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
+                case 14:{out = "Lead Software Engineers"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
+                case 15:{out = "Shawn Deprey"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
+                case 16:{out = "Software Engineers"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
+                case 17:{out = "Drew Muller"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
+                case 18:{out = "Graphic Designers"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
+                case 19:{out = "Shawn Deprey"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
+                case 20:{out = "Drew Muller"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
+                case 21:{out = "Sound Artists"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
+                case 22:{out = "David Van Laar-Veth"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
+                case 23:{out = "Story"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96"; break;}
+                case 24:{out = "Mico Picache"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
+                case 25:{out = " "; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
                 case 26:{out = "Speacial Thanks to @Deep_Fold For the Pixel Planet Generation"; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 27:{out = " "; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 27:{out = " "; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
                 case 28:{out = "Speacial Thanks Justin Hammond For Additional Coding Work"; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 29:{out = " "; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 29:{out = " "; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
                 case 30:{out = "Thanks for playing!"; size = "28px Thunderstrike Halftone"; color = "rgb(255, 127, 255)"; break;}
-				default:{out = ""; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
-			}
-			this.credits[i] = new GUIText(out, this.center, _buffer.height + (this.lineHeight * i), size, "center", "top", color);
-		}
+                default:{out = ""; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
+            }
+            this.credits[i] = new GUIText(out, this.center, _buffer.height + (this.lineHeight * i), size, "center", "top", color);
+        }
+
+        this.roll = function() {
+            this.active = true;
+        }
+
+        this.reset = function() {
+            this.active = false;
+            this.overlayAlpha = 0.0;
+            this.yOffset = 0;
+            this.isBlackedOut = false;
+        }
 		
-		this.Update = function()
-		{
-			if(this.overlayAlpha >= 1){ this.isBlackedOut = true; } else { this.overlayAlpha += delta / 16; }
-			if(this.isBlackedOut && !this.CreditsFinished()){ this.yOffset += this.scrollSpeed * delta; }
-			else if(this.isBlackedOut && this.CreditsFinished() && currentGui != 7){ currentGui = 7; menu.delayNextInput(); }
-		}
-		
-		this.Draw = function()
-		{
-			this.DrawOverlay();
-			if(this.isBlackedOut && !this.CreditsFinished()){ this.DrawCredits(); }
-		}
-		
-		this.DrawOverlay = function()
-		{
-			buffer.fillStyle = "rgba(0, 0, 0, " + this.overlayAlpha + ")";
-			buffer.fillRect(0, 0, _buffer.width, _buffer.height);
-		}
-		
-		this.DrawCredits = function()
-		{
-			buffer.beginPath();
-			for(var i = 0; i < this.credits.length; i++)
-			{
-				if(i == 7) {
-					buffer.drawImage(logoImages[0], 200, this.credits[i].y - this.yOffset, 400, 100);
-				}else{
-					buffer.fillStyle = this.credits[i].color;
-					buffer.font = this.credits[i].fontStyle;
-					buffer.textAlign = this.credits[i].alignX;
-					buffer.textBaseline = this.credits[i].alignY;
-					buffer.fillText(this.credits[i].text, this.credits[i].x, this.credits[i].y - this.yOffset);
-				}
-			}
-			buffer.closePath();
-		}
-		
-		this.CreditsFinished = function()
-		{
-			if(this.credits[this.credits.length - 1].y - this.yOffset < -20){ return true; } else { return false; }
-		}
-	}
+        this.Update = function() {
+            if(this.CreditsFinished()) {
+                if(currentGui != 7) {
+                    ed.endEvent(); // Closes the cutscene in the background before fading out.
+                    currentGui = 7;
+                }
+                if(this.isBlackedOut) {
+                    this.overlayAlpha -= delta / 2;
+
+                    // CREDITS EXIT CLAUSE
+                    if(this.overlayAlpha <= 0) {
+                        this.reset();
+                        menu.delayNextInput();
+                    }
+                }
+            } else {
+                if(this.isBlackedOut) {
+                    this.yOffset += this.scrollSpeed * delta;
+                } else {
+                    this.overlayAlpha += delta / 6;
+                    if(this.overlayAlpha >= 1) {
+                        this.overlayAlpha = 1;
+                        this.isBlackedOut = true;
+                    }
+                }
+            }
+        }
+        
+        this.Draw = function() {
+            this.DrawOverlay();
+            if(this.isBlackedOut && !this.CreditsFinished()){ this.DrawCredits(); }
+        }
+        
+        this.DrawOverlay = function() {
+            buffer.fillStyle = "rgba(0, 0, 0, " + this.overlayAlpha + ")";
+            buffer.fillRect(0, 0, _buffer.width, _buffer.height);
+        }
+        
+        this.DrawCredits = function() {
+            buffer.beginPath();
+            for(var i = 0; i < this.credits.length; i++) {
+                if(i == 7) {
+                    buffer.drawImage(logoImages[0], 200, this.credits[i].y - this.yOffset, 400, 100);
+                } else {
+                    buffer.fillStyle = this.credits[i].color;
+                    buffer.font = this.credits[i].fontStyle;
+                    buffer.textAlign = this.credits[i].alignX;
+                    buffer.textBaseline = this.credits[i].alignY;
+                    buffer.fillText(this.credits[i].text, this.credits[i].x, this.credits[i].y - this.yOffset);
+                }
+            }
+            buffer.closePath();
+        }
+        
+        this.CreditsFinished = function() {
+            if(this.credits[this.credits.length - 1].y - this.yOffset < -20){ return true; } else { return false; }
+        }
+    }
     
     /******************************************************/
     
@@ -4617,24 +5043,22 @@ function Game()
         }
 
         if(!paused && gameState == 1) {
+            if(!gco.win) {
+                for(var i = 0; i < missiles.length; i++) { // Update Missile Objects 
+                    missiles[i].Update(i);
+                    if(missiles[i].life <= 0){ self.popArray(missiles, i); }
+                }
+            }
+            for(var i = 0; i < explosions.length; i++) { // Explosion Object Updates
+                if(explosions[i].Update() != 0) self.popArray(explosions, i);
+            }
             for(var i = 0; i < playerTrails.length; i++) { // Explosion Object Updates
                 if(playerTrails[i].Update()){ self.popArray(playerTrails, i); }
             }
         }
 
-        // Game objects that should keep running even during an event
-        if(!paused && gameState == 1 && !gco.win) {
-            for(var i = 0; i < missiles.length; i++) { // Update Missile Objects 
-                missiles[i].Update(i);
-                if(missiles[i].life <= 0){ self.popArray(missiles, i); }
-            }
-            for(var i = 0; i < explosions.length; i++) { // Explosion Object Updates
-                if(explosions[i].Update() != 0) self.popArray(explosions, i);
-            }
-        }
-
         gco.Update(); // Game Control Object Update
-        if(!ed.eventPlaying()) { // If event is not playing
+        if(!ed.eventPlaying() && !gco.transition.active) { // If event is not playing
             if(!paused && gameState == 1 && !gco.win) {
                 enemyGeneration.generate(); // Random Enemy Generation
                 itemGeneration.generate(); // Random Item Generation
@@ -4742,18 +5166,6 @@ function Game()
                     score = (enemyPoints + enemiesKilled) * 10;
                     colSwap = true;
                 }
-
-            // WIN CONDITION & CREDITS
-            // -------------------------------------------------------------------------------
-            // The game is won at this point. Do what happens exactly after game is beat here.
-            } else if(gameState == 1 && gco.win) {
-                if(sfx.laserPlaying){sfx.pause(1);}
-                gco.credits.Update();
-                for(var i = 0; i < explosions.length; i++){
-                    if(explosions[i].Update() != 0) {
-                        self.popArray(explosions, i);
-                    }
-                }
             }
         }
     }
@@ -4833,7 +5245,7 @@ function Game()
 	function doMouseClick(e)
 	{
         // Disallow Any Input
-        if(!gameInitalized || gco.transition.active) { return; }
+        if(!gameInitalized || gco.transition.active || gco.credits.active) { return; }
         if(ed.eventPlaying()) {
             ed.DoInput();
             return; // Escape all other input for mouse event if event is playing.
@@ -4855,7 +5267,11 @@ function Game()
                 if(!gco.playStory)
                 {
                     if(mouseX > (_canvas.width / 2 + 10) - 115 && mouseX < (_canvas.width / 2 + 10) + 100 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10) {
-                        currentGui = 2;//default case will Trigger
+                        if(gco.level == 0) {
+                            ed.initEvent(6);
+                        } else {
+                            currentGui = 2;
+                        }
                         sfx.play(11);
                     }
                     if(mouseX > (_canvas.width / 2 + 10) - 65 && mouseX < (_canvas.width / 2 + 10) + 40 && mouseY < (_canvas.height / 2 + 60) + 20 && mouseY > (_canvas.height / 2 + 60) - 10) {
@@ -5234,7 +5650,7 @@ function Game()
     this.getInput = function()
     {
         // Disallow Any Input
-        if(gco.transition.active) { return; }
+        if(gco.transition.active || gco.credits.active) { return; }
 
         if(Keys[17] == 1) { // Escape/Pause
 			if(gameState == 1 && player.isAlive() && !ed.eventPlaying()) {
@@ -5383,7 +5799,7 @@ function Game()
         // Stars
         self.drawStars();
         
-        if(gameState == 1 && !gco.credits.isBlackedOut) {
+        if(gameState == 1 && !gco.Ended()) {
             //Money
             self.drawMoney();
             
@@ -5422,8 +5838,8 @@ function Game()
         
         // GUI
         self.drawGUI();
+        ed.Draw();
         gco.Draw();
-        ed.Draw(); // Only Draws when needed
 
         if(postProcessing.bloom) {
             applyPostProcessing(_buffer, buffer);
