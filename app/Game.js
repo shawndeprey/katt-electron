@@ -2010,8 +2010,6 @@ function Game()
                     if(this.states[2][1][0]){ if(player.weapon == 4) { sfx.play(8); } else { if(player.money >= gco.weaponPrice[player.weapon + 1]) { gco.PurchaseWeapon(player.weapon + 1); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }} }
                     // Weapon Damage
                     if(this.states[2][1][1]){ if(player.damageLevel == 4) { sfx.play(8); } else { if(player.money >= gco.damagePrice[player.damageLevel + 1]) { player.upgradeDamage(); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }} }
-                    // Rapid Fire Cyclone
-                    // if(this.states[2][1][2]){ if(gco.weaponsOwned[2]){ gco.EquipWeapon(2); sfx.play(8); } else { if(player.money >= gco.weaponPrice[2]){ gco.PurchaseWeapon(2); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); }} }
                     // Start Level
                     if(this.states[2][1][2]){ if(player.weapon != 49){ gco.StartLevel(); sfx.play(8); }}
 
@@ -5360,15 +5358,10 @@ function Game()
                 }
                 if(mouseX > 10 && mouseX < 58 && mouseY > 280 && mouseY < 328) { // Primary Weapon
                     if(player.weapon == 4) { sfx.play(8); } else { if(player.money >= gco.weaponPrice[player.weapon + 1]) { gco.PurchaseWeapon(player.weapon + 1); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }}
-                    // if(gco.weaponsOwned[0]){ gco.EquipWeapon(0); sfx.play(8); } else { if(player.money >= gco.weaponPrice[0]){ gco.PurchaseWeapon(0); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}}
                 }
                 if(mouseX > 60 && mouseX < 108 && mouseY > 280 && mouseY < 328) { // Weapon Damage
                     if(player.damageLevel == 4) { sfx.play(8); } else { if(player.money >= gco.damagePrice[player.damageLevel + 1]) { player.upgradeDamage(); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }}
-                    // if(gco.weaponsOwned[1]){ gco.EquipWeapon(1); sfx.play(8); } else { if(player.money >= gco.weaponPrice[1]){ gco.PurchaseWeapon(1); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}}
                 }
-                // if(mouseX > 110 && mouseX < 158 && mouseY > 280 && mouseY < 328) { // Rapid Fire Cyclone, Weapon ID: 2
-                //     if(gco.weaponsOwned[2]){ gco.EquipWeapon(2); sfx.play(8); } else { if(player.money >= gco.weaponPrice[2]){ gco.PurchaseWeapon(2); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}}
-                // }
                 if(mouseX > 10 && mouseX < 58 && mouseY > 448 && mouseY < 496) { // SD-15 Sidewinder, Weapon ID: 50
                     if(gco.weaponsOwned[50]){ gco.EquipWeapon(50); sfx.play(8); } else { if(player.money >= gco.weaponPrice[50]){ gco.PurchaseWeapon(50); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}}
                 }
@@ -6496,36 +6489,6 @@ function Game()
                 buffer.shadowColor = 'rgb(0, 150, 250)';
                 buffer.drawImage(dmgImages[player.damageLevel], 60, 280, 48, 48);
                 buffer.shadowBlur = 0;
-                //END WEAPON
-				
-                // NEW WEAPON Rapid Fire Cyclone
-                // if(menu.states[2][1][2] || (mouseX > 110 && mouseX < 158 && mouseY > 280 && mouseY < 328)) { // Rapid Fire Cyclone, Weapon ID: 2
-                //     buffer.shadowBlur = 1;
-                //     buffer.shadowColor = 'rgb(0, 173, 239)';
-                //     buffer.drawImage(images[7], 110, 280, 48, 48);
-                //     buffer.shadowBlur = 0;
-                //     menu.DrawArrow(0, 134, 336);
-                //     guiText[6].text = "Rapid Fire Cyclone";
-                //     if(gco.weaponsOwned[2]) {
-                //         if(player.weapon == 2) {
-                //             guiText[13].text = "Equipped";
-                //         } else {
-                //             guiText[13].text = "Select to Equip";
-                //         }
-                //     } else {
-                //         guiText[13].text = gco.weaponPrice[2] + " Cores";
-                //     }
-                // }
-                // if(gco.weaponsOwned[2] && player.weapon == 2) {
-                //     buffer.shadowBlur = 1;
-                //     buffer.shadowColor = 'rgb(0, 150, 250)';
-                //     buffer.drawImage(images[7], 110, 280, 48, 48);
-                //     buffer.shadowBlur = 0;
-                // } else {
-                //     buffer.globalAlpha = 0.5;
-                //     buffer.drawImage(images[7], 110, 280, 48, 48);
-                //     buffer.globalAlpha = 1.0;
-                // }
                 //END WEAPON
 
 // NEW WEAPON SD-15 Sidewinder
