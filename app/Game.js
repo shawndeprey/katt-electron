@@ -104,138 +104,138 @@ function Game()
 		}
 	}
 	var numImagesLoaded = 0;
-        // Graphics
-        var starImages = [];
-        for(var i = 0; i < starTypes; i++)
-        {
-            starImages[i] = new Image();
-            starImages[i].addEventListener('load', self.loadedImage, false);
-            starImages[i].addEventListener('error', function() {
-                console.log('Error loading image: Graphics/Stars/star_' + i + '.png');
-            });
-            starImages[i].src = ('Graphics/Stars/star_' + i + '.png');
-        }
+    // Graphics
+    var starImages = [];
+    for(var i = 0; i < starTypes; i++) {
+        starImages[i] = new Image();
+        starImages[i].addEventListener('load', self.loadedImage, false);
+        starImages[i].addEventListener('error', function() {
+            console.log('Error loading image: Graphics/Stars/star_' + i + '.png');
+        });
+        starImages[i].src = ('Graphics/Stars/star_' + i + '.png');
+    }
 
-        var portraitImages = [];
-        for(var i = 0; i < 6; i++)
-        {
-            portraitImages[i] = new Image();
-            portraitImages[i].addEventListener('load', self.loadedImage, false);
-            portraitImages[i].addEventListener('error', function() {
-                console.log('Error loading image: Graphics/NPC/portrait_' + i + '.png');
-            });
-            portraitImages[i].src = ('Graphics/NPC/portrait_' + i + '.png');
-        }
+    var portraitImages = [];
+    for(var i = 0; i < 6; i++) {
+        portraitImages[i] = new Image();
+        portraitImages[i].addEventListener('load', self.loadedImage, false);
+        portraitImages[i].addEventListener('error', function() {
+            console.log('Error loading image: Graphics/NPC/portrait_' + i + '.png');
+        });
+        portraitImages[i].src = ('Graphics/NPC/portrait_' + i + '.png');
+    }
 
-        var fgImages = [];
-        for(var i = 0; i < 12; i++) {
-            fgImages[i] = new Image();
-            fgImages[i].addEventListener('load', self.loadedImage, false);
-            fgImages[i].addEventListener('error', function() {
-                console.log('Error loading image: Graphics/Foreground/fg_' + i + '.png');
-            });
-            fgImages[i].src = ('Graphics/Foreground/fg_' + i + '.png');
-        }
-		
-        var images = [];
-        for(var i = 0; i < 14; i++)
-        {
-            images[i] = new Image();
-			images[i].addEventListener('load', self.loadedImage, false);
-            images[i].src = ('Graphics/GUI_0' + i + '.png');
-        }
-        
-        var enemyImages = [];
-        for(var i = 0; i < 21; i++)
-        {
-            enemyImages[i] = new Image();
-			enemyImages[i].addEventListener('load', self.loadedImage, false);
-            enemyImages[i].src = ('Graphics/ship_' + i + '.png');
-        }
-        
-        var playerImages1 = [];
-        for(var i = 0; i < 20; i++)
-        {
-            playerImages1[i] = new Image();
-			playerImages1[i].addEventListener('load', self.loadedImage, false);
-            playerImages1[i].src = ('Graphics/Player/ship1/normal/player_' + i + '.png');
-        }
+    var fgImages = [];
+    for(var i = 0; i < 12; i++) {
+        fgImages[i] = new Image();
+        fgImages[i].addEventListener('load', self.loadedImage, false);
+        fgImages[i].addEventListener('error', function() {
+            console.log('Error loading image: Graphics/Foreground/fg_' + i + '.png');
+        });
+        fgImages[i].src = ('Graphics/Foreground/fg_' + i + '.png');
+    }
+    
+    var images = [];
+    for(var i = 0; i < 14; i++) {
+        images[i] = new Image();
+        images[i].addEventListener('load', self.loadedImage, false);
+        images[i].src = ('Graphics/GUI_0' + i + '.png');
+    }
+    
+    var enemyImages = [];
+    for(var i = 0; i < 21; i++) {
+        enemyImages[i] = new Image();
+        enemyImages[i].addEventListener('load', self.loadedImage, false);
+        enemyImages[i].src = ('Graphics/ship_' + i + '.png');
+    }
+    
+    var playerImages1 = [];
+    for(var i = 0; i < 20; i++) {
+        playerImages1[i] = new Image();
+        playerImages1[i].addEventListener('load', self.loadedImage, false);
+        playerImages1[i].src = ('Graphics/Player/ship1/normal/player_' + i + '.png');
+    }
 
-        var playerImages2 = [];
-        for(var i = 0; i < 20; i++)
-        {
-            playerImages2[i] = new Image();
-			playerImages2[i].addEventListener('load', self.loadedImage, false);
-            playerImages2[i].src = ('Graphics/Player/ship2/normal/player_' + i + '.png');
-        }
+    var playerImages2 = [];
+    for(var i = 0; i < 20; i++) {
+        playerImages2[i] = new Image();
+        playerImages2[i].addEventListener('load', self.loadedImage, false);
+        playerImages2[i].src = ('Graphics/Player/ship2/normal/player_' + i + '.png');
+    }
 
-        var playerImages3 = [];
-        for(var i = 0; i < 20; i++)
-        {
-            playerImages3[i] = new Image();
-			playerImages3[i].addEventListener('load', self.loadedImage, false);
-            playerImages3[i].src = ('Graphics/Player/ship3/normal/player_' + i + '.png');
-        }
+    var playerImages3 = [];
+    for(var i = 0; i < 20; i++) {
+        playerImages3[i] = new Image();
+        playerImages3[i].addEventListener('load', self.loadedImage, false);
+        playerImages3[i].src = ('Graphics/Player/ship3/normal/player_' + i + '.png');
+    }
 
-        var playerImages4 = [];
-        for(var i = 0; i < 20; i++)
-        {
-            playerImages4[i] = new Image();
-			playerImages4[i].addEventListener('load', self.loadedImage, false);
-            playerImages4[i].src = ('Graphics/Player/ship4/normal/player_' + i + '.png');
-        }
+    var playerImages4 = [];
+    for(var i = 0; i < 20; i++) {
+        playerImages4[i] = new Image();
+        playerImages4[i].addEventListener('load', self.loadedImage, false);
+        playerImages4[i].src = ('Graphics/Player/ship4/normal/player_' + i + '.png');
+    }
 
-        var playerImages5 = [];
-        for(var i = 0; i < 20; i++)
-        {
-            playerImages5[i] = new Image();
-			playerImages5[i].addEventListener('load', self.loadedImage, false);
-            playerImages5[i].src = ('Graphics/Player/ship5/normal/player_' + i + '.png');
-        }
+    var playerImages5 = [];
+    for(var i = 0; i < 20; i++) {
+        playerImages5[i] = new Image();
+        playerImages5[i].addEventListener('load', self.loadedImage, false);
+        playerImages5[i].src = ('Graphics/Player/ship5/normal/player_' + i + '.png');
+    }
 
-        var playerImages6 = [];
-        for(var i = 0; i < 20; i++)
-        {
-            playerImages6[i] = new Image();
-			playerImages6[i].addEventListener('load', self.loadedImage, false);
-            playerImages6[i].src = ('Graphics/Player/ship6/normal/player_' + i + '.png');
-        }
+    var playerImages6 = [];
+    for(var i = 0; i < 20; i++) {
+        playerImages6[i] = new Image();
+        playerImages6[i].addEventListener('load', self.loadedImage, false);
+        playerImages6[i].src = ('Graphics/Player/ship6/normal/player_' + i + '.png');
+    }
 
-        var playerImages7 = [];
-        for(var i = 0; i < 20; i++)
-        {
-            playerImages7[i] = new Image();
-			playerImages7[i].addEventListener('load', self.loadedImage, false);
-            playerImages7[i].src = ('Graphics/Player/ship7/normal/player_' + i + '.png');
-        }
+    var playerImages7 = [];
+    for(var i = 0; i < 20; i++) {
+        playerImages7[i] = new Image();
+        playerImages7[i].addEventListener('load', self.loadedImage, false);
+        playerImages7[i].src = ('Graphics/Player/ship7/normal/player_' + i + '.png');
+    }
 
-        var playerImages8 = [];
-        for(var i = 0; i < 20; i++)
-        {
-            playerImages8[i] = new Image();
-			playerImages8[i].addEventListener('load', self.loadedImage, false);
-            playerImages8[i].src = ('Graphics/Player/ship8/normal/player_' + i + '.png');
-        }
-        
-        var itemImages = [];
-        for(var i = 0; i < 5; i++)
-        {
-            itemImages[i] = new Image();
-			itemImages[i].addEventListener('load', self.loadedImage, false);
-            itemImages[i].src = ('Graphics/item_0' + i + '.png')
-        }
+    var playerImages8 = [];
+    for(var i = 0; i < 20; i++) {
+        playerImages8[i] = new Image();
+        playerImages8[i].addEventListener('load', self.loadedImage, false);
+        playerImages8[i].src = ('Graphics/Player/ship8/normal/player_' + i + '.png');
+    }
+    
+    var itemImages = [];
+    for(var i = 0; i < 5; i++) {
+        itemImages[i] = new Image();
+        itemImages[i].addEventListener('load', self.loadedImage, false);
+        itemImages[i].src = ('Graphics/item_0' + i + '.png')
+    }
 
-		var logoImages = [];
-        for(var i = 0; i < 1; i++)
-        {
-            logoImages[i] = new Image();
-			logoImages[i].addEventListener('load', self.loadedImage, false);
-            logoImages[i].src = ('Graphics/Logo.png')
-        }
+    var logoImages = [];
+    for(var i = 0; i < 1; i++) {
+        logoImages[i] = new Image();
+        logoImages[i].addEventListener('load', self.loadedImage, false);
+        logoImages[i].src = ('Graphics/Logo.png')
+    }
+
+    var transitionImages = [];
+    for(var i = 0; i < 1; i++) {
+        transitionImages[i] = new Image();
+        transitionImages[i].addEventListener('load', self.loadedImage, false);
+        transitionImages[i].src = ('Graphics/UI/transition.png')
+    }
+
+    var cutsceneImages = [];
+    for(var i = 0; i < 1; i++) {
+        cutsceneImages[i] = new Image();
+        cutsceneImages[i].addEventListener('load', self.loadedImage, false);
+        cutsceneImages[i].src = (`Graphics/Cutscene/cs_${i}.jpg`)
+    }
 
 	var numOfImages = (starImages.length + images.length + enemyImages.length + playerImages1.length + playerImages2.length + playerImages3.length 
         + playerImages4.length + playerImages5.length + playerImages6.length + playerImages7.length + playerImages8.length  
-        + itemImages.length + logoImages.length + fgImages.length + portraitImages.length);
+        + itemImages.length + logoImages.length + fgImages.length + portraitImages.length + transitionImages.length + cutsceneImages.length);
 	
 	
     // Containers
@@ -296,6 +296,7 @@ function Game()
 	document.querySelector("#bgm_dorian").addEventListener("ended",swapBGM,false);
 	document.querySelector("#bgm_euphoria").addEventListener("ended",swapBGM,false);
 	document.querySelector("#bgm_energy").addEventListener("ended",swapBGM,false);
+	document.querySelector("#bgm_boss").addEventListener("ended",swapBGM,false);
 	//Error Detection
 	document.querySelector("#bgm_square").addEventListener("error",swapBGM,false);
 	document.querySelector("#bgm_fast").addEventListener("error",swapBGM,false);
@@ -303,6 +304,7 @@ function Game()
 	document.querySelector("#bgm_dorian").addEventListener("error",swapBGM,false);
 	document.querySelector("#bgm_euphoria").addEventListener("error",swapBGM,false);
 	document.querySelector("#bgm_energy").addEventListener("error",swapBGM,false);
+	document.querySelector("#bgm_boss").addEventListener("error",swapBGM,false);
 
     // Event listener for gamepad connection
     window.addEventListener("gamepadconnected", (e) => {
@@ -385,8 +387,7 @@ function Game()
 		gco = new GameControlObject();
 		gco.Init();
         gco.EquipWeapon(0);
-        gco.EquipWeapon(50);        
-        gco.ResetFuel();
+        gco.EquipWeapon(50);
         menu = new Menu();
         menu.Init()
 		sfx.pause(1);
@@ -407,12 +408,9 @@ function Game()
         destroys = 0;
         totalShots += player.totalMissiles;
         player.totalMissiles = 0;
-        player.life = 100;
-        player.boost = 100;
-        player.x = _buffer.width / 2;
-        player.y = _buffer.height + player.height / 2;
-        gco.ResetFuel();
-        gco.GoToUpgradeMenu();
+        player.resetLife();
+        player.resetBoost();
+        player.resetPosition();
         player.resetShield();
         sfx.pause(1);//Pause laser sound on round end
         enemyGeneration.hasBoss = false;
@@ -450,38 +448,52 @@ function Game()
     /******************************************************/
     // Objects
     /******************************************************/
-	
     function GameControlObject()
     {   
         this.Init = function() {
-            this.level = 1; // Starting at 1
+            // Levels
+            this.level = 0;
+            this.levelDefs = {
+                0: {title: "Tutorial", upgradeTutorial: false},
+                1: {title: "Level 1 Gauntlet", upgradeTutorial: false}, 2: {title: "Level 1 Boss", upgradeTutorial: false},
+                3: {title: "Level 2 Gauntlet", upgradeTutorial: true}, 4: {title: "Level 2 Boss", upgradeTutorial: false},
+                5: {title: "Level 3 Gauntlet", upgradeTutorial: false}, 6: {title: "Level 3 Boss", upgradeTutorial: false},
+                7: {title: "Level 4 Gauntlet", upgradeTutorial: true}, 8: {title: "Level 4 Boss", upgradeTutorial: false},
+                9: {title: "Level 5 Gauntlet", upgradeTutorial: false}, 10: {title: "Level 5 Boss", upgradeTutorial: false},
+                11: {title: "Level 6 Gauntlet", upgradeTutorial: false}, 12: {title: "Level 6 Boss", upgradeTutorial: false},
+                13: {title: "Level 7 Gauntlet", upgradeTutorial: true}, 14: {title: "Level 7 Boss", upgradeTutorial: false},
+                15: {title: "Level 8 Gauntlet", upgradeTutorial: false}, 16: {title: "Level 8 Boss", upgradeTutorial: false},
+                17: {title: "Level 9 Gauntlet", upgradeTutorial: false}, 18: {title: "Level 9 Boss", upgradeTutorial: false},
+                19: {title: "Level 10 Gauntlet", upgradeTutorial: true}, 20: {title: "Level 10 Boss", upgradeTutorial: false},
+                21: {title: "Level 11 Gauntlet", upgradeTutorial: false}, 22: {title: "Level 11 Boss", upgradeTutorial: false},
+                23: {title: "Level 12 Boss", upgradeTutorial: false}
+            }
+            this.finalLevel = 23
             this.win = false;
+
             this.enemiesKilled = []; // [enemyNum] = 126
             this.weaponsOwned = []; // [weaponNum] = true
             this.weaponPrice = []; // [weaponNum] = 486 (cores)
             this.ownLaser = false;
             this.laserPrice = 1000;
-            this.levelProgress = 0.0; // Percentage
             this.levelMission = new LevelMission();
             this.extras = [];
             this.extraPrices = [];
-            this.fuelLevel = 1;
             this.onTick = 0;
-            this.missionText = [];
             this.secondaryAmmoPrice = 25;
             this.bgm = null;
-            this.playingBossMusic = false;
             
             this.bossX = 0; // Final Boss X set when boss dies
             this.bossY = 0; // Final Boss Y set when boss dies
             
             this.credits = new Credits();
             this.story = new Story();
+            this.transition = new Transition();
+            this.transition.Init();
             this.playStory = false;
             
             this.mustPurchasePrevious = 0;
             this.notEnoughCores = 0;
-            this.levelMission.GenerateObjectives();
             
             this.weaponsOwned[0] = true;//Primary Assult
             this.weaponsOwned[1] = false;//Rapid Fire Assult
@@ -498,6 +510,10 @@ function Game()
             this.weaponPrice[51] = 250;//DM-21 Auto Strike
             this.weaponPrice[52] = 500;//Impact Burst Mine
         }
+
+        this.Ended = function() {
+            return this.credits.isBlackedOut || currentGui == 7;
+        }
         
         this.init_audio = function() {
             if(this.bgm.currentTime) {
@@ -507,13 +523,21 @@ function Game()
             this.bgm.play();
         }
         
-        this.CheckLevelCompletion = function() {
-            if(this.levelMission.CheckCompletion()) {
-                this.level += 1;
-                this.levelMission.ResetObjectives();
-                player.life = 100;
-                player.resetShield();
+        this.ProgressLevel = function() {
+            this.level += 1;
+            this.levelMission.resetProgress();
+        }
+
+        this.levelTitle = function() {
+            return this.levelDefs[this.level].title;
+        }
+
+        this.hasDialogueForUpgrade = function() {
+            if(this.levelDefs[this.level].upgradeTutorial) {
+                this.levelDefs[this.level].upgradeTutorial = false;
+                return true;
             }
+            return false
         }
         
         this.PurchaseWeapon = function(wepID) { //assumes player has the cash/doesn't own weapon
@@ -571,9 +595,6 @@ function Game()
                     player.upgradeShield();
                     break;
                 }
-                case 1: { // Fuel
-                    break;
-                }
                 case 2: { // Secondary Ammo Level
                     player.money -= (player.secondaryAmmoLevel + 1) * 50;
                     player.upgradeSecondaryAmmo();
@@ -588,37 +609,23 @@ function Game()
             }
         }
         
-        this.ResetFuel = function() {
-            let fuelMultiplier = 60; // Base: 60
-            player.currentFuel = this.fuelLevel * fuelMultiplier;
-        }
-        
         this.GoToUpgradeMenu = function() {
             currentGui = 2;//Go to upgradeMenu
             gameState = 0;//Take game out of live mode
             menu.delayNextInput();
             playerInfo = false;
-            this.levelProgress = this.levelMission.GetCompletionPercent();
-            this.CheckLevelCompletion();
             sfx.pause(1);
         }
         
         this.StartLevel = function() {
-            currentGui = NULL_GUI_STATE;//default case will Trigger
-            gameState = 1;//Put Game in live mode
-            if(this.level > 5 && !this.playingBossMusic) {
-                this.playingBossMusic = true;
-                this.bgm.pause();
-                this.bgm = document.getElementById('bgm_boss');
-                this.bgm.loop = true;
-                this.init_audio();
-            }
+            currentGui = NULL_GUI_STATE; // default case will Trigger
+            gameState = 1; // Put Game in live mode
+            player.resetPosition();
             ed.initEvent(1); // Fly in to level event
         }
         
         this.ShowContinueScreen = function() {
-            player.lives -= 1;
-            currentGui = player.lives < 0 ? 5 : 3; // Game Over or Continue
+            currentGui = 3; // Continue(3), Game Over(5)
             menu.addLongDelay();
         }
         
@@ -630,19 +637,23 @@ function Game()
         this.Update = function() {
             if(this.onTick != ticks) {
                 this.onTick = ticks;
-                if(!gco.win) {
-                    if(this.onTick == 19 && player.isAlive() && this.level < 6) { // Update Fuel
-                        if(player.currentFuel == 0) {
-                            ed.initEvent(2); // Fly out of level event
-                        }
-                        player.currentFuel -= 1;
+                if(gameState == 1) {
+                    if(!ed.eventPlaying() && !paused && !this.win && this.levelMission.GauntletComplete()) {
+                        ed.initEvent(2); // Fly out of level event
                     }
-                } else {
-                    if(Math.floor(Math.random() * 4) == 1) {
-                        this.RandomBossExplosion();
+                    if(this.win && !ed.cutscene.isBlackedOut()) {
+                        if(Math.floor(Math.random() * 4) == 1) { this.RandomBossExplosion(); }
                     }
                 }
             }
+            this.transition.Update();
+            if(this.credits.active) { this.credits.Update(); }
+        }
+
+        this.Draw = function() {
+            this.transition.Draw();
+            if(this.credits.active){ this.credits.Draw(); }
+            if(this.playStory){ this.story.Draw(); }
         }
 
         this.goToLevelUpMenu = function() {
@@ -676,6 +687,7 @@ function Game()
             this.activeEvent = 0; // 0 = No Active Event
             this.eventTime = 0;
             this.dialogue = new Dialogue();
+            this.cutscene = new Cutscene();
             
             // Event variables other systems can watch or use
             this.moveMultiplierOne = 1;
@@ -686,13 +698,22 @@ function Game()
         }
 
         this.movementEventPlaying = function() {
-            return this.activeEvent == 1 || this.activeEvent == 2;
+            return [1, 2].includes(this.activeEvent);
+        }
+
+        this.dialogueEventPlaying = function() {
+            return [3, 4, 5].includes(this.activeEvent);
+        }
+
+        this.cutsceneEventPlaying = function() {
+            return [6].includes(this.activeEvent);
         }
 
         this.globalActionCull = function() {
             // We needed a method to stop or pause things in the game when an event started.
             // This function serves that need an culls things from around that app that conflict with events.
             player.stopLaser();
+            player.turnOffBoost();
         }
 
         this.initEvent = function(event) {
@@ -706,7 +727,13 @@ function Game()
                 this.eventTime = 60; // 3 Seconds
                 sfx.play(3);
             } else if(this.activeEvent == 3) {
-                this.dialogue.initDialogueForLevel();
+                this.dialogue.initDialogueForLevelIntro();
+            } else if(this.activeEvent == 4) {
+                this.dialogue.initDialogueForLevelOutro();
+            } else if(this.activeEvent == 5) {
+                this.dialogue.initDialogueForUpgrade();
+            } else if(this.activeEvent == 6) {
+                this.cutscene.initCutscene();
             }
         }
 
@@ -722,7 +749,8 @@ function Game()
             // Event Updates
             if(this.activeEvent == 1) this.levelIntroUpdate();
             if(this.activeEvent == 2) this.levelOutroUpdate();
-            if(this.activeEvent == 3) this.levelDialogue();
+            if(this.dialogueEventPlaying()) this.dialogueUpdate();
+            if(this.cutsceneEventPlaying()) this.cutsceneUpdate();
         }
 
         // Event 1
@@ -749,9 +777,7 @@ function Game()
 
             if(this.eventTime <= 0) {
                 this.endEvent();
-                if(!this.dialogue.didDialogueForLevel()) {
-                    this.initEvent(3)
-                }
+                this.initEvent(3);
             }
         }
 
@@ -800,34 +826,63 @@ function Game()
             }
 
             if(this.eventTime <= 0) {
-                if(gco.levelMission.CheckCompletion()) {
-                    gco.goToLevelUpMenu()
-                } else {
-                    self.softReset();
-                    gco.GoToUpgradeMenu();	
-                }
-                this.endEvent();
+                this.initEvent(4);
             }
         }
 
-        // Event 3
-        this.levelDialogue = function() {
+        this.dialogueUpdate = function() {
             if(this.dialogue.isFinished()) {
-                this.endEvent();
+                if(this.activeEvent == 4) { // End of Level Dialogue
+                    gco.ProgressLevel();
+                    if(gco.levelMission.shouldImmediatelyStartLevel()) {
+                        gco.StartLevel();
+                    } else {
+                        if(this.cutscene.shouldPlay()) {
+                            this.initEvent(6);
+                        } else {
+                            this.endEvent();
+                            gco.transition.toUpgrade();
+                        }
+                    }
+                } else {
+                    this.endEvent();
+                }
             } else {
                 this.dialogue.Update();
             }
         }
 
+        this.cutsceneUpdate = function() {
+            if(this.cutscene.isFinished()) {
+                if(gco.level == 0) {
+                    gco.StartLevel();
+                } else {
+                    this.endEvent();
+                }
+            } else {
+                this.cutscene.Update();
+            }
+        }
+
         this.Draw = function() {
-            if(this.activeEvent == 3) {
+            if(this.dialogueEventPlaying()) {
                 this.dialogue.Draw();
+            }
+
+            if(this.cutsceneEventPlaying()) {
+                this.cutscene.Draw();
             }
         }
 
         this.DoInput = function() {
-            if(this.activeEvent == 3) {
+            if(gco.credits.active) { return; } // Disable input if credits are active
+
+            if(this.dialogueEventPlaying()) {
                 this.dialogue.DoInput();
+            }
+
+            if(this.cutsceneEventPlaying()) {
+                this.cutscene.DoInput();
             }
         }
 
@@ -836,7 +891,6 @@ function Game()
 
     function Dialogue() {
         let onTick = 0;
-        let dialogueForLevel = [false, false, false, false, false, false];
         let d = null;
         let lineIndex = 0;
         let lineText = "";
@@ -851,18 +905,26 @@ function Game()
             return dialogueFinished;
         }
 
-        this.didDialogueForLevel = function() {
-            return dialogueForLevel[gco.level - 1];
+        this.initDialogueForLevelIntro = function() {
+            d = introDialogues[gco.level];
+            resetDialogueSteppingValues();
         }
 
-        this.initDialogueForLevel = function() {
-            d = dialogues[gco.level - 1];
-            dialogueForLevel[gco.level - 1] = true;
+        this.initDialogueForLevelOutro = function() {
+            d = outroDialogues[gco.level];
+            resetDialogueSteppingValues();
+        }
 
-            // Reset all values controlling the dialogue progression
+        this.initDialogueForUpgrade = function() {
+            let onUpgradeDialogue = {3: 0, 7: 1, 13: 2, 19: 3}[gco.level];
+            d = upgradeDialogues[onUpgradeDialogue];
+            resetDialogueSteppingValues();
+        }
+
+        const resetDialogueSteppingValues = function() {
             dialogueFinished = false;
             lineIndex = 0;
-            resetDialogueValues()
+            resetDialogueValues();
         }
 
         const resetDialogueValues = function() {
@@ -910,6 +972,7 @@ function Game()
 
         const Continue = function() {
             if(lineIndex == d.lines.length - 1) {
+                menu.delayNextInput();
                 dialogueFinished = true;
             } else {
                 resetDialogueValues();
@@ -966,61 +1029,22 @@ function Game()
 
         const drawCharacterPortrait = function(dialogueBoxWidth, dialogueBoxHeight) {
             // Calculate dimensions and position
-            var padding = 16; // Padding around the image
-            // var imageWidth = dialogueBoxHeight - (2 * padding); // Adjust for padding
             var imageWidth = 300; // Adjust for padding
             var imageHeight = imageWidth; // Maintain aspect ratio
-            // var x = (_buffer.width / 2) - (dialogueBoxWidth / 2) + padding; // Left position inside the dialogue box
             var x = (_buffer.width / 2) - 360; // Left position inside the dialogue box
-            // var y = _buffer.height - 130 - (dialogueBoxHeight / 2) + padding; // Vertical centering
             var y = _buffer.height - 344; // Vertical centering
-            var borderRadius = 10; // Radius for rounded corners
 
             // Save the current state of the canvas context
             buffer.save();
 
-            // Draw black background with rounded corners
-            // buffer.fillStyle = 'black';
-            // buffer.beginPath();
-            // buffer.moveTo(x + borderRadius, y);
-            // buffer.arcTo(x + imageWidth, y, x + imageWidth, y + imageHeight, borderRadius);
-            // buffer.arcTo(x + imageWidth, y + imageHeight, x, y + imageHeight, borderRadius);
-            // buffer.arcTo(x, y + imageHeight, x, y, borderRadius);
-            // buffer.arcTo(x, y, x + imageWidth, y, borderRadius);
-            // buffer.closePath();
-            // buffer.fill();
-
-            // Clip the image area to rounded rectangle before drawing the image
-            // buffer.beginPath();
-            // buffer.moveTo(x + borderRadius, y);
-            // buffer.arcTo(x + imageWidth, y, x + imageWidth, y + imageHeight, borderRadius);
-            // buffer.arcTo(x + imageWidth, y + imageHeight, x, y + imageHeight, borderRadius);
-            // buffer.arcTo(x, y + imageHeight, x, y, borderRadius);
-            // buffer.arcTo(x, y, x + imageWidth, y, borderRadius);
-            // buffer.closePath();
-            // buffer.clip();
-
             // Draw image with shadow for emphasis
             buffer.shadowBlur = 1;
             buffer.shadowColor = 'rgb(0, 173, 239)';
-            // buffer.drawImage(portraitImages[d.lines[lineIndex].character], x, y, imageWidth, imageHeight);
             buffer.drawImage(portraitImages[d.lines[lineIndex].character], x, y, imageWidth, imageHeight);
             buffer.shadowBlur = 0;
 
             // Restore the context to remove the clipping path
             buffer.restore();
-
-            // Draw border around the image with rounded corners
-            // buffer.strokeStyle = 'white';
-            // buffer.lineWidth = 4;
-            // buffer.beginPath();
-            // buffer.moveTo(x + borderRadius, y);
-            // buffer.arcTo(x + imageWidth, y, x + imageWidth, y + imageHeight, borderRadius);
-            // buffer.arcTo(x + imageWidth, y + imageHeight, x, y + imageHeight, borderRadius);
-            // buffer.arcTo(x, y + imageHeight, x, y, borderRadius);
-            // buffer.arcTo(x, y, x + imageWidth, y, borderRadius);
-            // buffer.closePath();
-            // buffer.stroke();
         }
 
         const drawDialogueText = function(dialogueBoxWidth, dialogueBoxHeight) {
@@ -1035,13 +1059,7 @@ function Game()
             const textAreaWidth = dialogueBoxWidth - portraitWidth - (3 * padding) - 110;
             const textX = _buffer.width / 2 - dialogueBoxWidth / 2 + portraitWidth + (2 * padding) + 110;
             const textY = _buffer.height - (dialogueBoxHeight + 28);
-        
             const maxCharsPerLine = Math.floor(textAreaWidth / charWidth);
-
-            // To see the background of the text uncomment the following
-            // buffer.fillStyle = 'black';
-            // buffer.fillRect(textX, textY, textAreaWidth, dialogueBoxHeight - (2 * padding));
-            
             const words = lineText.split(' ');
             let currentLine = '';
             let currentY = textY;
@@ -1088,44 +1106,683 @@ function Game()
         }
 
         // One dialogue per level
-        let dialogues = [
-            // Level 1
+        let introDialogues = [
+            // Level 0
             {lines: [
-                {character: 0, line: "Athanas, we've reached the edge of the drone fleet."},
-                {character: player.captain, line: "I can see that much, Sato..."},
-                {character: player.captain, line: "...And how many times have I told you to call me Captain."},
-                {character: 0, line: "We're at the edge of it all and that's what you're worried about...?"},
-                {character: 3, line: "Why are you both arguing again?"},
-                {character: 1, line: "Everyone, focus! We have to push forward, it's the last shot we have to save everyone."},
-                {character: 0, line: "You don't have to tell me twice, all systems go CAPTAIN!"},
-                {character: player.captain, line: "Asshole... Ready yourself, here they come!"},
+                {character: 1, line: "Tutorial Dialogue."},
             ]},
 
-            // level 2
+            // Level 1
             {lines: [
-                {character: 0, line: "This is temporary level 2 dialogue..."},
+                {character: 0, line: "Level 1 Dialogue."},
+            ]},
+
+            // Level 2
+            {lines: [
+                {character: 0, line: "Level 1 Boss Dialogue."},
             ]},
 
             // Level 3
             {lines: [
-                {character: 0, line: "This is temporary level 3 dialogue..."},
+                {character: 0, line: "Level 2 Dialogue."},
             ]},
 
             // Level 4
             {lines: [
-                {character: 0, line: "This is temporary level 4 dialogue..."},
+                {character: 0, line: "Level 2 Boss Dialogue."},
             ]},
 
             // Level 5
             {lines: [
-                {character: 0, line: "This is temporary level 5 dialogue..."},
+                {character: 0, line: "Level 3 Dialogue."},
             ]},
 
             // Level 6
             {lines: [
-                {character: 0, line: "This is temporary boss level dialogue..."},
+                {character: 0, line: "Level 3 Boss Dialogue."},
+            ]},
+
+            // Level 7
+            {lines: [
+                {character: 0, line: "Level 4 Dialogue."},
+            ]},
+
+            // Level 8
+            {lines: [
+                {character: 0, line: "Level 4 Boss Dialogue."},
+            ]},
+
+            // Level 9
+            {lines: [
+                {character: 0, line: "Level 5 Dialogue."},
+            ]},
+
+            // Level 10
+            {lines: [
+                {character: 0, line: "Level 5 Boss Dialogue."},
+            ]},
+
+            // Level 11
+            {lines: [
+                {character: 0, line: "Level 6 Dialogue."},
+            ]},
+
+            // Level 12
+            {lines: [
+                {character: 0, line: "Level 6 Boss Dialogue."},
+            ]},
+
+            // Level 13
+            {lines: [
+                {character: 0, line: "Level 7 Dialogue."},
+            ]},
+
+            // Level 14
+            {lines: [
+                {character: 0, line: "Level 7 Boss Dialogue."},
+            ]},
+
+            // Level 15
+            {lines: [
+                {character: 0, line: "Level 8 Dialogue."},
+            ]},
+
+            // Level 16
+            {lines: [
+                {character: 0, line: "Level 8 Boss Dialogue."},
+            ]},
+
+            // Level 17
+            {lines: [
+                {character: 0, line: "Level 9 Dialogue."},
+            ]},
+
+            // Level 18
+            {lines: [
+                {character: 0, line: "Level 9 Boss Dialogue."},
+            ]},
+
+            // Level 19
+            {lines: [
+                {character: 0, line: "Level 10 Dialogue."},
+            ]},
+
+            // Level 20
+            {lines: [
+                {character: 0, line: "Level 10 Boss Dialogue."},
+            ]},
+
+            // Level 21
+            {lines: [
+                {character: 0, line: "Level 11 Dialogue."},
+            ]},
+
+            // Level 22
+            {lines: [
+                {character: 0, line: "Level 11 Boss Dialogue - Final Boss."},
+            ]},
+
+            // Level 23
+            {lines: [
+                {character: 0, line: "Level 12 Boss Dialogue - Real Final Boss."},
+            ]},
+        ];
+
+        // One dialogue per level
+        let outroDialogues = [
+            // Level 0
+            {lines: [
+                {character: 1, line: "Tutorial Outro Dialogue."},
+            ]},
+
+            // Level 1
+            {lines: [
+                {character: 0, line: "Level 1 Outro Dialogue."},
+            ]},
+
+            // Level 2
+            {lines: [
+                {character: 0, line: "Level 1 Boss Outro Dialogue."},
+            ]},
+
+            // Level 3
+            {lines: [
+                {character: 0, line: "Level 2 Outro Dialogue."},
+            ]},
+
+            // Level 4
+            {lines: [
+                {character: 0, line: "Level 2 Boss Outro Dialogue."},
+            ]},
+
+            // Level 5
+            {lines: [
+                {character: 0, line: "Level 3 Outro Dialogue."},
+            ]},
+
+            // Level 6
+            {lines: [
+                {character: 0, line: "Level 3 Boss Outro Dialogue."},
+            ]},
+
+            // Level 7
+            {lines: [
+                {character: 0, line: "Level 4 Outro Dialogue."},
+            ]},
+
+            // Level 8
+            {lines: [
+                {character: 0, line: "Level 4 Boss Outro Dialogue."},
+            ]},
+
+            // Level 9
+            {lines: [
+                {character: 0, line: "Level 5 Outro Dialogue."},
+            ]},
+
+            // Level 10
+            {lines: [
+                {character: 0, line: "Level 5 Boss Outro Dialogue."},
+            ]},
+
+            // Level 11
+            {lines: [
+                {character: 0, line: "Level 6 Outro Dialogue."},
+            ]},
+
+            // Level 12
+            {lines: [
+                {character: 0, line: "Level 6 Boss Outro Dialogue."},
+            ]},
+
+            // Level 13
+            {lines: [
+                {character: 0, line: "Level 7 Outro Dialogue."},
+            ]},
+
+            // Level 14
+            {lines: [
+                {character: 0, line: "Level 7 Boss Outro Dialogue."},
+            ]},
+
+            // Level 15
+            {lines: [
+                {character: 0, line: "Level 8 Outro Dialogue."},
+            ]},
+
+            // Level 16
+            {lines: [
+                {character: 0, line: "Level 8 Boss Outro Dialogue."},
+            ]},
+
+            // Level 17
+            {lines: [
+                {character: 0, line: "Level 9 Outro Dialogue."},
+            ]},
+
+            // Level 18
+            {lines: [
+                {character: 0, line: "Level 9 Boss Outro Dialogue."},
+            ]},
+
+            // Level 19
+            {lines: [
+                {character: 0, line: "Level 10 Outro Dialogue."},
+            ]},
+
+            // Level 20
+            {lines: [
+                {character: 0, line: "Level 10 Boss Outro Dialogue."},
+            ]},
+
+            // Level 21
+            {lines: [
+                {character: 0, line: "Level 11 Outro Dialogue."},
+            ]},
+
+            // Level 22
+            {lines: [
+                {character: 0, line: "Level 11 Boss Outro Dialogue - Final Boss."},
+            ]},
+
+            // Level 23
+            // This level doesn't have an outro dialogue as the final cutscene is triggered by the boss. Search for: gco.win = true
+        ];
+
+        let upgradeDialogues = [
+            {lines: [
+                {character: 1, line: "Level 1 Upgrade Tutorial."},
+            ]},
+            {lines: [
+                {character: 1, line: "Level 3 Upgrade Tutorial."},
+            ]},
+            {lines: [
+                {character: 1, line: "Level 6 Upgrade Tutorial."},
+            ]},
+            {lines: [
+                {character: 1, line: "Level 9 Upgrade Tutorial."},
             ]},
         ]
+    }
+
+    function Cutscene() {
+        let levelsWithCutscenes = [7, 13, 19];
+        let onTick = 0;
+        let c = null;
+        let frameIndex = 0;
+        let frameText = "";
+        let subTick = 0;
+        let maxSubTick = 16;
+        let playInitialSound = true;
+        let percentageDone = 0;
+        let timeout = 0;
+        let cutsceneFinished = false;
+        let x = 0;
+        let maxX = 480;
+        let y = 0;
+        let width = 1067; // Pre-calculate scale down from 1280
+        let height = 600; // Pre-calculate scale down from 720
+        let textBoxWidth = 700;
+        let textBoxHeight = 175;
+
+        let blackedOut = false;
+        let bgAlpha = 0;
+        let animateNext = false;
+        let imageAlpha = 0;
+        let maxBlur = 15;
+        let imageBlur = maxBlur;
+
+        const resetCutsceneSteppingValues = function() {
+            cutsceneFinished = false;
+            frameIndex = 0;
+            blackedOut = false;
+            bgAlpha = 0;
+            animateNext = false;
+            imageAlpha = 0;
+            imageBlur = maxBlur;
+            resetCutsceneValues();
+        }
+
+        const resetCutsceneValues = function() {
+            subTick = 0;
+            frameText = "";
+            playInitialSound = true;
+            percentageDone = 0;
+        }
+
+        this.initCutscene = function() {
+            if(gco.level == 0) { c = introCutscene; }
+            if(gco.level == 7) { c = actOneCutscene; }
+            if(gco.level == 13) { c = actTwoCutscene; }
+            if(gco.level == 19) { c = actThreeCutscene; }
+            if(gco.level == gco.finalLevel) { c = outroCutscene; }
+            resetCutsceneSteppingValues();
+        }
+
+        this.isBlackedOut = function() {
+            return blackedOut;
+        }
+
+        this.isActive = function() {
+            return !cutsceneFinished;
+        }
+
+        this.isFinished = function() {
+            return cutsceneFinished;
+        }
+
+        this.shouldPlay = function() {
+            return levelsWithCutscenes.includes(gco.level);
+        }
+
+        this.DoInput = function() {
+            if(timeout > 0 || percentageDone < 99) return;
+            timeout = 15;
+            sfx.play(8);
+            Continue();
+        }
+
+        this.Update = function() {
+            if(!blackedOut) {
+                bgAlpha += blackoutSpeed();
+                if(bgAlpha >= 1.0) {
+                    bgAlpha = 1;
+                    blackedOut = true;
+                }
+            } else {
+                animateNext ? animNext() : animFrame();
+                if (ticks !== onTick) { // Ticks go 0-19 every second in 50 ms intervals
+                    onTick = ticks;
+                    subTick++;
+                    if(timeout > 0) { timeout--; } // Count down timeout
+                    if(imageAlpha < 1) { return; } // Only progress text if the image is loaded in fully
+                    animText();
+                }
+            }
+        }
+
+        this.Draw = function() {
+            drawBackground();
+            if(!blackedOut) { return; }
+            drawImage();
+            drawFrameText();
+            if(percentageDone > 99) {
+                drawContinuePrompt();
+            }
+        }
+
+        const Continue = function() {
+            if(OnLastFrame() && gco.level == gco.finalLevel) {
+                gco.credits.roll();
+            } else {
+                animateNext = true;
+                preFadeEvent();
+            }
+                
+        }
+
+        const Progress = function() {
+            resetCutsceneValues();
+            frameIndex++;
+            animateNext = false;
+            imageAlpha = 0;
+        }
+
+        const Finish = function() {
+            menu.delayNextInput();
+            cutsceneFinished = true;
+        }
+
+        const OnLastFrame = function() {
+            return frameIndex == c.frames.length - 1;
+        }
+
+        const OnFirstFrame = function() {
+            return frameIndex == 0;
+        }
+
+        const blackoutSpeed = function() {
+            if(OnFirstFrame() && gco.level == gco.finalLevel) {
+                return delta / 10;
+            } else {
+                return delta / 2
+            }
+        }
+
+        const preFadeEvent = function() {
+            if(OnLastFrame()) { // If we're on the last frame and about to fade out...
+                if(gco.level == 0) { // If we're on the tutorial...
+                    currentGui = NULL_GUI_STATE;
+                } else {
+                    self.softReset();
+                    gco.GoToUpgradeMenu();
+                }
+            }
+        }
+
+        const animNext = function() {
+            if(OnLastFrame() && bgAlpha > 0) {
+                bgAlpha -= delta;
+                if(bgAlpha < 0) { bgAlpha = 0; }
+            }
+
+            if(imageBlur < maxBlur) {
+                imageBlur += delta * maxBlur;
+                if(imageBlur > maxBlur) { imageBlur = maxBlur; }
+            }
+
+            if(imageAlpha > 0) {
+                imageAlpha -= delta;
+                if(imageAlpha < 0) { imageAlpha = 0; }
+            }
+
+            if(OnLastFrame()) {
+                if(bgAlpha <= 0) {
+                    Finish();
+                }
+            } else {
+                if(imageBlur == maxBlur && imageAlpha == 0) {
+                    Progress();
+                }
+            }
+            
+        }
+
+        const animFrame = function() {
+            if(imageBlur > 0) {
+                imageBlur -= delta * maxBlur;
+                if(imageBlur < 0) { imageBlur = 0; }
+            }
+
+            if(imageAlpha < 1) {
+                imageAlpha += delta;
+                if(imageAlpha > 1) { imageAlpha = 1; }
+            }
+
+            if(x < maxX) {
+                x -= delta * 2;
+                if(x < -maxX) { x = -maxX; }
+            }
+        }
+
+        const animText = function() {
+            if(percentageDone >= 100) { return; }
+            // Determine the maximum sub-tick interval based on the character's voice type
+            const voiceType = c.frames[frameIndex].character;
+            maxSubTick = [2, 5, 1, 3].includes(voiceType) ? 10 : 16;
+
+            // Read through the text, 1 letter at a time, into the rendered cache state
+            if (frameText.length < c.frames[frameIndex].text.length) {
+                frameText += c.frames[frameIndex].text[frameText.length];  // Append next character
+            }
+
+            // Calculate the percentage of the text that has been displayed
+            percentageDone = (frameText.length / c.frames[frameIndex].text.length) * 100;
+    
+            // Play sound effects based on the current tick interval and voice type
+            if (percentageDone < 90) {
+                const midVoice = [0, 4].includes(voiceType);
+                if (!midVoice && (playInitialSound || subTick % 10 === 0)) {
+                    sfx.play([2, 5].includes(voiceType) ? 4 : 6);
+                }
+                if (midVoice && (playInitialSound || subTick % 16 === 0)) {
+                    sfx.play(5); // Mid dialogue text SFX for characters 0 and 4
+                }
+            }
+
+            if (subTick >= maxSubTick) subTick = 0; // Reset subTick
+            playInitialSound = false;
+        }
+
+        const drawBackground = function() {
+            buffer.fillStyle = "rgba(0, 0, 0, " + bgAlpha + ")";
+            buffer.fillRect(0, 0, _buffer.width, _buffer.height);
+        }
+
+        const drawImage = function() {
+            const currentAlpha = buffer.globalAlpha;
+            buffer.globalAlpha = imageAlpha;
+            if(imageBlur > 0) { buffer.filter = `blur(${imageBlur}px)`; }
+            buffer.drawImage(cutsceneImages[c.frames[frameIndex].image], x, y, width, height);
+            buffer.globalAlpha = currentAlpha;
+            buffer.filter = 'none';
+        }
+
+        const drawFrameText = function() {
+            const fontSize = 28;
+            const lineHeight = fontSize + 4;
+            const fontFamily = "VT323";
+        
+            // Assuming each character in VT323 at 28px is approximately 12px wide
+            const charWidth = 12; // This value should be adjusted based on visual tests or accurate measurements
+            const textX = _buffer.width / 2 - textBoxWidth / 2;
+            const textY = _buffer.height - (textBoxHeight + 28);
+            const maxCharsPerLine = Math.floor(textBoxWidth / charWidth);
+            const words = frameText.split(' ');
+            let currentLine = '';
+            let currentY = textY;
+            let guiText = [];
+        
+            words.forEach(word => {
+                if ((currentLine + word + ' ').length > maxCharsPerLine) {
+                    guiText.push(new GUIText(currentLine, textX, currentY, `${fontSize}px ${fontFamily}`, "left", "top", "white"));
+                    currentLine = word + ' ';
+                    currentY += lineHeight;
+                } else {
+                    currentLine += word + ' ';
+                }
+            });
+        
+            if (currentLine.trim()) {
+                guiText.push(new GUIText(currentLine, textX, currentY, `${fontSize}px ${fontFamily}`, "left", "top", "white"));
+            }
+        
+            const currentAlpha = buffer.globalAlpha;
+            buffer.globalAlpha = imageAlpha;
+            if(imageBlur > 0) { buffer.filter = `blur(${imageBlur}px)`; }
+            guiText.forEach(text => {
+                text.Draw(_buffer);
+            });
+            buffer.globalAlpha = currentAlpha;
+            buffer.filter = 'none';
+        }
+
+        const drawContinuePrompt = function() {
+            const fontSize = 28; // Smaller font for the continue prompt
+            const fontFamily = "VT323"; // Using the same monospaced font for consistency
+            const padding = 12; // Padding inside the dialogue box
+        
+            // Calculate positions
+            const textX = _buffer.width / 2 + textBoxWidth / 2 - padding; // Right align the text within the dialogue box
+            const textY = _buffer.height - padding; // Position at the bottom of the dialogue box
+            const arrowX = textX - 100; // Position the arrow 70px to the left of the text
+            const arrowY = textY - 12; // Slightly adjust the arrow position for vertical alignment
+        
+            // Create GUIText object for "Continue"
+            const continueText = new GUIText("Continue", textX, textY, `${fontSize}px ${fontFamily}`, "right", "bottom", "white");
+        
+            // Draw the "Continue" text using GUIText.Draw method
+            const currentAlpha = buffer.globalAlpha;
+            buffer.globalAlpha = imageAlpha;
+            if(imageBlur > 0) { buffer.filter = `blur(${imageBlur}px)`; }
+            continueText.Draw();
+            buffer.globalAlpha = currentAlpha;
+            buffer.filter = 'none';
+        
+            // Draw the green arrow using the predefined function
+            menu.DrawArrow(3, arrowX, arrowY, 20); // Assuming `menu.DrawArrow` handles the drawing based on provided coordinates
+        }
+
+        // Cutscene Definitions
+        let introCutscene = {
+            frames: [
+                {character: 1, text: "Intro Cutscene.", image: 0},
+                // {character: 1, text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", image: 0},
+                // {character: 1, text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.", image: 0},
+            ]
+        }
+
+        let actOneCutscene = {
+            frames: [
+                {character: 1, text: "Act One Cutscene.", image: 0},
+                // {character: 1, text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", image: 0},
+            ]
+        }
+
+        let actTwoCutscene = {
+            frames: [
+                {character: 1, text: "Act Two Cutscene.", image: 0},
+                // {character: 1, text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", image: 0},
+            ]
+        }
+
+        let actThreeCutscene = {
+            frames: [
+                {character: 1, text: "Act Three Cutscene.", image: 0},
+                // {character: 1, text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", image: 0},
+            ]
+        }
+
+        let outroCutscene = {
+            frames: [
+                {character: 1, text: "Outro Cutscene.", image: 0},
+                // {character: 1, text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", image: 0},
+            ]
+        }
+    }
+
+    function Transition() {
+        this.Init = function() {
+            this.active = false;
+            this.transitionId = 0;
+            this.onTick = 0;
+            this.timer = 0;
+        }
+
+        this.Update = function() {
+            if(!this.active) { return; }
+            if(this.onTick != ticks) {
+                this.onTick = ticks;
+                this.timer += 1;
+            }
+            if(this.transitionId == 0) { this.updateTransitionToUpgrade(); }
+        }
+
+        this.Draw = function() {
+            if(!this.active) { return; }
+            if(this.transitionId == 0) { this.drawTransitionToUpgrade(); }
+        }
+
+        // Transition To Upgrade Menu
+        this.toUpgrade = function() {
+            this.transitionId = 0;
+            this.active = true;
+            this.width = _canvas.width;
+            this.height = _canvas.height;
+            this.x = 0;
+            this.startY = -_canvas.height;
+            this.y = this.startY;
+            this.targetY = 0;
+            this.speed = 600;
+            this.timer = 0;
+            this.reachedApex = false;
+            this.exitPlayed = false;
+            sfx.play(24);
+        }
+
+        this.updateTransitionToUpgrade = function() {
+            let moveY = this.speed * delta;
+            if(!this.reachedApex) {
+                if(this.y < this.targetY) {
+                    this.y += moveY;
+                    if(this.y > this.targetY) { this.y = this.targetY; }
+                } else {
+                    this.reachedApex = true;
+                    this.timer = 0;
+                    gco.GoToUpgradeMenu();
+                    self.softReset();
+                }
+            } else {
+                if(this.timer < 30) { return; } // Spend 1 second on transition screen
+                if(!this.exitPlayed) {
+                    this.exitPlayed = true;
+                    sfx.play(24);
+                }
+                if(this.y > this.startY) {
+                    this.y -= moveY;
+                    if(this.y < this.startY) { this.y = this.startY; }
+                } else {
+                    if(gco.hasDialogueForUpgrade()) {
+                        ed.initEvent(5);
+                    }
+                    this.active = false; // Full Exit Clause
+                }
+            }
+        }
+
+        this.drawTransitionToUpgrade = function() {
+            buffer.drawImage(transitionImages[0], this.x, this.y, this.width, this.height);
+        }
     }
 
     function Menu()
@@ -1177,6 +1834,7 @@ function Game()
         {
             // activeMenu - is whatever currentGui is active, which correlates to the index of states.
             // direction - 0, 1, 2, 3 - up, left, down, right - Depending on the activeMenu, this will correlate to moves in the menu.
+            if(ed.eventPlaying()) return; // Skip all menu input if an event is playing
 
             // Escape this function if a menu option was moved within the last n milliseconds
             if(this.timeout > 0) return;
@@ -1293,6 +1951,7 @@ function Game()
 
         this.select = function()
         { // This function should mimic the doMouseClick functionality. If something is added there, it should be here, and visa-versa
+            if(ed.eventPlaying()) return; // Skip all menu input if an event is playing
             if(this.timeout > 0) return;
             this.timeout = 5; // 250 ms delay before next action
             switch(currentGui) {
@@ -1300,7 +1959,14 @@ function Game()
                 { // Main Menu
                     if(!gco.playStory) {
                         this.delayNextInput();
-                        if(this.states[0][0]){ currentGui = 2; sfx.play(11); }
+                        if(this.states[0][0]){
+                            if(gco.level == 0) {
+                                ed.initEvent(6);
+                            } else {
+                                currentGui = 2;
+                            }
+                            sfx.play(11);
+                        }
                         if(this.states[0][1]){ currentGui = 6; lastGui = 0; sfx.play(8); }
                         if(this.states[0][2]){ gco.playStory = true; sfx.play(8); }
                         if(this.states[0][3]){ ipcRenderer.send('quit-app'); }
@@ -1346,7 +2012,7 @@ function Game()
                     break;
                 }
                 case 3: { // Continue Menu
-                    if(this.states[3][0]){ currentGui = NULL_GUI_STATE; self.softReset(); this.delayNextInput(); sfx.play(8);}
+                    if(this.states[3][0]){ gco.levelMission.nextOnDeath(); }
                     if(this.states[3][1]){ self.hardReset(); this.delayNextInput(); sfx.play(9); }
                     if(this.states[3][2]){ ipcRenderer.send('quit-app'); }
                     break;
@@ -1429,7 +2095,7 @@ function Game()
 	
 	function swapBGM()
 	{
-		switch(Math.floor(Math.random() * 6))
+		switch(Math.floor(Math.random() * 7))
 		{
 			case 0:
 			{
@@ -1461,6 +2127,11 @@ function Game()
 				gco.bgm = document.getElementById('bgm_energy');
 				break;
 			}
+            case 6:
+			{
+				gco.bgm = document.getElementById('bgm_boss');
+				break;
+			}
 			default:{}
 		}
 		gco.init_audio();
@@ -1472,7 +2143,7 @@ function Game()
 		this.explosion = {index: 0, channel: [], channels: 40} // Explosion Channels
 		this.laser = 0; this.laserPlaying = false; // Player Laser Channel
 		this.bossLaser = 0; this.bossLaserPlaying = false; // Boss Laser Channel
-        this.whooshOne = 0; // Whoosh One Channel
+        this.whooshOne = {index: 0, channel: [], channels: 3}; // Whoosh One Channels
         this.dialogueLow = {index: 0, channel: [], channels: 10} // Low Dialogue Channels
         this.dialogueMid = {index: 0, channel: [], channels: 10} // Mid Dialogue Channels
         this.dialogueHigh = {index: 0, channel: [], channels: 10} // High Dialogue Channels
@@ -1483,7 +2154,7 @@ function Game()
         this.menuFail = {index: 0, channel: [], channels: 5}; // Menu Fail Channels
         this.pew = {index: 0, channel: [], channels: 40} // Pew Channels
         this.hit = {index: 0, channel: [], channels: 80} // Hit Channels
-        this.levelUp = 0; // Level Up Channels
+        this.levelUp = 0; // Level Up Channel
         this.purchaseItem = {index: 0, channel: [], channels: 3}; // Purchase Item Channels
         this.equipItem = {index: 0, channel: [], channels: 3}; // Equip Item Channels
         this.pickupCoin = {index: 0, channel: [], channels: 3} // Pickup Coin Channels
@@ -1493,7 +2164,7 @@ function Game()
         this.startBoost = {index: 0, channel: [], channels: 5} // Pickup Coin Channels
         this.repeatBoost = {index: 0, channel: [], channels: 30} // Pickup Coin Channels
         this.stopBoost = {index: 0, channel: [], channels: 5} // Pickup Coin Channels
-
+        this.transition = {index: 0, channel: [], channels: 2} // Transition Channels
 
         // Other Variables
         this.masterVolume = 0.2;
@@ -1520,9 +2191,12 @@ function Game()
             this.bossLaser.loop = true;
 
             // Whoose One
-            this.whooshOne = new Audio('Audio/sfx/woosh-low-long.mp3');
-            this.whooshOne.volume = this.masterVolume;
-            this.whooshOne.preload = 'auto';
+            for(var i = 0; i < this.whooshOne.channels; i++) {
+                var a = new Audio('Audio/sfx/woosh-low-long.mp3');
+                a.volume = this.masterVolume;
+                a.preload = 'auto';
+                this.whooshOne.channel.push(a);
+            }
 
             // Low Dialogues
             for(var i = 0; i < this.dialogueLow.channels; i++) {
@@ -1681,6 +2355,14 @@ function Game()
                 a.preload = 'auto';
                 this.stopBoost.channel.push(a);
             }
+
+            // Transition
+            for(var i = 0; i < this.transition.channels; i++) {
+                var a = new Audio('Audio/sfx/transition.mp3');
+                a.volume = this.masterVolume;
+                a.preload = 'auto';
+                this.transition.channel.push(a);
+            }
         }
 		
         this.play = function(playfx) {
@@ -1703,7 +2385,10 @@ function Game()
                     break;
                 }
                 case 3: { // Whoosh One
-                    this.whooshOne.play();
+                    if(this.whooshOne.channel[this.whooshOne.index]) {
+                        this.whooshOne.channel[this.whooshOne.index].play();
+                        this.whooshOne.index += 1; if(this.whooshOne.index > (this.whooshOne.channels - 1)){this.whooshOne.index = 0;}
+                    }
                     break;
                 }
                 case 4: { // Dialogue Low
@@ -1843,6 +2528,13 @@ function Game()
                     }
                     break;
                 }
+                case 24: { // Transition
+                    if(this.transition.channel[this.transition.index]) {
+                        this.transition.channel[this.transition.index].play();
+                        this.transition.index += 1; if(this.transition.index > (this.transition.channels - 1)){this.transition.index = 0;}
+                    }
+                    break;
+                }
             }
         }
 		
@@ -1865,7 +2557,7 @@ function Game()
             for(var i = 0; i < this.explosion.channel.length; i++) { this.explosion.channel[i].volume = value; }
             this.laser.volume = value;
             this.bossLaser.volume = value;
-            this.whooshOne.volume = value;
+            for(var i = 0; i < this.whooshOne.channel.length; i++) { this.whooshOne.channel[i].volume = value; }
             for(var i = 0; i < this.dialogueLow.channel.length; i++) { this.dialogueLow.channel[i].volume = value; }
             for(var i = 0; i < this.dialogueMid.channel.length; i++) { this.dialogueMid.channel[i].volume = value; }
             for(var i = 0; i < this.dialogueHigh.channel.length; i++) { this.dialogueHigh.channel[i].volume = value; }
@@ -1886,72 +2578,98 @@ function Game()
             for(var i = 0; i < this.startBoost.channel.length; i++) { this.startBoost.channel[i].volume = value; }
             for(var i = 0; i < this.repeatBoost.channel.length; i++) { this.repeatBoost.channel[i].volume = value; }
             for(var i = 0; i < this.stopBoost.channel.length; i++) { this.stopBoost.channel[i].volume = value; }
+            for(var i = 0; i < this.transition.channel.length; i++) { this.transition.channel[i].volume = value; }
             this.masterVolume = value;
         }
     }
 	
-	function LevelMission()
-	{
-		this.objectives = [];
-		this.progress = [];
-		
-		this.GenerateObjectives = function()
-		{
-            let randomMultiplier = 25; // Base: 25
-            let floorAddative = 35; // Base: 35
-			for(var i = 0; i < gco.level; i++)
-			{//For each level, a new enemy type objective is placed on the mission stack.
-				if(gco.level >= 6){ this.objectives.push(0); }
-				else{ this.objectives.push(Math.floor(Math.random() * randomMultiplier) + floorAddative); }
-				this.progress.push(0);
-			}
-		}
-		
-		this.UpdateProgress = function(enType)
-		{
-			this.progress[enType] += 1;
-		}
-		
-		this.CheckCompletion = function()
-		{//returns true if level is complete, else returns false
-			if(gco.level < 6)
-			{
-				var completion = [];
-				for(var i = 0; i < gco.level; i++)
-				{
-					if(this.progress[i] >= this.objectives[i])
-					{
-						//Awesome
-					} else
-					{
-						return false;
-					}
-				}
-				return true;
-			} else
-			{
-				return false;
-			}
-		}
-		
-		this.GetCompletionPercent = function()
-		{
-			var total = 0; var kills = 0;
-			for(var i = 0; i < gco.level; i++)
-			{
-				total += this.objectives[i];
-				if(this.progress[i] > this.objectives[i]){kills += this.objectives[i];} else { kills += this.progress[i]; }
-			}
-			return (kills / total);
-		}
-		
-		this.ResetObjectives = function()
-		{
-			this.objectives = [];
-			this.progress = [];
-			this.GenerateObjectives();
-		}
-	}
+    function LevelMission()
+    {
+        this.bossNums = [100, 101, 102, 103, 104, 105, 106, 107, 109, 110, 111];
+        this.levelsWithBoss = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 23];
+        this.skipLevelUp = [1];
+        this.skipBossLevelStart = [23];
+        this.objectives = [
+            {0: 1}, // Tutorial
+            {0: 1}, // Level 1 Gauntlet
+            {1: 1}, // Level 1 Boss
+            {0: 1, 1: 1}, // Level 2 Gauntlet
+            {2: 1}, // Level 2 Boss
+            {0: 1, 1: 1, 2: 1}, // Level 3 Gauntlet
+            {2: 2}, // Level 3 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1}, // Level 4 Gauntlet
+            {3: 1}, // Level 4 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}, // Level 5 Gauntlet
+            {3: 2}, // Level 5 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}, // Level 6 Gauntlet
+            {4: 1}, // Level 6 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}, // Level 7 Gauntlet
+            {4: 2}, // Level 7 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}, // Level 8 Gauntlet
+            {4: 3}, // Level 8 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}, // Level 9 Gauntlet
+            {4: 1}, // Level 9 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}, // Level 10 Gauntlet
+            {4: 1}, // Level 10 Boss
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}, // Level 11 Gauntlet
+            {4: 1}, // Level 11 Boss
+            {100: 1}, // Level 12 Boss
+        ];
+        this.progress = {};
+
+        this.nextOnDeath = function() {
+            currentGui = NULL_GUI_STATE;
+            if([0, 1, 2].includes(gco.level)) {
+                self.softReset();
+                this.resetProgress();
+                gco.StartLevel();
+            } else {
+                sfx.play(8);
+                gco.transition.toUpgrade();
+            }
+        }
+
+        this.onBoss = function() {
+            return this.levelsWithBoss.includes(gco.level);
+        }
+
+        this.shouldImmediatelyStartLevel = function() {
+            if(this.skipBossLevelStart.includes(gco.level)) { return false; }
+            if(this.onBoss()) { return true; }
+            if(this.skipLevelUp.includes(gco.level)) { return true; }
+            return false;
+        }
+
+        this.enemyTypesForLevel = function() {
+            // Returns an array of enemy types: [1, 2, 3]
+            let keys = Object.keys(this.objectives[gco.level]);
+            return keys.filter(item => Number.isInteger(parseInt(item))).map(item => parseInt(item));
+        }
+        
+        this.UpdateProgress = function(enType) {
+            if(!this.progress[enType]) { this.progress[enType] = 0; }
+            this.progress[enType] += 1;
+        }
+        
+        this.GauntletComplete = function() { // returns true if level is complete, else returns false
+            if(!player.isAlive()) { return; }
+            let types = this.enemyTypesForLevel();
+            const includesBossNums = types.some(type => this.bossNums.includes(type));
+            if(includesBossNums) { return false; }
+            let keys = Object.keys(this.progress);
+            if(keys.length < types.length) { return false; }
+            let obj = this.objectives[gco.level];
+            for(let i = 0; i < types.length; i++) {
+                if(obj[types[i]] == undefined) { continue; } // Skip if the enemy type is not required to progress the level
+                if(this.progress[types[i]] < obj[types[i]]) { return false; }
+            }
+            return true;
+        }
+
+        this.resetProgress = function() {
+            this.progress = {};
+        }
+    }
 
     function ForegroundGeneration()
     {
@@ -2384,155 +3102,123 @@ function Game()
 	{
 		this.hasBoss = false;
 		this.onTick = 0;
-		this.generate = function(lev)
-		{
-            if(!this.hasBoss || (bossPhase != -1 && bossPhase > 3))
-            {
-                if(ticks != this.onTick)
-                {
-                    this.onTick = ticks;
-                    //Random enemy spawning with random levels
-                    for(var i = 0; i <= lev; i++)
-                    {
-                        var rand = Math.floor(Math.random() * 30);
-                        if(rand == 10)
-                        {
-                            var theType = -1;
-                            while(true)
-                            {//logic to only generate 1 boss
-                                theType = Math.round(Math.random() * (lev - 1));
-                                if(gco.level > 5)
-                                {
-                                    if(theType == 5 && this.hasBoss)
-                                    {
-                                        continue;
-                                    } else {
-                                        break;
-                                    }
-                                } else {
-                                    break;
-                                }
+		this.generate = function() {
+            if(this.hasBoss && (bossPhase == -1 || bossPhase <= 3)) { return; }
+
+            if(ticks != this.onTick) {
+                this.onTick = ticks;
+                let types = gco.levelMission.enemyTypesForLevel();
+                for(var i = 0; i <= types.length; i++) {
+                    if(Math.floor(Math.random() * 30) != 10) { continue; } // 1 in 30 chance
+                    let type = types[i];
+                    // Only Generates 1 boss ship at a time
+                    let isBossType = gco.levelMission.bossNums.includes(type);
+                    if(isBossType && this.hasBoss) { type = Math.floor(Math.random() * 5); }
+                    var startingX = Math.floor(Math.random() * _buffer.width);
+                    var theSpeed = 0;
+                    var theDmg = 0;
+                    var theLife = 0;
+                    var Cores = 0;
+                    var height = 0;
+                    var width = 0;
+                    var model = 0;
+                    var points = 0;
+                    switch(type) {
+                        case 0: { // Drones
+                            theLife = Math.round(Math.random() * 4) + 2;
+                            theSpeed = Math.round(Math.random() * 50) + 50;
+                            theDmg = Math.round(Math.random() * 5) + 5;
+                            Cores = Math.round(Math.random() * 2) + 1;
+                            if(theDmg > 7){model = 1; points = 2;} else {model = 0; points = 1;}
+                            width = 15;
+                            height = 25;
+                            break;
+                        }
+                        case 1: { // Weavers
+                            theLife = Math.round(Math.random() * 10) + 7;
+                            theSpeed = Math.round(Math.random() * 50) + 50;
+                            theDmg = Math.round(Math.random() * 7) + 7;
+                            Cores = Math.round(Math.random() * 5) + 1;
+                            if(theDmg > 10){model = 3; points = 4;} else {model = 2; points = 3;}
+                            width = 31;
+                            height = 21;
+                            break;
+                        }
+                        case 2: { // Kamakaze Ships
+                            theLife = Math.round(Math.random() * 15) + 10;
+                            theSpeed = Math.round(Math.random() * 150) + 200;
+                            theDmg = Math.round(Math.random() * 10) + 10;
+                            if(theDmg >= 16) {
+                                model = 5;
+                                theDmg = Math.round(Math.random() * 10) + 10;
+                                Cores = Math.round(Math.random() * 15) + 10;
+                                points = 6;
+                            } else {
+                                points = 5;
+                                model = 4;
+                                theDmg = Math.round(Math.random() * 9) + 9;
+                                Cores = Math.round(Math.random() * 5) + 1;
                             }
-                            var startingX = Math.floor(Math.random() * _buffer.width);
-                            var theSpeed = 0;
-                            var theDmg = 0;
-                            var theLife = 0;
-                            var Cores = 0;
-                            var height = 0;
-                            var width = 0;
-                            var model = 0;
-                            var points = 0;
-                            switch(theType)
-                            {
-                                case 0:
-                                {//Drones
-                                    theLife = Math.round(Math.random() * 4) + 2;
-                                    theSpeed = Math.round(Math.random() * 50) + 50;
-                                    theDmg = Math.round(Math.random() * 5) + 5;
-                                    Cores = Math.round(Math.random() * 2) + 1;
-                                    if(theDmg > 7){model = 1; points = 2;} else {model = 0; points = 1;}
-                                    width = 15;
-                                    height = 25;
-                                    break;
-                                }
-                                case 1:
-                                {//Weavers
-                                    theLife = Math.round(Math.random() * 10) + 7;
-                                    theSpeed = Math.round(Math.random() * 50) + 50;
-                                    theDmg = Math.round(Math.random() * 7) + 7;
-                                    Cores = Math.round(Math.random() * 5) + 1;
-                                    if(theDmg > 10){model = 3; points = 4;} else {model = 2; points = 3;}
-                                    width = 31;
-                                    height = 21;
-                                    break;
-                                }
-                                case 2:
-                                {//Kamakaze Ships
-                                    theLife = Math.round(Math.random() * 15) + 10;
-                                    theSpeed = Math.round(Math.random() * 150) + 200;
-                                    theDmg = Math.round(Math.random() * 10) + 10;
-                                    if(theDmg >= 16)
-                                    {
-                                        model = 5;
-                                        theDmg = Math.round(Math.random() * 10) + 10;
-                                        Cores = Math.round(Math.random() * 15) + 10;
-                                        points = 6;
-                                    }else 
-                                    {
-                                        points = 5;
-                                        model = 4;
-                                        theDmg = Math.round(Math.random() * 9) + 9;
-                                        Cores = Math.round(Math.random() * 5) + 1;
-                                    }
-                                    width = 21;
-                                    height = 31;
-                                    break;
-                                }
-                                case 3:
-                                {//Splitters
-                                    theLife = Math.round(Math.random() * 20) + 20;
-                                    theSpeed = Math.round(Math.random() * 35) + 35;
-                                    theDmg = Math.round(Math.random() * 15) + 15;
-                                    if(theDmg >= 23)
-                                    {
-                                        points = 8;
-                                        model = 8;
-                                        theDmg = Math.round(Math.random() * 17) + 17;
-                                        Cores = Math.round(Math.random() * 30) + 20;
-                                        width = 37;
-                                        height = 31;
-                                    }else 
-                                    {
-                                        points = 7;
-                                        model = 6;
-                                        Cores = Math.round(Math.random() * 25) + 10;
-                                        width = 29;
-                                        height = 30;
-                                    }//Missiles 15 x 31
-                                    break;
-                                }
-                                case 4:
-                                {//Teleporters
-                                    theLife = Math.round(Math.random() * 25) + 15;
-                                    theSpeed = Math.round(Math.random() * 35) + 35;
-                                    theDmg = Math.round(Math.random() * 17) + 17;
-                                    if(theDmg >= 28)
-                                    {
-                                        points = 10;
-                                        theLife = Math.round(Math.random() * 25) + 25;
-                                        model = 11;
-                                        Cores = Math.round(Math.random() * 30) + 20;
-                                        width = 26;
-                                        height = 21;
-                                    }else 
-                                    {
-                                        points = 9;
-                                        model = 10;
-                                        Cores = Math.round(Math.random() * 25) + 10;
-                                        width = 26;
-                                        height = 21;
-                                    }//Missiles 15 x 31
-                                    break;
-                                }
-                                case 5:
-                                {//Boss
-                                    this.hasBoss = true;
-                                    theLife = 500;
-                                    theSpeed = 75;
-                                    theDmg = 75;
-                                    model = 16;
-                                    points = 1000;
-                                    Cores = 1000;
-                                    width = 116;
-                                    height = 72;
-                                    break;
-                                }
-                            }
-                            
-                            enemy = new Enemy(theSpeed, theDmg, theLife, Cores, width, height, model, startingX, 0, theType, points);
-                            enemies.push(enemy);
+                            width = 21;
+                            height = 31;
+                            break;
+                        }
+                        case 3: { // Splitters
+                            theLife = Math.round(Math.random() * 20) + 20;
+                            theSpeed = Math.round(Math.random() * 35) + 35;
+                            theDmg = Math.round(Math.random() * 15) + 15;
+                            if(theDmg >= 23) {
+                                points = 8;
+                                model = 8;
+                                theDmg = Math.round(Math.random() * 17) + 17;
+                                Cores = Math.round(Math.random() * 30) + 20;
+                                width = 37;
+                                height = 31;
+                            } else {
+                                points = 7;
+                                model = 6;
+                                Cores = Math.round(Math.random() * 25) + 10;
+                                width = 29;
+                                height = 30;
+                            }//Missiles 15 x 31
+                            break;
+                        }
+                        case 4: { //Teleporters
+                            theLife = Math.round(Math.random() * 25) + 15;
+                            theSpeed = Math.round(Math.random() * 35) + 35;
+                            theDmg = Math.round(Math.random() * 17) + 17;
+                            if(theDmg >= 28) {
+                                points = 10;
+                                theLife = Math.round(Math.random() * 25) + 25;
+                                model = 11;
+                                Cores = Math.round(Math.random() * 30) + 20;
+                                width = 26;
+                                height = 21;
+                            } else {
+                                points = 9;
+                                model = 10;
+                                Cores = Math.round(Math.random() * 25) + 10;
+                                width = 26;
+                                height = 21;
+                            }//Missiles 15 x 31
+                            break;
+                        }
+                        case 100: { // Main Boss
+                            this.hasBoss = true;
+                            theLife = 500;
+                            theSpeed = 75;
+                            theDmg = 75;
+                            model = 16;
+                            points = 1000;
+                            Cores = 1000;
+                            width = 116;
+                            height = 72;
+                            break;
                         }
                     }
+                    
+                    enemy = new Enemy(theSpeed, theDmg, theLife, Cores, width, height, model, startingX, 0, type, points);
+                    enemies.push(enemy);
                 }
             }
 		}
@@ -2627,7 +3313,7 @@ function Game()
 				}
 				break;
 			}
-			case 5:
+			case 100:
 			{
 				this.ystop = 200;
 				this.circleYStop = 165;
@@ -2849,13 +3535,16 @@ function Game()
 					}
 					return 0;
 				}
-				case 5:
-				{//Boss
+				case 100:
+                {// Final Boss
                     switch(this.phase)
                     {
                         case -1:
                         {
-							this.life = this.currentMaxLife;
+                            // Temp Override for boss life.
+							// this.life = this.currentMaxLife;
+                            this.life = 10
+
                             // Move to proper position
                             if(Math.round(this.y) <= this.ystop){ this.y += this.speed * delta; this.speed = this.ystop - this.y; }
 							if(Math.abs(this.y - this.ystop) < 5){ this.didTeleport = true;}
@@ -3036,8 +3725,7 @@ function Game()
                         break;
                         }
                     }
-					if(this.life <= 0)
-					{
+					if(this.life <= 0) {
 						destroys += 1;
 						explosion = new Explosion(this.x, this.y, 75, 4, 200, 3, 3, 3);
 						explosions.push(explosion);
@@ -3051,24 +3739,27 @@ function Game()
 						this.circleYStop = this.y + 25;
 						this.phaseSave++;
 						bossPhase = this.phaseSave;
-                        if(this.phaseSave >= 5)
-                        {
+                        if(this.phaseSave >= 5) {
                             //Update Mission Data
                             gco.levelMission.UpdateProgress(this.type);
                             gco.win = true;
-							gco.bossX = this.x;
-							gco.bossY = this.y;
+                            sfx.pause(1); // Stop Laser Sounds
+                            gco.bossX = this.x;
+                            gco.bossY = this.y;
+                            ed.initEvent(6);
                             return 3;
-                        }
-                        else
-                        {
-							this.Model++;
-							this.laser = false;
-							this.inCenter = false;
-                            this.life = this.baseLife * this.phaseSave;
-							this.currentMaxLife = this.life;
-							this.phase = -1;
-							sfx.play(0);
+                        } else {
+                            this.Model++;
+                            this.laser = false;
+                            this.inCenter = false;
+
+                            // Temporarily make the boss easier
+                            // this.life = this.baseLife * this.phaseSave;
+                            // this.currentMaxLife = this.life;
+                            this.life = 10;
+
+                            this.phase = -1;
+                            sfx.play(0);
                         }
 						return 2;
 					}
@@ -3080,8 +3771,7 @@ function Game()
 					if(this.Model == 7)
 					{
 						if(Math.round(Math.random() * 700) == 1){ this.shoot(100); }
-					} else
-					{
+					} else {
 						if(this.x < player.x){this.direction = 1;} else if(this.x > player.x){this.direction = 0;} else {}
 						if(this.direction != this.lastDirection){this.momentum = this.xMoveSpeed * 2; this.lastDirection = this.direction;}
 						if(this.y < player.y)
@@ -3099,17 +3789,14 @@ function Game()
 						}
 						if(Math.round(Math.random() * 700) == 1){ this.shoot(100); }
 					}
-					if(this.life <= 0)
-					{
+					if(this.life <= 0) {
 						destroys += 1;
 						explosion = new Explosion(this.x, this.y, 75, 4, 200, 3, 0.1, 0.1);
 						explosions.push(explosion);
 						//Update Mission Data
 						gco.levelMission.UpdateProgress(this.type);
 						return 1;
-					}
-					else if(this.y > _canvas.height)
-					{
+					} else if(this.y > _canvas.height) {
 						return 1;
 					}
 					return 0;
@@ -3204,7 +3891,7 @@ function Game()
 	function RandomItemGeneration()
 	{// randomItems[]
 		this.onTick = 0;
-		this.generate = function(lev)
+		this.generate = function()
 		{
 			if(ticks != this.onTick)
 			{
@@ -3282,7 +3969,7 @@ function Game()
 					case 3:
 					{// Corez!!!
 						this.used = true;
-						var newAmount = 25 * gco.level;
+						var newAmount = 25 * self.clamp(gco.level + 1, 1, 8);
 						player.money += newAmount;
 						totalCores += newAmount;
 						break;	
@@ -3549,9 +4236,8 @@ function Game()
         this.width = Width;
         this.height = Height;
         this.totalMissiles = 0;
-        this.life = 100;
-        this.lives = 3;
-        this.maxLife = 100;
+        this.life = 100; // Default: 100
+        this.maxLife = 100; // Default: 100
         this.shieldLevel = 0;
         this.shield = 100;
         this.maxShield = this.shield * this.shieldLevel;
@@ -3569,9 +4255,7 @@ function Game()
         this.weaponFunc = true;//Used for weapon effects
         this.didShoot = false;
         this.onTick = 0;
-        this.money = 0;
-        this.currentFuel = 60; // Base 60
-        this.MAX_FUEL = 60;
+        this.money = 50000;
 
         this.isPewing = false;
         this.pewTick = 0;
@@ -3587,14 +4271,30 @@ function Game()
 
         this.ResetAll = function() {
             this.totalMissiles = 0;
-            this.life = 100;
+            this.resetLife();
+            this.resetBoost();
             this.shieldLevel = 0;
             this.recharge = true;
             this.secondaryAmmoLevel = 0;
             this.maxSecondaryAmmo = 50;
             this.secondaryAmmo = 50;
-            this.lives = 3;
             this.money = 0;
+            this.resetPosition();
+        }
+
+        this.resetLife = function() {
+            this.life = this.maxLife;
+        }
+
+        this.resetBoost = function() {
+            this.boost = this.maxBoost;
+        }
+
+        this.turnOffBoost = function() {
+            this.boosting = false;
+        }
+
+        this.resetPosition = function() {
             this.x = _buffer.width / 2;
             this.y = _buffer.height + this.height / 2;
         }
@@ -3606,18 +4306,15 @@ function Game()
     
         this.DamagePlayer = function(dmg)
         {
-            if(this.hasShield && this.shield > 0)
-            {
+            if(this.hasShield && this.shield > 0) {
                 this.shield -= dmg * 3;
-            } else
-            {
-                if(this.invicibility == false){
+            } else {
+                if(this.invicibility == false) {
                     this.life -= dmg;
-                    if(this.life < 0){this.life = 0;}
+                    if(this.life < 0){ this.life = 0; }
                 }
             }
-            if(!this.isAlive())
-            { 
+            if(!this.isAlive()) { 
                 gco.ShowContinueScreen();
                 sfx.play(0);
                 explosion = new Explosion(player.x, player.y, 350, 5, 200, 0.1, 3, 0.1);
@@ -3735,6 +4432,9 @@ function Game()
         }
 
         this.drawPlayer = function() {
+            if(this.boosting) {
+                buffer.filter = 'blur(2px)';
+            }
             if(this.ship == 2){
                 if (Keys[1] == 0 && Keys[3] == 0) buffer.drawImage(playerImages2[this.idleAnim], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
                 if(ed.eventPlaying()) buffer.drawImage(playerImages2[0], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
@@ -3828,7 +4528,7 @@ function Game()
                     if(Keys[3] >= 1 && this.turnAnimR >= 16 && this.turnAnimR <= 19) buffer.drawImage(playerImages1[this.turnAnimR], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);  
                 }  
             }
-
+            buffer.filter = 'none';
         }
 
         this.runOnTick = function()
@@ -4122,100 +4822,126 @@ function Game()
 	
 	function Credits()
 	{
-		this.overlayAlpha = 0.0;
-		this.center = _buffer.width / 2;
-		this.credits = [];
-		this.lines = 31;
-		this.lineHeight = 50;
-		this.yOffset = 0;
-		this.scrollSpeed = 25;
-		this.isBlackedOut = false;
-		var out = "";
-		var size = "";
-		var color = "";
-		for(var i = 0; i < this.lines; i++)
-		{
-			switch(i)
-			{
-				case 0:{out = "Humanity is Saved"; size = "28px Thunderstrike Halftone"; color = "rgb(255, 127, 255)"; break;}
-				case 1:{out = "Our ace pilots has defeated the drone core in enough time to save humanity."; size = "16px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 2:{out = "The task of rebuilding civilization, however difficult, can still never"; size = "16px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 3:{out = "match the devotion and courage it took for our ace pilots to..."; size = "16px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 4:{out = "Kill all the Things"; size = "48px Thunderstrike Halftone"; color = "rgb(255, 127, 255)"; break;}
-				case 5:{out = " "; size = "10px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 6:{out = "Produced by"; size = "18px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
-				//case 7:{out = "Insert Last Bonfire Logo Here"; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 7:{out = ""; size = "32px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 8:{out = ""; size = "32px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 9:{out = ""; size = "32px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 10:{out = "Program Managers"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
-				case 11:{out = "Shawn Deprey"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
-				case 12:{out = "Lead Game System Designers"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
-				case 13:{out = "Shawn Deprey"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
-				case 14:{out = "Lead Software Engineers"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
-				case 15:{out = "Shawn Deprey"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
-				case 16:{out = "Software Engineers"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
-				case 17:{out = "Drew Muller"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
-				case 18:{out = "Graphic Designers"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
-				case 19:{out = "Shawn Deprey"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
-				case 20:{out = "Drew Muller"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
-				case 21:{out = "Sound Artists"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
-				case 22:{out = "David Van Laar-Veth"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
-				case 23:{out = "Story"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96"; break;}
-				case 24:{out = "Mico Picache"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
-				case 25:{out = " "; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
+        this.active = false;
+        this.overlayAlpha = 0.0;
+        this.center = _buffer.width / 2;
+        this.credits = [];
+        this.lines = 31;
+        this.lineHeight = 50;
+        this.yOffset = 0;
+        this.scrollSpeed = 25;
+        this.isBlackedOut = false;
+        var out = "";
+        var size = "";
+        var color = "";
+        for(var i = 0; i < this.lines; i++) {
+            switch(i) {
+                case 0:{out = "Humanity is Saved"; size = "28px Thunderstrike Halftone"; color = "rgb(255, 127, 255)"; break;}
+                case 1:{out = "Our ace pilots has defeated the drone core in enough time to save humanity."; size = "16px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 2:{out = "The task of rebuilding civilization, however difficult, can still never"; size = "16px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 3:{out = "match the devotion and courage it took for our ace pilots to..."; size = "16px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 4:{out = "Kill all the Things"; size = "48px Thunderstrike Halftone"; color = "rgb(255, 127, 255)"; break;}
+                case 5:{out = " "; size = "10px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 6:{out = "Produced by"; size = "18px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
+                //case 7:{out = "Insert Last Bonfire Logo Here"; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 7:{out = ""; size = "32px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 8:{out = ""; size = "32px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 9:{out = ""; size = "32px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 10:{out = "Program Managers"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
+                case 11:{out = "Shawn Deprey"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
+                case 12:{out = "Lead Game System Designers"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
+                case 13:{out = "Shawn Deprey"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
+                case 14:{out = "Lead Software Engineers"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
+                case 15:{out = "Shawn Deprey"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
+                case 16:{out = "Software Engineers"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
+                case 17:{out = "Drew Muller"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
+                case 18:{out = "Graphic Designers"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
+                case 19:{out = "Shawn Deprey"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
+                case 20:{out = "Drew Muller"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
+                case 21:{out = "Sound Artists"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96)"; break;}
+                case 22:{out = "David Van Laar-Veth"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
+                case 23:{out = "Story"; size = "22px Thunderstrike"; color = "rgb(96, 255, 96"; break;}
+                case 24:{out = "Mico Picache"; size = "18px VT323"; color = "rgb(255, 255, 255)"; break;}
+                case 25:{out = " "; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
                 case 26:{out = "Speacial Thanks to @Deep_Fold For the Pixel Planet Generation"; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 27:{out = " "; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 27:{out = " "; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
                 case 28:{out = "Speacial Thanks Justin Hammond For Additional Coding Work"; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
-				case 29:{out = " "; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
+                case 29:{out = " "; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
                 case 30:{out = "Thanks for playing!"; size = "28px Thunderstrike Halftone"; color = "rgb(255, 127, 255)"; break;}
-				default:{out = ""; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
-			}
-			this.credits[i] = new GUIText(out, this.center, _buffer.height + (this.lineHeight * i), size, "center", "top", color);
-		}
+                default:{out = ""; size = "18px VT323"; color = "rgb(96, 255, 96)"; break;}
+            }
+            this.credits[i] = new GUIText(out, this.center, _buffer.height + (this.lineHeight * i), size, "center", "top", color);
+        }
+
+        this.roll = function() {
+            this.active = true;
+        }
+
+        this.reset = function() {
+            this.active = false;
+            this.overlayAlpha = 0.0;
+            this.yOffset = 0;
+            this.isBlackedOut = false;
+        }
 		
-		this.Update = function()
-		{
-			if(this.overlayAlpha >= 1){ this.isBlackedOut = true; } else { this.overlayAlpha += delta / 16; }
-			if(this.isBlackedOut && !this.CreditsFinished()){ this.yOffset += this.scrollSpeed * delta; }
-			else if(this.isBlackedOut && this.CreditsFinished() && currentGui != 7){ currentGui = 7; menu.delayNextInput(); }
-		}
-		
-		this.Draw = function()
-		{
-			this.DrawOverlay();
-			if(this.isBlackedOut && !this.CreditsFinished()){ this.DrawCredits(); }
-		}
-		
-		this.DrawOverlay = function()
-		{
-			buffer.fillStyle = "rgba(0, 0, 0, " + this.overlayAlpha + ")";
-			buffer.fillRect(0, 0, _buffer.width, _buffer.height);
-		}
-		
-		this.DrawCredits = function()
-		{
-			buffer.beginPath();
-			for(var i = 0; i < this.credits.length; i++)
-			{
-				if(i == 7) {
-					buffer.drawImage(logoImages[0], 200, this.credits[i].y - this.yOffset, 400, 100);
-				}else{
-					buffer.fillStyle = this.credits[i].color;
-					buffer.font = this.credits[i].fontStyle;
-					buffer.textAlign = this.credits[i].alignX;
-					buffer.textBaseline = this.credits[i].alignY;
-					buffer.fillText(this.credits[i].text, this.credits[i].x, this.credits[i].y - this.yOffset);
-				}
-			}
-			buffer.closePath();
-		}
-		
-		this.CreditsFinished = function()
-		{
-			if(this.credits[this.credits.length - 1].y - this.yOffset < -20){ return true; } else { return false; }
-		}
-	}
+        this.Update = function() {
+            if(this.CreditsFinished()) {
+                if(currentGui != 7) {
+                    ed.endEvent(); // Closes the cutscene in the background before fading out.
+                    currentGui = 7;
+                }
+                if(this.isBlackedOut) {
+                    this.overlayAlpha -= delta / 2;
+
+                    // CREDITS EXIT CLAUSE
+                    if(this.overlayAlpha <= 0) {
+                        this.reset();
+                        menu.delayNextInput();
+                    }
+                }
+            } else {
+                if(this.isBlackedOut) {
+                    this.yOffset += this.scrollSpeed * delta;
+                } else {
+                    this.overlayAlpha += delta / 6;
+                    if(this.overlayAlpha >= 1) {
+                        this.overlayAlpha = 1;
+                        this.isBlackedOut = true;
+                    }
+                }
+            }
+        }
+        
+        this.Draw = function() {
+            this.DrawOverlay();
+            if(this.isBlackedOut && !this.CreditsFinished()){ this.DrawCredits(); }
+        }
+        
+        this.DrawOverlay = function() {
+            buffer.fillStyle = "rgba(0, 0, 0, " + this.overlayAlpha + ")";
+            buffer.fillRect(0, 0, _buffer.width, _buffer.height);
+        }
+        
+        this.DrawCredits = function() {
+            buffer.beginPath();
+            for(var i = 0; i < this.credits.length; i++) {
+                if(i == 7) {
+                    buffer.drawImage(logoImages[0], 200, this.credits[i].y - this.yOffset, 400, 100);
+                } else {
+                    buffer.fillStyle = this.credits[i].color;
+                    buffer.font = this.credits[i].fontStyle;
+                    buffer.textAlign = this.credits[i].alignX;
+                    buffer.textBaseline = this.credits[i].alignY;
+                    buffer.fillText(this.credits[i].text, this.credits[i].x, this.credits[i].y - this.yOffset);
+                }
+            }
+            buffer.closePath();
+        }
+        
+        this.CreditsFinished = function() {
+            if(this.credits[this.credits.length - 1].y - this.yOffset < -20){ return true; } else { return false; }
+        }
+    }
     
     /******************************************************/
     
@@ -4317,26 +5043,24 @@ function Game()
         }
 
         if(!paused && gameState == 1) {
+            if(!gco.win) {
+                for(var i = 0; i < missiles.length; i++) { // Update Missile Objects 
+                    missiles[i].Update(i);
+                    if(missiles[i].life <= 0){ self.popArray(missiles, i); }
+                }
+            }
+            for(var i = 0; i < explosions.length; i++) { // Explosion Object Updates
+                if(explosions[i].Update() != 0) self.popArray(explosions, i);
+            }
             for(var i = 0; i < playerTrails.length; i++) { // Explosion Object Updates
                 if(playerTrails[i].Update()){ self.popArray(playerTrails, i); }
             }
         }
 
-        // Game objects that should keep running even during an event
-        if(!paused && gameState == 1 && !gco.win) {
-            for(var i = 0; i < missiles.length; i++) { // Update Missile Objects 
-                missiles[i].Update(i);
-                if(missiles[i].life <= 0){ self.popArray(missiles, i); }
-            }
-            for(var i = 0; i < explosions.length; i++) { // Explosion Object Updates
-                if(explosions[i].Update() != 0) self.popArray(explosions, i);
-            }
-        }
-
-        if(!ed.eventPlaying()) { // If event is not playing
+        gco.Update(); // Game Control Object Update
+        if(!ed.eventPlaying() && !gco.transition.active) { // If event is not playing
             if(!paused && gameState == 1 && !gco.win) {
-                gco.Update(); // Game Control Object Update
-                enemyGeneration.generate(gco.level); // Random Enemy Generation
+                enemyGeneration.generate(); // Random Enemy Generation
                 itemGeneration.generate(); // Random Item Generation
 
                 if(player.isAlive()) { // Update Player
@@ -4442,19 +5166,6 @@ function Game()
                     score = (enemyPoints + enemiesKilled) * 10;
                     colSwap = true;
                 }
-
-            // WIN CONDITION & CREDITS
-            // -------------------------------------------------------------------------------
-            // The game is won at this point. Do what happens exactly after game is beat here.
-            } else if(gameState == 1 && gco.win) {
-                if(sfx.laserPlaying){sfx.pause(1);}
-                gco.credits.Update();
-                if(!gco.credits.isBlackedOut){ gco.Update(); }//Will do random boss explosions
-                for(var i = 0; i < explosions.length; i++){
-                    if(explosions[i].Update() != 0) {
-                        self.popArray(explosions, i);
-                    }
-                }
             }
         }
     }
@@ -4533,9 +5244,11 @@ function Game()
 	
 	function doMouseClick(e)
 	{
-        if(!gameInitalized) { return; }
+        // Disallow Any Input
+        if(!gameInitalized || gco.transition.active || gco.credits.active) { return; }
         if(ed.eventPlaying()) {
-            ed.DoInput()
+            ed.DoInput();
+            return; // Escape all other input for mouse event if event is playing.
         }
         // This function should mimic the menu.select() functionality. If something is added there, it should be here, and visa-versa
 		//State GUIs
@@ -4554,7 +5267,11 @@ function Game()
                 if(!gco.playStory)
                 {
                     if(mouseX > (_canvas.width / 2 + 10) - 115 && mouseX < (_canvas.width / 2 + 10) + 100 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10) {
-                        currentGui = 2;//default case will Trigger
+                        if(gco.level == 0) {
+                            ed.initEvent(6);
+                        } else {
+                            currentGui = 2;
+                        }
                         sfx.play(11);
                     }
                     if(mouseX > (_canvas.width / 2 + 10) - 65 && mouseX < (_canvas.width / 2 + 10) + 40 && mouseY < (_canvas.height / 2 + 60) + 20 && mouseY > (_canvas.height / 2 + 60) - 10) {
@@ -4651,13 +5368,9 @@ function Game()
 			}
 			case 3:
 			{// Continue Menu
-				if(mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 &&
-				   mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)
-				{
-					currentGui = NULL_GUI_STATE;
-					self.softReset();
-                    sfx.play(8);
-				}
+                if(mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10) {
+                    gco.levelMission.nextOnDeath();
+                }
 				if(mouseX > (_canvas.width / 2 + 10) - 61 && mouseX < (_canvas.width / 2 + 10) + 43 && mouseY < (_canvas.height / 2 + 53) + 20 && mouseY > (_canvas.height / 2 + 50) )
                 {
 					self.hardReset();
@@ -4936,6 +5649,9 @@ function Game()
     
     this.getInput = function()
     {
+        // Disallow Any Input
+        if(gco.transition.active || gco.credits.active) { return; }
+
         if(Keys[17] == 1) { // Escape/Pause
 			if(gameState == 1 && player.isAlive() && !ed.eventPlaying()) {
                 if(!gco.win){ if(currentGui != 6){ gco.TogglePauseGame(); } }
@@ -5083,8 +5799,7 @@ function Game()
         // Stars
         self.drawStars();
         
-        if(gameState == 1 && !gco.credits.isBlackedOut)
-        {
+        if(gameState == 1 && !gco.Ended()) {
             //Money
             self.drawMoney();
             
@@ -5121,10 +5836,10 @@ function Game()
         // Foreground
         foregroundGeneration.Draw();
         
-        if(gco.win){ gco.credits.Draw(); }
-        ed.Draw(); // Only Draws when needed
+        // GUI
         self.drawGUI();
-        if(gco.playStory){ gco.story.Draw(); }
+        ed.Draw();
+        gco.Draw();
 
         if(postProcessing.bloom) {
             applyPostProcessing(_buffer, buffer);
@@ -5432,38 +6147,8 @@ function Game()
 		self.drawAmmoGui();
         self.drawLifeMeter();
         self.drawShieldMeter();
-        self.drawFuelMeter();
         self.drawBoostMeter();
-		self.drawPlayerLives();
     }
-	
-	this.drawPlayerLives = function()
-	{
-		var xOffset = 0;
-		for(var i = 0; i < player.lives; i++)
-		{
-            if(player.ship == 2){
-                buffer.drawImage(playerImages2[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }else if (player.ship == 3){
-                buffer.drawImage(playerImages3[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }else if (player.ship == 4){
-                buffer.drawImage(playerImages4[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }else if (player.ship == 5){
-                buffer.drawImage(playerImages5[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }else if (player.ship == 6){
-                buffer.drawImage(playerImages6[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }else if (player.ship == 7){
-                buffer.drawImage(playerImages7[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }else if (player.ship == 8){
-                buffer.drawImage(playerImages8[0], _buffer.width - (84 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }else{
-                buffer.drawImage(playerImages1[0], _buffer.width - (60 - xOffset), _buffer.height - 25, player.width / 2, player.height / 2);
-            }
-			
-            if(player.ship == 8) xOffset += 28;
-            else xOffset += 20;
-		}
-	}
 	
 	this.drawAmmoGui = function()
 	{
@@ -5603,46 +6288,13 @@ function Game()
 			buffer.closePath();
 		}
     }
-    
-    this.drawFuelMeter = function()
-    {
-        var width = 100;
-        var height = 15;
-        var x1 = 0;
-        var y1 = _buffer.height - 75;
-        var x2 = width;
-        var y2 = y1 + height;
-
-        buffer.beginPath();
-            buffer.fillStyle = "rgba(80, 73, 113, 0.5)";
-            buffer.fillRect(x1, y1, width, height);
-        buffer.closePath();
-        
-        var grd = buffer.createLinearGradient(x1, y1, x2, y2);
-        grd.addColorStop(0, "rgb(80, 73, 113)");
-        grd.addColorStop(1, "rgb(148, 116, 180)");
-		buffer.beginPath();
-            buffer.fillStyle = grd;
-            buffer.fillRect(x1, y1, (player.currentFuel / player.MAX_FUEL) * width, height);
-        buffer.closePath();
-        
-        buffer.beginPath();
-            buffer.strokeStyle = "rgb(255, 255, 255)";
-                buffer.moveTo(x1, y1);
-                buffer.lineTo(x2, y1);
-                buffer.lineTo(x2, y2);
-                buffer.lineTo(x1, y2);
-                buffer.lineTo(x1, y1);
-            buffer.stroke();
-        buffer.closePath();
-    }
 
     this.drawBoostMeter = function()
     {
         var width = 100;
         var height = 15;
         var x1 = 0;
-        var y1 = _buffer.height - 150;
+        var y1 = _buffer.height - 75;
         var x2 = width;
         var y2 = y1 + height;
 
@@ -5750,99 +6402,9 @@ function Game()
                 guiText[2] = new GUIText("Artillery", 10, 420, "20px VT323", "left", "top", "rgb(230, 230, 255)");
                 guiText[3] = new GUIText("Cores: " + player.money, _canvas.width - 100, _canvas.height - 53, "20px VT323", "left", "top", "rgb(230, 230, 255)");
                 guiText[4] = new GUIText("Extra Items", _canvas.width - 300, 420, "20px VT323", "left", "top", "rgb(230, 230, 255)");
-                guiText[7] = new GUIText("Level " + gco.level, 5, _buffer.height / 2 - 76, "20px VT323", "left", "top", "rgb(230, 230, 255)");
+                guiText[7] = new GUIText(gco.levelTitle(), 5, _buffer.height / 2 - 76, "20px VT323", "left", "top", "rgb(230, 230, 255)");
 				guiText[8] = new GUIText("", _canvas.width - 271, 448, "20px VT323", "left", "top", "rgb(0, 0, 0)");
 				guiText[9] = new GUIText("", _canvas.width - 221, 448, "20px VT323", "left", "top", "rgb(0, 0, 0)");
-
-
-//**********************************************************************//
-//					    MISSION MENU SECTION							//
-//**********************************************************************//
-                var drawX = 10;
-                var drawY = 50;
-                var j = 0;
-                for(var i = 0; i < gco.levelMission.objectives.length; i++)
-                {
-                    j++;
-                    var outText = "";
-                    switch(i)
-                    {//Case Cooresponds to enemy types, enemy type missions cooresponds to level.
-                        case 0:{outText += "Drone Kills: "; break;}
-                        case 1:{outText += "Weaver Kills: "; break;}
-                        case 2:{outText += "Kamakaze Kills: "; break;}
-                        case 3:{outText += "Splitter Kills: "; break;}
-                        case 4:{outText += "Teleporter Kills: "; break;}
-						case 5:{outText += "Drone Core... Time to Kill all the Things! Ready yourself, there is no turning back! "; break;}
-                        default:{outText += "Level Not Added: "; break;}
-                    }
-					if(i != 5)
-					{
-						gco.missionText[i] = new GUIText(outText + gco.levelMission.progress[i] + "/" + gco.levelMission.objectives[i], drawX, drawY, "16px VT323", "left", "top", "rgb(230, 230, 255)");
-					} else
-					{
-						gco.missionText[i] = new GUIText(outText, drawX, drawY, "16px VT323", "left", "top", "rgb(230, 230, 255)");
-					}
-                    if(j == 4)
-                    {
-                        j = 0;
-                        drawY = 50;
-                        drawX += 200;
-                    } else
-                    {
-                        drawY += 35;
-                    }
-                }
-//**********************************************************************//
-//					   END MISSION MENU SECTION							//
-//**********************************************************************//
-									
-				var xDrawOffset = 160;
-                buffer.beginPath();
-                for(var i = 0; i < gco.missionText.length; i++)
-                {
-                    buffer.fillStyle = gco.missionText[i].color;
-                    buffer.font = gco.missionText[i].fontStyle;
-                    buffer.textAlign = gco.missionText[i].alignX;
-                    buffer.textBaseline = gco.missionText[i].alignY;
-                    buffer.fillText(gco.missionText[i].text, gco.missionText[i].x, gco.missionText[i].y);
-					switch(i){
-						case 0:{ buffer.drawImage(enemyImages[0], gco.missionText[i].x + xDrawOffset, gco.missionText[i].y - 5, enemyImages[0].width, enemyImages[0].height); break;}
-						case 1:{ buffer.drawImage(enemyImages[2], gco.missionText[i].x + xDrawOffset, gco.missionText[i].y - 5, enemyImages[2].width, enemyImages[2].height); break;}
-						case 2:{ buffer.drawImage(enemyImages[4], gco.missionText[i].x + xDrawOffset, gco.missionText[i].y - 5, enemyImages[4].width, enemyImages[4].height); break;}
-						case 3:{ buffer.drawImage(enemyImages[6], gco.missionText[i].x + xDrawOffset, gco.missionText[i].y - 5, enemyImages[6].width, enemyImages[6].height); break;}
-						case 4:{ buffer.drawImage(enemyImages[11], gco.missionText[i].x + xDrawOffset, gco.missionText[i].y - 5, enemyImages[11].width, enemyImages[11].height); break;}
-					}
-                }
-                buffer.closePath();
-            // Level Progress Meter
-                var LPM_width = _buffer.width;
-                var LPM_height = 20;
-                var LPM_x1 = 0;
-                var LPM_y1 = _buffer.height / 2 - 75;
-                var LPM_x2 = LPM_width;
-                var LPM_y2 = LPM_y1 + LPM_height;
-
-                buffer.beginPath();
-                    buffer.fillStyle = "rgba(0, 192, 255, 0.5)";
-                    buffer.fillRect(LPM_x1, LPM_y1, LPM_width, LPM_height);
-                buffer.closePath();
-                var LPM_grd = buffer.createLinearGradient(LPM_x1, LPM_y1, LPM_x2, LPM_y2);
-                LPM_grd.addColorStop(0, "rgb(0, 0, 255)");
-                LPM_grd.addColorStop(1, "rgb(0, 192, 255)");
-                buffer.beginPath();
-                    buffer.fillStyle = LPM_grd;
-                    buffer.fillRect(LPM_x1, LPM_y1, LPM_width * gco.levelProgress, LPM_height);
-                buffer.closePath();
-                
-                buffer.beginPath();
-                    buffer.strokeStyle = "rgb(255, 255, 255)";
-                        buffer.moveTo(LPM_x1, LPM_y1);
-                        buffer.lineTo(LPM_x2, LPM_y1);
-                        buffer.lineTo(LPM_x2, LPM_y2);
-                        buffer.lineTo(LPM_x1, LPM_y2);
-                        buffer.lineTo(LPM_x1, LPM_y1);
-                    buffer.stroke();
-                buffer.closePath();
                 
                 if(menu.states[2][1][3] || (mouseX > (_canvas.width - 210) && mouseX < (_canvas.width - 10) && mouseY < (278) && mouseY > (250)))
                 {//Start Level
@@ -5855,7 +6417,6 @@ function Game()
                 }
 
                 // Bottom text tooltip initialization
-                //guiText[6] = new GUIText("Select item to purchase.", _canvas.width / 2, _canvas.height - 33, "16px VT323", "center", "top", "rgb(230, 230, 255)");
 				guiText[6] = new GUIText("", _canvas.width / 2, _canvas.height - 53, "18px VT323", "center", "top", "rgb(230, 230, 255)");
 				guiText[10] = new GUIText("", _canvas.width / 2, _canvas.height - 303, "16px VT323", "center", "top", "rgb(230, 230, 255)");
 				guiText[11] = new GUIText("", _canvas.width / 2, _canvas.height - 303, "16px VT323", "center", "top", "rgb(230, 230, 255)");
@@ -6268,7 +6829,7 @@ function Game()
 			case 4:
 			{// Level Up Menu
                 guiText[0] = new GUIText("Level Up!", _canvas.width / 2, _canvas.height / 2 - 150, "44px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
-                guiText[1] = new GUIText("Now on level: " + (gco.level + 1), _canvas.width / 2, _canvas.height / 2 - 100, "28px VT323", "center", "top", "rgb(255, 0, 0)");						 
+                guiText[1] = new GUIText("Now on " + gco.levelTitle(), _canvas.width / 2, _canvas.height / 2 - 100, "28px VT323", "center", "top", "rgb(255, 0, 0)");						 
                 if(menu.states[4][0] || (mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)) {
                     if(menu.states[4][0]) menu.DrawArrow(3, _canvas.width / 2 - 65, _canvas.height / 2 + 15);
                     guiText[2] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(210, 210, 210)");
@@ -6439,36 +7000,31 @@ function Game()
 			}
 			delete guiText;
 			//End Debug
-			
+
 			// Player Info
-			var guiText = [];
-			if(playerInfo)
-			{
-				guiText[0] = new GUIText("Fuel: " + player.currentFuel, 105, _canvas.height - 78, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[1] = new GUIText(player.hasShield ? "Shield: " + Math.floor(player.shield) : "" , 105, _canvas.height - 53, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[2] = new GUIText("Hull: " + player.life, 105, _canvas.height - 28, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[3] = new GUIText("Destroyed: " + destroys, _canvas.width / 2, _canvas.height - 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[4] = new GUIText("Cores: " + player.money, _canvas.width / 2, _canvas.height - 53, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[5] = new GUIText("Score: " + score, _canvas.width - 100, 20, "12px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[6] = new GUIText("Boost: " + Math.round(player.boost), 105, _canvas.height - 152, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-			} else
-			{
-                if(gameState == 1)
-                {
+            var guiText = [];
+            if(playerInfo) {
+                guiText[0] = new GUIText(player.hasShield ? "Shield: " + Math.floor(player.shield) : "" , 105, _canvas.height - 53, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[1] = new GUIText("Hull: " + player.life, 105, _canvas.height - 28, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[2] = new GUIText("Destroyed: " + destroys, _canvas.width / 2, _canvas.height - 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[3] = new GUIText("Cores: " + player.money, _canvas.width / 2, _canvas.height - 53, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[4] = new GUIText("Score: " + score, _canvas.width - 100, 20, "12px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[5] = new GUIText("Boost: " + Math.round(player.boost), 105, _canvas.height - 77, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+            } else {
+                if(gameState == 1) {
                     guiText[0] = new GUIText("[E] Ship Info", 105, _canvas.height - 28, "18px VT323", "left", "top", "rgb(96, 255, 96)");
                 }
-			}
-			buffer.beginPath();
-				for(var i = 0; i < guiText.length; i++)
-				{
-					buffer.fillStyle = guiText[i].color;
-					buffer.font = guiText[i].fontStyle;
-					buffer.textAlign = guiText[i].alignX;
-					buffer.textBaseline = guiText[i].alignY;
-					buffer.fillText(guiText[i].text, guiText[i].x, guiText[i].y);
-				}
-			buffer.closePath();
-			delete guiText;
+            }
+            buffer.beginPath();
+                for(var i = 0; i < guiText.length; i++) {
+                    buffer.fillStyle = guiText[i].color;
+                    buffer.font = guiText[i].fontStyle;
+                    buffer.textAlign = guiText[i].alignX;
+                    buffer.textBaseline = guiText[i].alignY;
+                    buffer.fillText(guiText[i].text, guiText[i].x, guiText[i].y);
+                }
+            buffer.closePath();
+            delete guiText;
 			//Must Purchase Previous Weapon Dialogue
 			var guiText = [];
 			if(gameState != 1 && gco.mustPurchasePrevious > 0)
