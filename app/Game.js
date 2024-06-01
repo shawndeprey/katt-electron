@@ -247,10 +247,17 @@ function Game()
         dmgImages[i].src = (`Graphics/UI/dmg_${i}.png`);
     }
 
+    var missileImages = [];
+    for(var i = 0; i < 5; i++) {
+        missileImages[i] = new Image();
+        missileImages[i].addEventListener('load', self.loadedImage, false);
+        missileImages[i].src = (`Graphics/Missiles/missile_${i}.png`);
+    }
+
 	var numOfImages = (starImages.length + images.length + enemyImages.length + playerImages1.length + playerImages2.length + playerImages3.length
         + playerImages4.length + playerImages5.length + playerImages6.length + playerImages7.length + playerImages8.length
         + itemImages.length + logoImages.length + fgImages.length + portraitImages.length + transitionImages.length + cutsceneImages.length + wepImages.length
-        + dmgImages.length);
+        + dmgImages.length + missileImages.length);
 
     // Containers
     var stars = [];
@@ -462,7 +469,7 @@ function Game()
     {   
         this.Init = function() {
             // Levels
-            this.level = 3;
+            this.level = 0;
             this.levelDefs = {
                 0: {title: "Tutorial", upgradeTutorial: false},
                 1: {title: "Level 1 Gauntlet", upgradeTutorial: false}, 2: {title: "Level 1 Boss", upgradeTutorial: false},
@@ -6057,7 +6064,7 @@ function Game()
             switch(missiles[i].missileType)
             {
                 case 0: case 1: case 2: case 3: { // Primary Assult Ultra
-                    buffer.drawImage(itemImages[1], missiles[i].x - (missiles[i].width / 2), missiles[i].y - (missiles[i].height / 2), missiles[i].width, missiles[i].height);
+                    buffer.drawImage(missileImages[player.damageLevel], missiles[i].x - (missiles[i].width / 2), missiles[i].y - (missiles[i].height / 2), missiles[i].width, missiles[i].height);
                     break;
                 }
                 case 50: case 51: {
