@@ -4033,21 +4033,19 @@ function Game()
         this.startX = this.x;
         this.timeAlive = 0;
         this.sinOffset = 1;
+        this.coneSpeed = 50;
         this.timer = 0;
         this.detonated = false;
         //Special Init logic
         this.missileTarget = 1000; // missile target will remain 1000 is no target selected
         switch(this.missileType) {
             case 2: {
-                if(this.custom.sinOffset){this.sinOffset = -1;}	
+                this.coneSpeed = this.custom.coneSpeed;
+                this.sinOffset = this.custom.direction;
                 break;
             }
             case 3: {
-                if(this.custom.sinOffset){this.sinOffset = -1;}	
-                break;
-            }
-            case 4: {
-                if(this.custom.sinOffset){this.sinOffset = -1;}	
+                this.sinOffset = this.custom.direction;
                 break;
             }
             case 51: {
@@ -4085,17 +4083,13 @@ function Game()
                     this.y -= this.speed * delta;
                     break;
                 }
-                case 2: { // Rapid Fire Cyclone
-                    this.x = this.startX + (30 * Math.sin(30 * 3.14 * 100 * (this.timeAlive / 1000))) * this.sinOffset;
+                case 2: { // Cone
+                    this.x += this.coneSpeed * this.sinOffset * delta;
                     this.y -= this.speed * delta;
                     break;
                 }
                 case 3: { // Rapid Fire Cyclone
-                    this.x = this.startX + (30 * Math.sin(30 * 3.14 * 100 * (this.timeAlive / 1000))) * this.sinOffset;
-                    this.y -= this.speed * delta;
-                    break;
-                }
-                case 4: { // Rapid Fire Cyclone
+                    console.log("Missile 3!!!")
                     this.x = this.startX + (30 * Math.sin(30 * 3.14 * 100 * (this.timeAlive / 1000))) * this.sinOffset;
                     this.y -= this.speed * delta;
                     break;
@@ -4303,9 +4297,12 @@ function Game()
             this.y = _buffer.height + this.height / 2;
         }
         
-        this.isAlive = function()
-        {
+        this.isAlive = function() {
             return (this.life > 0);
+        }
+
+        this.wepDmgVal = function() {
+            return this.damageLevel + 1;
         }
     
         this.DamagePlayer = function(dmg)
@@ -4611,8 +4608,7 @@ function Game()
                 case 0: {
                     this.totalMissiles += 1;
                     if(this.weaponFunc) {
-                        missile = new Missile(missiles.length, 300, 0, this.x, this.y - 25, 1, {});
-                        missiles.push(missile);
+                        missiles.push(new Missile(missiles.length, 300, 0, this.x, this.y - 25, this.wepDmgVal(), {}));
                     }
                     this.weaponFunc = !this.weaponFunc;
                     break;
@@ -4620,11 +4616,9 @@ function Game()
                 case 1: {
                     this.totalMissiles += 1;
                     if(this.weaponFunc) {
-                        missile = new Missile(missiles.length, 300, 1, this.x - 5, this.y - 25, 2, {});
-                        missiles.push(missile);
+                        missiles.push(new Missile(missiles.length, 300, 1, this.x - 5, this.y - 25, this.wepDmgVal(), {}));
                     } else {
-                        missile = new Missile(missiles.length, 300, 1, this.x + 5, this.y - 25, 2, {});
-                        missiles.push(missile);
+                        missiles.push(new Missile(missiles.length, 300, 1, this.x + 5, this.y - 25, this.wepDmgVal(), {}));
                     }
                     this.weaponFunc = !this.weaponFunc;
                     break;
@@ -4632,15 +4626,11 @@ function Game()
                 case 2: {
                     this.totalMissiles += 1;
                     if(this.weaponFunc) {
-                        missile = new Missile(missiles.length, 300, 1, this.x - 5, this.y - 25, 2, {});
-                        missiles.push(missile);
-                        missile = new Missile(missiles.length, 300, 2, this.x + 5, this.y - 25, 2, {});
-                        missiles.push(missile);
+                        missiles.push(new Missile(missiles.length, 300, 1, this.x - 5, this.y - 25, this.wepDmgVal(), {}));
+                        missiles.push(new Missile(missiles.length, 300, 2, this.x + 5, this.y - 25, this.wepDmgVal(), {direction: 1, coneSpeed: 50}));
                     } else {
-                        missile = new Missile(missiles.length, 300, 1, this.x + 5, this.y - 25, 2, {});
-                        missiles.push(missile);
-                        missile = new Missile(missiles.length, 300, 2, this.x - 5, this.y - 25, 2, {sinOffset: true});
-                        missiles.push(missile);
+                        missiles.push(new Missile(missiles.length, 300, 1, this.x + 5, this.y - 25, this.wepDmgVal(), {}));
+                        missiles.push(new Missile(missiles.length, 300, 2, this.x - 5, this.y - 25, this.wepDmgVal(), {direction: -1, coneSpeed: 50}));
                     }
                     this.weaponFunc = !this.weaponFunc;
                     break;
@@ -4648,15 +4638,13 @@ function Game()
                 case 3: {
                     this.totalMissiles += 1;
                     if(this.weaponFunc) {
-                        missile = new Missile(missiles.length, 300, 1, this.x - 5, this.y - 25, 2, {});
-                        missiles.push(missile);
-                        missile = new Missile(missiles.length, 300, 2, this.x + 5, this.y - 25, 2, {});
-                        missiles.push(missile);
+                        missiles.push(new Missile(missiles.length, 300, 1, this.x - 5, this.y - 25, this.wepDmgVal(), {}));
+                        missiles.push(new Missile(missiles.length, 300, 2, this.x + 5, this.y - 25, this.wepDmgVal(), {direction: 1, coneSpeed: 50}));
+                        missiles.push(new Missile(missiles.length, 300, 3, this.x + 5, this.y - 25, this.wepDmgVal(), {direction: 1}));
                     } else {
-                        missile = new Missile(missiles.length, 300, 1, this.x + 5, this.y - 25, 2, {});
-                        missiles.push(missile);
-                        missile = new Missile(missiles.length, 300, 2, this.x - 5, this.y - 25, 2, {sinOffset: true});
-                        missiles.push(missile);
+                        missiles.push(new Missile(missiles.length, 300, 1, this.x + 5, this.y - 25, this.wepDmgVal(), {}));
+                        missiles.push(new Missile(missiles.length, 300, 2, this.x - 5, this.y - 25, this.wepDmgVal(), {direction: -1, coneSpeed: 50}));
+                        missiles.push(new Missile(missiles.length, 300, 3, this.x - 5, this.y - 25, this.wepDmgVal(), {direction: -1}));
                     }
                     this.weaponFunc = !this.weaponFunc;
                     break;
@@ -4664,15 +4652,15 @@ function Game()
                 case 4: {
                     this.totalMissiles += 1;
                     if(this.weaponFunc) {
-                        missile = new Missile(missiles.length, 300, 1, this.x - 5, this.y - 25, 2, {});
-                        missiles.push(missile);
-                        missile = new Missile(missiles.length, 300, 2, this.x + 5, this.y - 25, 2, {});
-                        missiles.push(missile);
+                        missiles.push(new Missile(missiles.length, 300, 1, this.x - 5, this.y - 25, this.wepDmgVal(), {}));
+                        missiles.push(new Missile(missiles.length, 300, 2, this.x + 5, this.y - 25, this.wepDmgVal(), {direction: 1, coneSpeed: 50}));
+                        missiles.push(new Missile(missiles.length, 300, 3, this.x + 5, this.y - 25, this.wepDmgVal(), {direction: 1}));
+                        missiles.push(new Missile(missiles.length, 300, 2, this.x + 5, this.y - 25, this.wepDmgVal(), {direction: 1, coneSpeed: 150}));
                     } else {
-                        missile = new Missile(missiles.length, 300, 1, this.x + 5, this.y - 25, 2, {});
-                        missiles.push(missile);
-                        missile = new Missile(missiles.length, 300, 2, this.x - 5, this.y - 25, 2, {sinOffset: true});
-                        missiles.push(missile);
+                        missiles.push(new Missile(missiles.length, 300, 1, this.x + 5, this.y - 25, this.wepDmgVal(), {}));
+                        missiles.push(new Missile(missiles.length, 300, 2, this.x - 5, this.y - 25, this.wepDmgVal(), {direction: -1, coneSpeed: 50}));
+                        missiles.push(new Missile(missiles.length, 300, 3, this.x - 5, this.y - 25, this.wepDmgVal(), {direction: -1}));
+                        missiles.push(new Missile(missiles.length, 300, 2, this.x - 5, this.y - 25, this.wepDmgVal(), {direction: -1, coneSpeed: 150}));
                     }
                     this.weaponFunc = !this.weaponFunc;
                     break;
@@ -6063,40 +6051,28 @@ function Game()
         buffer.lineWidth = 1;
 	}
     
-    this.drawMissiles = function()
-    {
+    this.drawMissiles = function() {
         for(var i = 0; i < missiles.length; i++)
         {
-			switch(missiles[i].missileType)
-			{
-				case 0:
-				case 1:
-				case 2:
-				{//Primary Assult Ultra
-					buffer.drawImage(itemImages[1], missiles[i].x - (missiles[i].width / 2), missiles[i].y - (missiles[i].height / 2), missiles[i].width, missiles[i].height);
-					break;
-				}
-				case 50:
-				case 51:
-				{
-					buffer.drawImage(itemImages[2], missiles[i].x - (missiles[i].width / 2), missiles[i].y - (missiles[i].height / 2), missiles[i].width, missiles[i].height);
-					break;
-				}
-                case 52:
-				{
-					buffer.drawImage(itemImages[3], missiles[i].x - (missiles[i].width / 2), missiles[i].y - (missiles[i].height / 2), missiles[i].width, missiles[i].height);
-					break;
-				}
-				case 100:
-				case 101:
-                case 102:
-                case 103:
-                case 104:
-				{
-					buffer.drawImage(itemImages[4], missiles[i].x - (missiles[i].width / 2), missiles[i].y - (missiles[i].height / 2), missiles[i].width, missiles[i].height);
-					break;
-				}
-			}
+            switch(missiles[i].missileType)
+            {
+                case 0: case 1: case 2: case 3: { // Primary Assult Ultra
+                    buffer.drawImage(itemImages[1], missiles[i].x - (missiles[i].width / 2), missiles[i].y - (missiles[i].height / 2), missiles[i].width, missiles[i].height);
+                    break;
+                }
+                case 50: case 51: {
+                    buffer.drawImage(itemImages[2], missiles[i].x - (missiles[i].width / 2), missiles[i].y - (missiles[i].height / 2), missiles[i].width, missiles[i].height);
+                    break;
+                }
+                case 52: {
+                    buffer.drawImage(itemImages[3], missiles[i].x - (missiles[i].width / 2), missiles[i].y - (missiles[i].height / 2), missiles[i].width, missiles[i].height);
+                    break;
+                }
+                case 100: case 101: case 102: case 103: case 104: {
+                    buffer.drawImage(itemImages[4], missiles[i].x - (missiles[i].width / 2), missiles[i].y - (missiles[i].height / 2), missiles[i].width, missiles[i].height);
+                    break;
+                }
+            }
         }
     }
     
