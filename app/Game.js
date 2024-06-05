@@ -268,11 +268,10 @@ function Game()
 	var randomItems = [];
     var playerTrails = [];
     
-	var NUM_OF_RANDOM_ITEMS = 4;
+	var NUM_OF_RANDOM_ITEMS = 3;
 	//0 = Health
 	//1 = Shield
-	//2 = Secondary Ammo
-	//3 = Cores
+	//2 = Cores
     
     // Scoring
     var destroys = 0;
@@ -404,7 +403,6 @@ function Game()
 		gco = new GameControlObject();
 		gco.Init();
         gco.EquipWeapon(0);
-        gco.EquipWeapon(50);
         menu = new Menu();
         menu.Init()
 		sfx.pause(1);
@@ -469,7 +467,7 @@ function Game()
     {   
         this.Init = function() {
             // Levels
-            this.level = 0;
+            this.level = 3;
             this.levelDefs = {
                 0: {title: "Tutorial", upgradeTutorial: false},
                 1: {title: "Level 1 Gauntlet", upgradeTutorial: false}, 2: {title: "Level 1 Boss", upgradeTutorial: false},
@@ -498,7 +496,6 @@ function Game()
             this.extras = [];
             this.extraPrices = [];
             this.onTick = 0;
-            this.secondaryAmmoPrice = 25;
             this.bgm = null;
             
             this.bossX = 0; // Final Boss X set when boss dies
@@ -519,18 +516,12 @@ function Game()
             this.weaponsOwned[3] = false;//Rapid Fire Cyclone
             this.weaponsOwned[4] = false;//Rapid Fire Cyclone
             this.weaponsOwned[49] = true;//Null Weapon
-            this.weaponsOwned[50] = true;//SD-15 Sidewinder
-            this.weaponsOwned[51] = false;//DM-21 Auto Strike
-            this.weaponsOwned[52] = false;//Impact Burst Mine
             
             this.weaponPrice[0] = 0;//Primary Assult
             this.weaponPrice[1] = 150;//Rapid Fire Assult
             this.weaponPrice[2] = 250;//Rapid Fire Cyclone
             this.weaponPrice[3] = 350;//Rapid Fire Cyclone
             this.weaponPrice[4] = 500;//Rapid Fire Cyclone
-            this.weaponPrice[50] = 0;//SD-15 Sidewinder
-            this.weaponPrice[51] = 250;//DM-21 Auto Strike
-            this.weaponPrice[52] = 500;//Impact Burst Mine
 
             this.damagePrice[0] = 0;
             this.damagePrice[1] = 150;
@@ -569,35 +560,13 @@ function Game()
         }
         
         this.PurchaseWeapon = function(wepID) { //assumes player has the cash/doesn't own weapon
-            if(wepID < 9000) {
-                if(wepID > 49) {
-                    if(this.weaponsOwned[wepID - 1]) {
-                        this.weaponsOwned[wepID] = true;
-                        player.money -= this.weaponPrice[wepID];
-                        sfx.play(15);
-                        this.EquipWeapon(wepID);
-                    } else {
-                        this.mustPurchasePrevious = 1000;
-                    }
-                } else {
-                    if(wepID - 1 < 0) {
-                        this.weaponsOwned[wepID] = true;
-                        this.EquipWeapon(wepID);
-                    } else {
-                        if(this.weaponsOwned[wepID - 1]) {
-                            this.weaponsOwned[wepID] = true;
-                            player.money -= this.weaponPrice[wepID];
-                            sfx.play(15);
-                            this.EquipWeapon(wepID);
-                        } else {
-                            this.mustPurchasePrevious = 1000;
-                        }
-                    }
-                }
+            if(wepID - 1 < 0) {
+                this.weaponsOwned[wepID] = true;
+                this.EquipWeapon(wepID);
             } else {
-                if(this.weaponsOwned[52]) {
-                    this.ownLaser = true;
-                    player.money -= gco.laserPrice;
+                if(this.weaponsOwned[wepID - 1]) {
+                    this.weaponsOwned[wepID] = true;
+                    player.money -= this.weaponPrice[wepID];
                     sfx.play(15);
                     this.EquipWeapon(wepID);
                 } else {
@@ -608,11 +577,7 @@ function Game()
         
         this.EquipWeapon = function(wepID) {
             sfx.play(16);
-            if(wepID > 48) {
-                player.secondary = wepID;
-            } else {
-                player.weapon = wepID;
-            }
+            player.weapon = wepID;
         }
         
         this.PurchaseExtras = function(itemNumber) {
@@ -621,17 +586,6 @@ function Game()
                 case 0: { // Shield
                     player.money -= (player.shieldLevel + 1) * 250;
                     player.upgradeShield();
-                    break;
-                }
-                case 2: { // Secondary Ammo Level
-                    player.money -= (player.secondaryAmmoLevel + 1) * 50;
-                    player.upgradeSecondaryAmmo();
-                    break;
-                }
-                case 3: { // Extra Secondary Ammo
-                    player.money -= this.secondaryAmmoPrice;
-                    player.secondaryAmmo += 25;
-                    if(player.secondaryAmmo > player.maxSecondaryAmmo){player.secondaryAmmo = player.maxSecondaryAmmo;}
                     break;
                 }
             }
@@ -740,7 +694,7 @@ function Game()
         this.globalActionCull = function() {
             // We needed a method to stop or pause things in the game when an event started.
             // This function serves that need an culls things from around that app that conflict with events.
-            player.stopLaser();
+            player.laser.stop();
             player.turnOffBoost();
         }
 
@@ -2020,20 +1974,8 @@ function Game()
                     // Start Level
                     if(this.states[2][1][2]){ if(player.weapon != 49){ gco.StartLevel(); sfx.play(8); }}
 
-                    // Missile
-                    if(this.states[2][2][0]){ if(gco.weaponsOwned[50]){ gco.EquipWeapon(50); sfx.play(8); } else { if(player.money >= gco.weaponPrice[50]){ gco.PurchaseWeapon(50); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); }} }
-                    // DM-21 Auto Strike
-                    if(this.states[2][2][1]){ if(gco.weaponsOwned[51]){ gco.EquipWeapon(51); sfx.play(8); } else { if(player.money >= gco.weaponPrice[51]){ gco.PurchaseWeapon(51); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); }} }
-                    // Impact Burst Mine
-                    if(this.states[2][2][2]){ if(gco.weaponsOwned[52]){ gco.EquipWeapon(52); sfx.play(8); } else { if(player.money >= gco.weaponPrice[52]){ gco.PurchaseWeapon(52); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); }} }
-                    // Laser
-                    if(this.states[2][2][3]){ if(gco.ownLaser){ gco.EquipWeapon(9000); sfx.play(8); } else { if(player.money >= gco.laserPrice){ gco.PurchaseWeapon(9000); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); }} }
                     // Shield
                     if(this.states[2][2][4]){ if(player.money >= (player.shieldLevel + 1) * 250){gco.PurchaseExtras(0); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); } }
-                    // Ammo Capacity
-                    if(this.states[2][2][5]){ if(player.money >= (player.secondaryAmmoLevel + 1) * 50){gco.PurchaseExtras(2); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); } }
-                    // Purchase Ammo
-                    if(this.states[2][2][6]){ if(player.money >= gco.secondaryAmmoPrice && player.secondaryAmmo < player.maxSecondaryAmmo){gco.PurchaseExtras(3); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); } }
 
                     break;
                 }
@@ -2879,7 +2821,7 @@ function Game()
                 colors[primaryColorIndex] = 225 + Math.floor(Math.random() * 30); // Set the primary color component to a high value from 225 to 255
                 this.color = { r: colors[0], g: colors[1], b: colors[2] };
             } else {
-                // Secondary color star: one component is reduced near zero
+                // Star Color: one component is reduced near zero
                 let colors = [225, 225, 225].map(val => val + Math.floor(Math.random() * 30)); // Start with high values from 225 to 255
                 const reduceIndex = Math.floor(Math.random() * 3); // Select one color to reduce
                 colors[reduceIndex] = Math.max(0, colors[reduceIndex] - 200); // Reduce one component significantly to near zero
@@ -3916,27 +3858,24 @@ function Game()
 	function RandomItemGeneration()
 	{// randomItems[]
 		this.onTick = 0;
-		this.generate = function()
-		{
-			if(ticks != this.onTick)
-			{
+		this.generate = function() {
+			if(ticks != this.onTick) {
 				this.onTick = ticks;
-				//Random enemy spawning with random levels
+				// Random enemy spawning with random levels
 				var rand = Math.floor(Math.random() * (200));
 				if(rand == 10)
 				{
-					//1% chance per tick to get an enemy.
+					// 1% chance per tick to get an enemy.
 					var startingX = Math.floor(Math.random() * _buffer.width);
-					var itemNumber = (Math.floor(Math.random() * NUM_OF_RANDOM_ITEMS));
-					newItem = new Item(itemNumber, startingX, 0);
-					randomItems.push(newItem);
+					var itemNumber = Math.floor(Math.random() * NUM_OF_RANDOM_ITEMS);
+					randomItems.push(new Item(itemNumber, startingX, 0));
 				}
 			}
 		}
 	}
 	
 	function Item(itemNumber, inX, inY)
-	{
+    {
 		this.itemNum = itemNumber;
 		this.x = inX;
         this.y = inY;
@@ -3945,24 +3884,21 @@ function Game()
         this.height = 15;
 		this.used = false;
 		
-		this.Update = function()
-		{
+		this.Update = function() {
             this.y += this.speed * delta;
 			if(this.used || this.y > _canvas.height)
 			{
                 if(this.used) {
-                    if(this.itemNum == 3) { sfx.play(17); } // Corez!!!
-                    if(this.itemNum == 1) { sfx.play(18); } // Shield
                     if(this.itemNum == 0) { sfx.play(19); } // Health
-                    if(this.itemNum == 2) { sfx.play(20); } // Ammo
+                    if(this.itemNum == 1) { sfx.play(18); } // Shield
+                    if(this.itemNum == 2) { sfx.play(17); } // Ammo
                 }
 				return 1;
 			}
 			return 0;
 		}
 		
-		this.doItemEffect = function()
-		{
+		this.doItemEffect = function() {
 			if(!this.used)
 			{
 				itemsUsed += 1;
@@ -3985,13 +3921,6 @@ function Game()
 						break;
 					}
 					case 2:
-					{//secondary ammo
-						this.used = true;
-						player.secondaryAmmo += 25;
-						if(player.secondaryAmmo > player.maxSecondaryAmmo){player.secondaryAmmo = player.maxSecondaryAmmo;}
-						break;
-					}
-					case 3:
 					{// Corez!!!
 						this.used = true;
 						var newAmount = 25 * self.clamp(gco.level + 1, 1, 8);
@@ -4055,22 +3984,6 @@ function Game()
                 this.sinOffset = this.custom.direction;
                 break;
             }
-            case 51: {
-                var distance = 1000;
-                var tempTarget = 1000;
-                for(var i = 0; i < enemies.length; i++) {
-                    if(enemies[i].x > this.x - 50 && enemies[i].x < this.x + 50) { // Enemy is within missile's sight
-                        if(this.y - enemies[i].y > 0 && this.y - enemies[i].y < distance) { // Enemy is in front of missile and is the closest to missile
-                            distance = this.y - enemies[i].y;
-                            tempTarget = enemies[i].enemyNum;
-                        }
-                    }
-                }
-                if(tempTarget != 1000) {
-                    this.missileTarget = tempTarget;
-                }
-                break;
-            }
             case 104: {
                 this.timer = Math.floor(Math.random() * (4)) + 2;
                 break;
@@ -4099,29 +4012,6 @@ function Game()
                     console.log("Missile 3!!!")
                     this.x = this.startX + (30 * Math.sin(30 * 3.14 * 100 * (this.timeAlive / 1000))) * this.sinOffset;
                     this.y -= this.speed * delta;
-                    break;
-                }
-                case 50: { // SD-15 Sidewinder
-                    this.y -= this.speed * delta;
-                    break;
-                }
-                case 51: { // DM-21 Auto Strike
-                    this.y -= this.speed * delta;
-                    if(this.missileTarget != 1000) {
-                        if(self.isEnemyAlive(this.missileTarget)) {
-                            var targetEnemy = self.getEnemy(this.missileTarget);
-                            if(targetEnemy.x < this.x) {
-                                this.x -= (this.speed / 2) * delta;
-                            } else if(targetEnemy.x > this.x) {
-                                this.x += (this.speed / 2) * delta;
-                            } else {
-                                this.x = targetEnemy.x;
-                            }
-                        }
-                    }
-                    break;
-                }
-                case 52: { // Impact Burst Mine
                     break;
                 }
                 case 100: { // Level 2 enemy bullet
@@ -4245,14 +4135,9 @@ function Game()
         this.shield = 100;
         this.maxShield = this.shield * this.shieldLevel;
         this.hasShield = false;
-        this.captain = 2;
         this.invicibility = false;
 
         this.weapon = 0; // 0 - 48
-        this.secondary = 50; // Starts at 50, 49 = no secondary.
-        this.secondaryAmmo = 50;
-        this.secondaryAmmoLevel = 1;
-        this.maxSecondaryAmmo = 50 * this.secondaryAmmoLevel;
         this.damageLevel = 0;
 
         this.weaponFunc = true; // Used for weapon effects
@@ -4262,15 +4147,13 @@ function Game()
 
         this.isPewing = false;
         this.pewTick = 0;
-        this.laser = false;//true if laser is on
-        this.laserX = this.x;
-        this.laserY = this.y - 25;
-        this.laserWidth = 20;
-        this.laserHeight = this.y - 25;
         this.idleAnim = 0; // 0-3
         this.turnAnimL = 4; // 4-11
         this.turnAnimR = 12; // 12-19
         this.activeAnim = 0;
+
+        // Laser
+        this.laser = new PlayerLaser();
 
         // ONLY called in hardReset, let's keep it that way!
         this.ResetAll = function() {
@@ -4279,9 +4162,6 @@ function Game()
             this.resetBoost();
             this.shieldLevel = 0;
             this.recharge = true;
-            this.secondaryAmmoLevel = 0;
-            this.maxSecondaryAmmo = 50;
-            this.secondaryAmmo = 50;
             this.money = 0;
             this.damageLevel = 0;
             this.resetPosition();
@@ -4312,8 +4192,7 @@ function Game()
             return this.damageLevel + 1;
         }
     
-        this.DamagePlayer = function(dmg)
-        {
+        this.DamagePlayer = function(dmg) {
             if(this.hasShield && this.shield > 0) {
                 this.shield -= dmg * 3;
             } else {
@@ -4327,7 +4206,7 @@ function Game()
                 sfx.play(0);
                 explosion = new Explosion(player.x, player.y, 350, 5, 200, 0.1, 3, 0.1);
                 explosions.push(explosion);
-                this.laser = false;
+                this.laser.stop();
             }
         }
 
@@ -4362,16 +4241,9 @@ function Game()
                 this.movingLeft = false;
                 this.movingRight = false;
             }
-        }
+        }       
 
-        this.stopLaser = function() {
-            if(!this.laser) { return; }
-            this.laser = false;
-            if(sfx.laserPlaying){ sfx.pause(1); }
-        }
-
-        this.Update = function()
-        {
+        this.Update = function() {
             if(ed.eventPlaying()) { return; }
             this.x1 = this.x;
             this.y1 = this.y - (this.height / 2);
@@ -4379,27 +4251,13 @@ function Game()
             this.y2 = this.y + (this.height / 2);
             this.x3 = this.x + (this.width / 2);
             this.y3 = this.y + (this.height / 2);
-
-            //Laser Updating
-            if(this.secondary >= 9000) {
-                if(Keys[19] != 0 && this.secondaryAmmo > 0) {
-                    if(!sfx.laserPlaying){ sfx.play(1); }
-                    this.laser = true;
-                    this.laserX = this.x;
-                    this.laserY = 0;
-                    this.laserHeight = this.y - 25;
-                } else { 
-                    this.stopLaser();
-                }
-            } else {
-                this.stopLaser();
-            }
             
             if(this.hasShield && this.shield <= 0) {
                 this.shield = 0;
             }
 
             this.handleBoost();
+            this.laser.Update();
         }
 
         this.handleBoost = function() {
@@ -4537,19 +4395,13 @@ function Game()
                 }  
             }
             buffer.filter = 'none';
+
+            this.laser.Draw();
         }
 
-        this.runOnTick = function()
-        {
+        this.runOnTick = function() {
             if(this.boosting) {
                 playerTrails.push(new PlayerTrail(this.ship, this.x, this.y, this.width, this.height, this.activeAnim))
-            }
-
-            if(Keys[19] != 0 && this.secondaryAmmo > 0) {
-                if(this.onTick == 0) {
-                    this.secondaryAmmo -= 2;
-                    if(this.secondaryAmmo < 0) { this.secondaryAmmo = 0; }
-                }
             }
 
             if(this.onTick % 2 == 0) {
@@ -4581,32 +4433,15 @@ function Game()
             if(Keys[3] == 0) this.turnAnimR = 12;
         }
 		
-		this.upgradeShield = function()
-		{
+		this.upgradeShield = function() {
 			this.hasShield = true;
 			this.shieldLevel += 1;
 			this.maxShield = 100 * this.shieldLevel
 			this.resetShield();
 		}
 		
-		this.resetShield = function()
-		{
+		this.resetShield = function() {
 			this.shield = this.maxShield;
-		}
-		
-		this.upgradeSecondaryAmmo = function()
-		{
-			this.secondaryAmmoLevel += 1;
-			this.maxSecondaryAmmo = 50 * this.secondaryAmmoLevel;
-			this.resetSecondaryAmmo();
-		}
-		
-		this.resetSecondaryAmmo = function()
-		{
-			if(this.secondaryAmmo < this.maxSecondaryAmmo)
-			{
-				this.secondaryAmmo = this.maxSecondaryAmmo;
-			}
 		}
 
         this.shoot = function() {
@@ -4676,43 +4511,120 @@ function Game()
             }
         }
 
-		this.shootSecondary = function()
-		{
-			if(this.secondaryAmmo > 0 && this.secondary < 9000)
-			{
-				switch(this.secondary)
-				{
-					case 50:
-					{
-                        this.secondaryAmmo -= 1;
-						this.totalMissiles += 1;
-						missile = new Missile(missiles.length, 200, this.secondary, this.x, this.y - 25, 20);
-						missiles.push(missile);
-						break;
-					}
-					case 51:
-					{
-                        this.secondaryAmmo -= 1;
-						this.totalMissiles += 1;
-						missile = new Missile(missiles.length, 200, this.secondary, this.x, this.y - 25, 15);
-						missiles.push(missile);
-						break;
-					}
-                    case 52:
-					{
-                        this.secondaryAmmo -= 1;
-						this.totalMissiles += 1;
-						missile = new Missile(missiles.length, 200, this.secondary, this.x, this.y - 25, 25);
-						missiles.push(missile);
-						break;
-					}
-				}
-			}
-		}
-
         this.upgradeDamage = function() {
             this.damageLevel += 1;
             if(this.damageLevel > 4) { this.damageLevel = 4; }
+        }
+    }
+
+    function PlayerLaser()
+    {
+        this.onTick = 0;
+        this.charge = 100;
+        this.active = false;
+        this.x = 0;
+        this.y = 0;
+        this.width = 10;
+        this.height = 100;
+        this.baseDamage = 2;
+        this.damageLevel = 1;
+        this.laserGlowWidth = 5; // Initial width of the glow effect
+        this.glowDirection = 0; // Direction of the glow (0 = out, 1 = in)
+        let heightOffset = 20;
+
+        this.Update = function() {
+            if(Keys[19] != 0) {
+                this.active = true;
+                if(!sfx.laserPlaying){ sfx.play(1); }
+                this.x = player.x;
+                this.y = player.y;
+                if(this.onTick != ticks) {
+                    this.onTick = ticks;
+                    if(this.onTick % 2 == 0)
+                    this.checkCollisions();
+                }
+            } else {
+                this.stop();
+            }
+        }
+
+        this.Draw = function() {
+            if(!this.active) { return; }
+            buffer.shadowBlur = 20;
+            buffer.shadowColor = 'rgb(0, 128, 255)';
+            let bb = this.getBoundingBox();
+            buffer.beginPath();
+                buffer.fillStyle = "rgb(0, 128, 255)";
+                buffer.fillRect(bb[0].x, bb[0].y, this.width, this.height);
+                buffer.fillStyle = "rgb(0, 200, 255)";
+                buffer.fillRect(bb[0].x + this.width / 4, bb[0].y, this.width / 2, this.height);
+            buffer.closePath();
+            buffer.shadowBlur = 0;
+        }
+
+        this.getBaseLaserColor = function() {
+            switch (this.damageLevel) {
+                case 0:
+                    return {r: 0, g: 128, b: 255}; // Blue
+                case 1:
+                    return {r: 0, g: 255, b: 0};   // Green
+                case 2:
+                    return {r: 255, g: 255, b: 0}; // Yellow
+                case 3:
+                    return {r: 255, g: 165, b: 0}; // Orange
+                case 4:
+                    return {r: 255, g: 0, b: 0};   // Red
+                default:
+                    return {r: 0, g: 128, b: 255}; // Default to Blue
+            }
+        } 
+
+        this.getBoundingBox = function() {
+            // TL, TR, BR, BL
+            let halfWidth = this.width / 2;
+            let top = this.y - (heightOffset + this.height);
+            let bottom = this.y - heightOffset;
+            let left = this.x - halfWidth;
+            let right = this.x + halfWidth;
+            return [
+                {x: left, y: top},
+                {x: right, y: top},
+                {x: right, y: bottom},
+                {x: left, y: bottom},
+            ]
+        }
+
+        this.dmgVal = function() {
+            return this.baseDamage * this.damageLevel;
+        }
+
+        this.checkCollisions = function() {
+            if(!this.active) { return; }
+            for(var a = 0; a < enemies.length; a++) {
+                if(this.laserCollision(enemies[a])) {
+                    enemies[a].life -= this.dmgVal();
+                    explosions.push(new Explosion(enemies[a].x, enemies[a].y, 2, 4, 50, 0.1, 0.1, 3.0));
+                }
+            }
+                
+        }
+
+        this.laserCollision = function(Target) {
+            // These logic are garbo. Remake...
+
+            if((this.laserY <= (Target.y + Target.height / 2) && this.laserHeight >= (Target.y - Target.height / 2))) {
+                if(((this.laserX - 10) <= (Target.x + Target.width / 2) && (this.laserX + 10) >= (Target.x - Target.width / 2))) {
+                    return true;
+                }
+                return false;
+            }
+        return false;
+	}
+
+        this.stop = function() {
+            if(!this.active) { return; }
+            this.active = false;
+            if(sfx.laserPlaying){ sfx.pause(1); }
         }
     }
 
@@ -5148,18 +5060,7 @@ function Game()
                     for(var a = 0; a < enemies.length; a++) { // Various Update Ticks and Collision with enemies
                         if(player.isAlive()) {
                             if(ticks % 2 == 0) { // Laser Collision Detection
-                                if(enemies[a].laser) { // Boss Laser
-                                    if(self.BossLaserCollision(player, enemies[a])) {
-                                        player.DamagePlayer(2);
-                                    }
-                                }
-                                if(player.laser) { // Player Laser
-                                    if(self.LaserCollision(enemies[a])) {
-                                        enemies[a].life -= 5;
-                                        explosion = new Explosion(enemies[a].x, enemies[a].y, 2, 4, 50, 0.1, 0.1, 3.0);
-                                        explosions.push(explosion);
-                                    }
-                                }
+                               a
                             }
                             
                             if(self.Collision(player, enemies[a])) { // Player Collision with enemies or boss
@@ -5248,19 +5149,6 @@ function Game()
         }
         return false;
     }
-	
-	this.LaserCollision = function(Target)
-	{
-		if((player.laserY <= (Target.y + Target.height / 2) && player.laserHeight >= (Target.y - Target.height / 2)))
-        {
-            if(((player.laserX - 10) <= (Target.x + Target.width / 2) && (player.laserX + 10) >= (Target.x - Target.width / 2)))
-            {
-                return true;
-            }
-            return false;
-        }
-        return false;
-	}
 	
 	this.BossLaserCollision = function(Target, Boss)
 	{
@@ -5357,26 +5245,8 @@ function Game()
                 if(mouseX > 60 && mouseX < 108 && mouseY > 280 && mouseY < 328) { // Weapon Damage
                     if(player.damageLevel == 4) { sfx.play(8); } else { if(player.money >= gco.damagePrice[player.damageLevel + 1]) { player.upgradeDamage(); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }}
                 }
-                if(mouseX > 10 && mouseX < 58 && mouseY > 448 && mouseY < 496) { // SD-15 Sidewinder, Weapon ID: 50
-                    if(gco.weaponsOwned[50]){ gco.EquipWeapon(50); sfx.play(8); } else { if(player.money >= gco.weaponPrice[50]){ gco.PurchaseWeapon(50); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}}
-                }
-                if(mouseX > 60 && mouseX < 108 && mouseY > 448 && mouseY < 496) { // DM-21 Auto Strike, Weapon ID: 51
-                    if(gco.weaponsOwned[51]){ gco.EquipWeapon(51); sfx.play(8); } else { if(player.money >= gco.weaponPrice[51]){ gco.PurchaseWeapon(51); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}}
-                }
-                if(mouseX > 110 && mouseX < 158 && mouseY > 448 && mouseY < 496) { // Impact Burst Mine, Weapon ID: 52
-                    if(gco.weaponsOwned[52]){ gco.EquipWeapon(52); sfx.play(8); } else { if(player.money >= gco.weaponPrice[52]){ gco.PurchaseWeapon(52); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}}
-                }
-                if(mouseX > 160 && mouseX < 208 && mouseY > 448 && mouseY < 496) { // Laser: Weapon ID: 9000
-                    if(gco.ownLaser){ gco.EquipWeapon(9000); sfx.play(8); } else { if(player.money >= gco.laserPrice){ gco.PurchaseWeapon(9000); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}}
-                }
                 if(mouseX > _canvas.width - 300 && mouseX < _canvas.width - 252 && mouseY > 448 && mouseY < 496) { // Shield
                     if(player.money >= (player.shieldLevel + 1) * 250){gco.PurchaseExtras(0); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}
-                }
-                if(mouseX > _canvas.width - 250 && mouseX < _canvas.width - 202 && mouseY > 448 && mouseY < 496) { // Max Ammo
-                    if(player.money >= (player.secondaryAmmoLevel + 1) * 50){gco.PurchaseExtras(2); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}
-                }
-                if(mouseX > _canvas.width - 200 && mouseX < _canvas.width - 152 && mouseY > 448 && mouseY < 496) { // Buy Secondary Ammo
-                    if(player.money >= gco.secondaryAmmoPrice && player.secondaryAmmo < player.maxSecondaryAmmo){gco.PurchaseExtras(3); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}
                 }
                 //**********************************************************************//
                 //                     END UPGRADE MENU SECTION                         //
@@ -5748,11 +5618,6 @@ function Game()
                         player.isPewing = false;
                     }
                 }
-				
-                if(Keys[19] == 1) // B
-                {
-                    player.shootSecondary();
-                }
             }
             else
             {
@@ -5825,7 +5690,10 @@ function Game()
 
             //Player Trails
             self.drawPlayerTrails();
-            
+
+            //Enemies
+            self.drawEnemies();
+
             // Player
             if(player.isAlive()) {
                 player.drawPlayer();
@@ -5833,15 +5701,9 @@ function Game()
                     self.drawShield();
                 }
             }
-
-            //Enemies
-            self.drawEnemies();
             
             // Missile
             self.drawMissiles();
-
-            //Laser
-            if(player.laser){ self.drawLaser(); }
             
             // Explosion
             self.drawExplosions();
@@ -5960,13 +5822,6 @@ function Game()
         var g_shield = rand1_shield;
         var b_shield = rand2_shield;
         
-        var rand_ammo = Math.floor(Math.random() * 100) + 128;
-        var rand1_ammo = Math.floor(Math.random() * 100) + 128;
-        var rand2_ammo = Math.floor(Math.random() * 100) + 128;
-        var r_ammo = rand_ammo;
-        var g_ammo = rand1_ammo;
-        var b_ammo = rand2_ammo;
-        
 		for(var i = 0; i < randomItems.length; i++)
 		{
 			switch(randomItems[i].itemNum)
@@ -6008,42 +5863,6 @@ function Game()
 					break;
 				}
 				case 2:
-				{//Secondary Ammo
-                    buffer.beginPath();
-				    buffer.fillStyle = "rgb(" + r_ammo + ", " + g_ammo + ", " + b_ammo + ")";
-                    buffer.strokeStyle = "rgb(128, 128, 128)";
-                        buffer.moveTo(randomItems[i].x - 10, randomItems[i].y - 10);
-                        buffer.lineTo(randomItems[i].x - 8.75, randomItems[i].y - 10);
-                        buffer.lineTo(randomItems[i].x - 7.5, randomItems[i].y - 5);
-                        buffer.lineTo(randomItems[i].x - 7.5, randomItems[i].y + 10);
-                        buffer.lineTo(randomItems[i].x - 12.5, randomItems[i].y + 10);
-                        buffer.lineTo(randomItems[i].x - 12.5, randomItems[i].y - 5);
-                        buffer.lineTo(randomItems[i].x - 11.25, randomItems[i].y - 10);
-                        buffer.lineTo(randomItems[i].x - 10, randomItems[i].y - 10);
-
-                        buffer.moveTo(randomItems[i].x, randomItems[i].y - 10);
-                        buffer.lineTo(randomItems[i].x + 1.25, randomItems[i].y - 10);
-                        buffer.lineTo(randomItems[i].x + 2.5, randomItems[i].y - 5);
-                        buffer.lineTo(randomItems[i].x + 2.5, randomItems[i].y + 10);
-                        buffer.lineTo(randomItems[i].x - 2.5, randomItems[i].y + 10);
-                        buffer.lineTo(randomItems[i].x - 2.5, randomItems[i].y - 5);
-                        buffer.lineTo(randomItems[i].x - 1.25, randomItems[i].y - 10);
-                        buffer.lineTo(randomItems[i].x, randomItems[i].y - 10);
-
-                        buffer.moveTo(randomItems[i].x + 10, randomItems[i].y - 10);
-                        buffer.lineTo(randomItems[i].x + 11.25, randomItems[i].y - 10);
-                        buffer.lineTo(randomItems[i].x + 12.5, randomItems[i].y - 5);
-                        buffer.lineTo(randomItems[i].x + 12.5, randomItems[i].y + 10);
-                        buffer.lineTo(randomItems[i].x + 7.5, randomItems[i].y + 10);
-                        buffer.lineTo(randomItems[i].x + 7.5, randomItems[i].y - 5);
-                        buffer.lineTo(randomItems[i].x + 8.75, randomItems[i].y - 10);
-                        buffer.lineTo(randomItems[i].x + 10, randomItems[i].y - 10);
-                    buffer.stroke();
-                    buffer.fill();
-                    buffer.closePath();
-					break;
-				}
-				case 3:
 				{	
 					buffer.fillStyle = 'rgb(200, 200, 255)';
 					buffer.shadowColor = 'rgb(200, 200, 255)';
@@ -6067,14 +5886,6 @@ function Game()
                     buffer.drawImage(missileImages[player.damageLevel], missiles[i].x - (missiles[i].width / 2), missiles[i].y - (missiles[i].height / 2), missiles[i].width, missiles[i].height);
                     break;
                 }
-                case 50: case 51: {
-                    buffer.drawImage(itemImages[2], missiles[i].x - (missiles[i].width / 2), missiles[i].y - (missiles[i].height / 2), missiles[i].width, missiles[i].height);
-                    break;
-                }
-                case 52: {
-                    buffer.drawImage(itemImages[3], missiles[i].x - (missiles[i].width / 2), missiles[i].y - (missiles[i].height / 2), missiles[i].width, missiles[i].height);
-                    break;
-                }
                 case 100: case 101: case 102: case 103: case 104: {
                     buffer.drawImage(itemImages[4], missiles[i].x - (missiles[i].width / 2), missiles[i].y - (missiles[i].height / 2), missiles[i].width, missiles[i].height);
                     break;
@@ -6082,29 +5893,7 @@ function Game()
             }
         }
     }
-    
-	this.drawLaser = function()
-	{
-		/* Data
-		this.laser = false;//true if laser is on
-		this.laserX = this.x;
-		this.laserY = this.y - 25;
-		this.laserWidth = 20;
-		this.laserHeight = this.y - 25;
-		this.laserGlowWidth = 5;
-		this.glowDirection = 0;//0=out, 1=in;
-		*/
-		buffer.shadowBlur = 20;
-		buffer.shadowColor = 'rgb(0, 128, 255)';
-		buffer.beginPath();
-			buffer.fillStyle = "rgb(0, 128, 255)";
-			buffer.fillRect(player.laserX - 10, player.laserY, player.laserWidth, player.laserHeight);
-			buffer.fillStyle = "rgb(0, 200, 255)";
-			buffer.fillRect(player.laserX - 5, player.laserY, player.laserWidth / 2, player.laserHeight);
-		buffer.closePath();
-		buffer.shadowBlur = 0;
-	}
-	
+
 	this.drawBossLaser = function(x, y, width, height)
 	{
 		/* Data
@@ -6149,66 +5938,10 @@ function Game()
 	  
     this.drawHUD = function()
     {
-		self.drawAmmoGui();
         self.drawLifeMeter();
         self.drawShieldMeter();
         self.drawBoostMeter();
     }
-	
-	this.drawAmmoGui = function()
-	{
-		var rand_ammo = Math.floor(Math.random() * 100) + 128;
-        var rand1_ammo = Math.floor(Math.random() * 100) + 128;
-        var rand2_ammo = Math.floor(Math.random() * 100) + 128;
-        var r_ammo = rand_ammo;
-        var g_ammo = rand1_ammo;
-        var b_ammo = rand2_ammo;
-		
-		this.x = 20;
-		this.y = _buffer.height - 95;
-		buffer.beginPath();
-		buffer.fillStyle = "rgb(" + r_ammo + ", " + g_ammo + ", " + b_ammo + ")";
-		buffer.strokeStyle = "rgb(128, 128, 128)";
-			buffer.moveTo(this.x - 10, this.y - 10);
-			buffer.lineTo(this.x - 8.75, this.y - 10);
-			buffer.lineTo(this.x - 7.5, this.y - 5);
-			buffer.lineTo(this.x - 7.5, this.y + 10);
-			buffer.lineTo(this.x - 12.5, this.y + 10);
-			buffer.lineTo(this.x - 12.5, this.y - 5);
-			buffer.lineTo(this.x - 11.25, this.y - 10);
-			buffer.lineTo(this.x - 10, this.y - 10);
-
-			buffer.moveTo(this.x, this.y - 10);
-			buffer.lineTo(this.x + 1.25, this.y - 10);
-			buffer.lineTo(this.x + 2.5, this.y - 5);
-			buffer.lineTo(this.x + 2.5, this.y + 10);
-			buffer.lineTo(this.x - 2.5, this.y + 10);
-			buffer.lineTo(this.x - 2.5, this.y - 5);
-			buffer.lineTo(this.x - 1.25, this.y - 10);
-			buffer.lineTo(this.x, this.y - 10);
-
-			buffer.moveTo(this.x + 10, this.y - 10);
-			buffer.lineTo(this.x + 11.25, this.y - 10);
-			buffer.lineTo(this.x + 12.5, this.y - 5);
-			buffer.lineTo(this.x + 12.5, this.y + 10);
-			buffer.lineTo(this.x + 7.5, this.y + 10);
-			buffer.lineTo(this.x + 7.5, this.y - 5);
-			buffer.lineTo(this.x + 8.75, this.y - 10);
-			buffer.lineTo(this.x + 10, this.y - 10);
-		buffer.stroke();
-		buffer.fill();
-		buffer.closePath();
-		
-		var guiText  = new GUIText("x" + player.secondaryAmmo, this.x + 15, this.y - 6, 
-                                    "18px VT323", "left", "top", "rgb(230, 230, 255)");
-		buffer.beginPath();
-			buffer.fillStyle = guiText.color;
-			buffer.font = guiText.fontStyle;
-			buffer.textAlign = guiText.alignX;
-			buffer.textBaseline = guiText.alignY;
-			buffer.fillText(guiText.text, guiText.x, guiText.y);
-		buffer.closePath();
-	}
     
     this.drawLifeMeter = function()
     {
@@ -6473,148 +6206,8 @@ function Game()
                 buffer.drawImage(dmgImages[player.damageLevel], 60, 280, 48, 48);
                 buffer.shadowBlur = 0;
                 //END WEAPON
-
-// NEW WEAPON SD-15 Sidewinder
-                if(menu.states[2][2][0] || (mouseX > 10 && mouseX < 58 && mouseY > 448 && mouseY < 496))
-                {//SD-15 Sidewinder, Weapon ID: 50
-                    buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[2], 10, 448, 48, 48);
-                    buffer.shadowBlur = 0;
-                    menu.DrawArrow(0, 34, 504);
-                    guiText[6].text = "SD-15 Sidewinder";
-					if(player.secondary == 50){
-						guiText[13].text = "Equipped";
-					}else{
-						guiText[13].text = "Select to Equip";
-					}
-                    
-                }
-                if(gco.weaponsOwned[50] && player.secondary == 50)
-                {
-                    buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[2], 10, 448, 48, 48);
-					buffer.shadowBlur = 0;
-                }
-                else
-                {
-					buffer.globalAlpha = 0.5;
-                    buffer.drawImage(images[2], 10, 448, 48, 48);
-					buffer.globalAlpha = 1.0;
-                }
-
-                //END WEAPON
-
-// NEW WEAPON DM-21 Auto Strike
-                if(menu.states[2][2][1] || (mouseX > 60 && mouseX < 108 && mouseY > 448 && mouseY < 496))
-                {//DM-21 Auto Strike, Weapon ID: 51
-                    buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[3], 60, 448, 48, 48);
-                    buffer.shadowBlur = 0;
-                    menu.DrawArrow(0, 84, 504);
-					guiText[6].text = "DM-21 Auto Strike";
-                    if(gco.weaponsOwned[51])
-                    {
-						if(player.secondary == 51){
-							guiText[13].text = "Equipped";
-						}else{
-							guiText[13].text = "Select to Equip";
-						}
-                    } else
-                    {
-                        guiText[13].text = gco.weaponPrice[51] + " Cores";
-                    }
-                }
-                if(gco.weaponsOwned[51] && player.secondary == 51)
-                {
-					buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[3], 60, 448, 48, 48);
-					buffer.shadowBlur = 0;
-                }
-                else
-                {
-					buffer.globalAlpha = 0.5;
-                    buffer.drawImage(images[3], 60, 448, 48, 48);
-					buffer.globalAlpha = 1.0;
-                }
-                //END WEAPON
-
-// NEW WEAPON Impact Burst Mine
-                if(menu.states[2][2][2] || (mouseX > 110 && mouseX < 158 && mouseY > 448 && mouseY < 496))
-                {//Impact Burst Mine, Weapon ID: 52
-                    buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[8], 110, 448, 48, 48);
-                    buffer.shadowBlur = 0;
-                    menu.DrawArrow(0, 134, 504);
-					guiText[6].text = "Impact Burst Mine";
-                    if(gco.weaponsOwned[52])
-                    {
-						if(player.secondary == 52){
-							guiText[13].text = "Equipped";
-						}else{
-							guiText[13].text = "Select to Equip";
-						}
-                    } else
-                    {
-                        guiText[13].text = gco.weaponPrice[52] + " Cores";
-                    }
-                }
-                if(gco.weaponsOwned[52] && player.secondary == 52)
-                {
-					buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[8], 110, 448, 48, 48);
-					buffer.shadowBlur = 0;
-                }
-                else
-                {
-					buffer.globalAlpha = 0.5;
-                    buffer.drawImage(images[8], 110, 448, 48, 48);
-					buffer.globalAlpha = 1.0;
-                }
-                //END WEAPON
 				
-// NEW WEAPON Laser
-                if(menu.states[2][2][3] || (mouseX > 160 && mouseX < 208 && mouseY > 448 && mouseY < 496))
-                {//Laser: Weapon ID: 9000
-                    buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[9], 160, 448, 48, 48);
-                    buffer.shadowBlur = 0;
-                    menu.DrawArrow(0, 184, 504);
-					guiText[6].text = "LB-24 Ultima Laser";
-                    if(gco.ownLaser)
-                    {
-						if(player.secondary == 9000){
-							guiText[13].text = "Equipped";
-						}else{
-							guiText[13].text = "Select to Equip";
-						}
-                    } else
-                    {
-                        guiText[13].text = gco.laserPrice + " Cores";
-                    }
-                }
-                if(gco.ownLaser && player.secondary == 9000)
-                {
-					buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[9], 160, 448, 48, 48);
-					buffer.shadowBlur = 0;
-                }
-                else
-                {
-					buffer.globalAlpha = 0.5;
-                    buffer.drawImage(images[9], 160, 448, 48, 48);
-					buffer.globalAlpha = 1.0;
-                }
-                //END WEAPON
-				
-// NEW POWERUP Shield
+                // NEW POWERUP Shield
                 if(menu.states[2][2][4] || (mouseX > _canvas.width - 300 && mouseX < _canvas.width - 252 && mouseY > 448 && mouseY < 496))
                 {//Shield
                     buffer.shadowBlur = 1;
@@ -6648,91 +6241,6 @@ function Game()
 					buffer.globalAlpha = 1.0;
                 }
                 //END WEAPON
-
-// NEW POWERUP Max Ammo
-                if(menu.states[2][2][5] || (mouseX > _canvas.width - 250 && mouseX < _canvas.width - 202 && mouseY > 448 && mouseY < 496))
-                {//Max Ammo
-                    buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[5], _canvas.width - 250, 448, 48, 48);
-                    buffer.shadowBlur = 0;
-                    menu.DrawArrow(0, _canvas.width - 226, 504);
-					guiText[6].text = "Ammo"
-					guiText[6].y = _canvas.height - 65
-					guiText[6].fontStyle = "20px VT323"
-					guiText[14] = new GUIText("Upgrade: " + (player.secondaryAmmoLevel + 1) * 50 + " Cores", _canvas.width / 2, _canvas.height - 23, "14px VT323", "center", "top", "rgb(230, 230, 255)");
-					guiText[13].text = "Level: " + player.secondaryAmmoLevel;
-					guiText[13].y = _canvas.height - 43;
-
-                    //guiText[6].text = "Ammo Level: " + player.secondaryAmmoLevel + "  Max Secondary Ammo: " + player.maxSecondaryAmmo + ". Upgrade for " + (player.secondaryAmmoLevel + 1) * 50 + " cores.";
-                }
-                if(player.secondaryAmmoLevel > 1) {
-					buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[5], _canvas.width - 250, 448, 48, 48);
-					buffer.shadowBlur = 0;
-                }
-				else {
-					buffer.globalAlpha = 0.5;
-                    buffer.drawImage(images[5], _canvas.width - 250, 448, 48, 48);
-					buffer.globalAlpha = 1.0;
-                }
-                //END WEAPON
-			
-// NEW POWERUP Buy Secondary Ammo
-                if(menu.states[2][2][6] || (mouseX > _canvas.width - 200 && mouseX < _canvas.width - 152 && mouseY > 448 && mouseY < 496))
-                {//Buy Secondary Ammo
-                    buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[6], _canvas.width - 200, 448, 48, 48);
-                    buffer.shadowBlur = 0;
-                    menu.DrawArrow(0, _canvas.width - 176, 504);
-					guiText[6].text = "Ammo"
-					guiText[6].y = _canvas.height - 65
-					guiText[6].fontStyle = "20px VT323"
-					guiText[13].text = "Level: " + player.secondaryAmmoLevel;
-					guiText[13].y = _canvas.height - 43;
-					guiText[13].text = player.secondaryAmmo + "/" + player.maxSecondaryAmmo;
-					if(player.secondaryAmmo < player.maxSecondaryAmmo) {
-						guiText[14] = new GUIText(gco.secondaryAmmoPrice + " Cores", _canvas.width / 2, _canvas.height - 23, "14px VT323", "center", "top", "rgb(230, 230, 255)");
-					} else {
-						guiText[14] = new GUIText("Full", _canvas.width / 2, _canvas.height - 23, "14px VT323", "center", "top", "rgb(255, 0, 0)");
-					}
-                }
-                if(player.secondaryAmmo < player.maxSecondaryAmmo)
-                {
-					buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[6], _canvas.width - 200, 448, 48, 48);
-					buffer.shadowBlur = 0;
-                }
-                else
-                {
-					buffer.globalAlpha = 0.5;
-                    buffer.drawImage(images[6], _canvas.width - 200, 448, 48, 48);
-					buffer.globalAlpha = 1.0;
-                }
-                //END WEAPON
-
-				// Options Menu Selection
-                if(menu.states[2][0][0] || (mouseX > (_canvas.width - 248) && mouseX < (_canvas.width - 147) && mouseY < (48) && mouseY > (20)))
-                {//Options Menu
-                    guiText[10] = new GUIText("Options", _canvas.width - 200, 20, "20px Thunderstrike", "center", "top", "rgb(96, 255, 96)");
-					menu.DrawArrow(3, _canvas.width - 263, 28);
-                } else
-                {
-                    guiText[10] = new GUIText("Options", _canvas.width - 200, 20, "20px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
-                }
-
-                // Quit game
-                if(menu.states[2][0][1] || (mouseX > (_canvas.width - 86) && mouseX < (_canvas.width - 30) && mouseY < (48) && mouseY > (20)))
-                {//Quit
-                    guiText[11] = new GUIText("Quit", _canvas.width - 60, 20, "20px Thunderstrike", "center", "top", "rgb(96, 255, 96)");
-					menu.DrawArrow(3, _canvas.width - 100, 28);
-                } else
-                {
-                    guiText[11] = new GUIText("Quit", _canvas.width - 60, 20, "20px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
-                }
 				
 				guiText[12] = new GUIText("Score: " + score, 10, _canvas.height - 53, "18px VT323", "left", "top", "rgb(230, 230, 255)");
 //**********************************************************************//
