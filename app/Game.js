@@ -457,6 +457,18 @@ function Game()
     this.clamp = function(value, min, max) {
         return Math.min(Math.max(value, min), max);
     }
+
+    this.isColliding = function(bb1, bb2) {
+        // Extract the bounding box coordinates
+        const [bb1Left, bb1Top, bb1Right, bb1Bottom] = [bb1[0].x, bb1[0].y, bb1[1].x, bb1[2].y];
+        const [bb2Left, bb2Top, bb2Right, bb2Bottom] = [bb2[0].x, bb2[0].y, bb2[1].x, bb2[2].y];
+
+        // Check for collision
+        if (bb1Right < bb2Left || bb1Left > bb2Right || bb1Bottom < bb2Top || bb1Top > bb2Bottom) {
+            return false;
+        }
+        return true;
+    }
     /******************************************************/
     
     
@@ -3770,6 +3782,22 @@ function Game()
 				}
 			}
         }
+
+        this.getBoundingBox = function() {
+            // TL, TR, BR, BL
+            let halfWidth = this.width / 2;
+            let halfHeight = this.height / 2;
+            let top = this.y - halfHeight;
+            let bottom = this.y + halfHeight;
+            let left = this.x - halfWidth;
+            let right = this.x + halfWidth;
+            return [
+                {x: left, y: top},
+                {x: right, y: top},
+                {x: right, y: bottom},
+                {x: left, y: bottom},
+            ]
+        }
 		
 		this.spawnKamakaze = function(X, Y)
 		{
@@ -4520,47 +4548,196 @@ function Game()
     function PlayerLaser()
     {
         this.onTick = 0;
+        this.level = 0;
+        this.baseDamage = 3;
+        this.damageLevel = 4;
         this.charge = 100;
         this.active = false;
         this.x = 0;
         this.y = 0;
         this.width = 10;
-        this.height = 100;
-        this.baseDamage = 2;
-        this.damageLevel = 1;
+        this.height = 150;
         this.laserGlowWidth = 5; // Initial width of the glow effect
         this.glowDirection = 0; // Direction of the glow (0 = out, 1 = in)
         let heightOffset = 20;
+        let collision = null;
+        let doDmg = false;
+        this.plasmaFlameSize = 20; // Initial size of the plasma flame
+        this.plasmaFlameSizeChange = 20; // Adjusted for delta time
+        this.flares = []
 
         this.Update = function() {
             if(Keys[19] != 0) {
                 this.active = true;
+                doDmg = false;
                 if(!sfx.laserPlaying){ sfx.play(1); }
                 this.x = player.x;
                 this.y = player.y;
                 if(this.onTick != ticks) {
                     this.onTick = ticks;
-                    if(this.onTick % 2 == 0)
-                    this.checkCollisions();
+                    if(this.onTick % 2 == 0) {
+                        collision = null;
+                        doDmg = true;
+                    }
                 }
+                this.checkCollisions();
+                if(collision == null) {
+                    this.height = this.y - (heightOffset + 2); // Laser goes to top of screen
+                } else {
+                    this.height = (player.y - (collision[2].y - 20)) - (heightOffset + 2); // Laser goes to closest hit target + 10 pixels up
+                }
+                
             } else {
                 this.stop();
             }
         }
 
         this.Draw = function() {
-            if(!this.active) { return; }
-            buffer.shadowBlur = 20;
-            buffer.shadowColor = 'rgb(0, 128, 255)';
+            if (!this.active) { return; }
+        
+            // Get the base laser color and the lighter color
+            let baseColor = this.getBaseLaserColor();
+            let lighterColor = this.getBaseLightLaserColor();
+        
+            // Calculate the dynamic shadow blur
+            let shadowBlurValue = 10 + Math.sin(Date.now() * 0.02) * 2;
+        
+            // Set the shadow color based on the base color
+            buffer.shadowBlur = shadowBlurValue;
+            buffer.shadowColor = `rgb(${baseColor.r}, ${baseColor.g}, ${baseColor.b})`;
+        
             let bb = this.getBoundingBox();
+            let radius = Math.min(this.height / 2, this.width / 2); // Adjust the radius as needed
+        
+            // Draw outer part of the laser with rounded top and bottom
             buffer.beginPath();
-                buffer.fillStyle = "rgb(0, 128, 255)";
-                buffer.fillRect(bb[0].x, bb[0].y, this.width, this.height);
-                buffer.fillStyle = "rgb(0, 200, 255)";
-                buffer.fillRect(bb[0].x + this.width / 4, bb[0].y, this.width / 2, this.height);
+            buffer.fillStyle = `rgb(${baseColor.r}, ${baseColor.g}, ${baseColor.b})`;
+            buffer.moveTo(bb[0].x + radius, bb[0].y);
+            buffer.lineTo(bb[0].x + this.width - radius, bb[0].y);
+            buffer.arcTo(bb[0].x + this.width, bb[0].y, bb[0].x + this.width, bb[0].y + radius, radius);
+            buffer.lineTo(bb[0].x + this.width, bb[0].y + this.height - radius);
+            buffer.arcTo(bb[0].x + this.width, bb[0].y + this.height, bb[0].x + this.width - radius, bb[0].y + this.height, radius);
+            buffer.lineTo(bb[0].x + radius, bb[0].y + this.height);
+            buffer.arcTo(bb[0].x, bb[0].y + this.height, bb[0].x, bb[0].y + this.height - radius, radius);
+            buffer.lineTo(bb[0].x, bb[0].y + radius);
+            buffer.arcTo(bb[0].x, bb[0].y, bb[0].x + radius, bb[0].y, radius);
             buffer.closePath();
+            buffer.fill();
+        
+            // Draw inner part of the laser with rounded top and bottom
+            buffer.beginPath();
+            buffer.fillStyle = `rgb(${lighterColor.r}, ${lighterColor.g}, ${lighterColor.b})`;
+            let innerX = bb[0].x + this.width / 4;
+            let innerWidth = this.width / 2;
+            buffer.moveTo(innerX + radius, bb[0].y);
+            buffer.lineTo(innerX + innerWidth - radius, bb[0].y);
+            buffer.arcTo(innerX + innerWidth, bb[0].y, innerX + innerWidth, bb[0].y + radius, radius);
+            buffer.lineTo(innerX + innerWidth, bb[0].y + this.height - radius);
+            buffer.arcTo(innerX + innerWidth, bb[0].y + this.height, innerX + innerWidth - radius, bb[0].y + this.height, radius);
+            buffer.lineTo(innerX + radius, bb[0].y + this.height);
+            buffer.arcTo(innerX, bb[0].y + this.height, innerX, bb[0].y + this.height - radius, radius);
+            buffer.lineTo(innerX, bb[0].y + radius);
+            buffer.arcTo(innerX, bb[0].y, innerX + radius, bb[0].y, radius);
+            buffer.closePath();
+            buffer.fill();
+        
             buffer.shadowBlur = 0;
-        }
+        
+            // Draw plasma
+            if (collision) {
+                this.drawPlasmaFlame(bb);
+            }
+        };
+
+        this.drawPlasmaFlame = function(bb) {
+            if (!collision) return;
+        
+            // Determine if we are in the small pulsate mode or large pulsate mode
+            if (!this.largePulsateMode) {
+                // Small pulsate mode
+                this.plasmaFlameSize += (Math.random() - 0.5) * 3 * delta;
+                if (this.plasmaFlameSize > 10 || this.plasmaFlameSize < 2) {
+                    this.plasmaFlameSizeChange *= -1; // Reverse the size change direction
+                }
+        
+                // Occasionally switch to large pulsate mode
+                if (Math.random() < 0.01) { // Reduce chance to switch to large mode
+                    this.largePulsateMode = true;
+                    this.largePulsateDuration = Math.random() * 1000 + 500; // Duration for large pulsate mode
+                    this.largePulsateStartTime = performance.now();
+                }
+            } else {
+                // Large pulsate mode
+                this.plasmaFlameSize += (Math.random() - 0.5) * 20 * delta;
+                if (this.plasmaFlameSize > 60 || this.plasmaFlameSize < 10) {
+                    this.plasmaFlameSizeChange *= -1; // Reverse the size change direction
+                }
+        
+                // Check if we should switch back to small pulsate mode
+                if (performance.now() - this.largePulsateStartTime > this.largePulsateDuration) {
+                    this.largePulsateMode = false;
+                }
+            }
+        
+            // Calculate the exact center of the colliding ship
+            let x = bb[0].x + ((bb[1].x - bb[0].x) / 2);
+            let y = collision[0].y + ((collision[2].y - collision[0].y) / 2);
+        
+            // Draw the central bright spot with random pulsating effect
+            let centralFlameSize = this.plasmaFlameSize + (Math.random() - 0.5) * 6;
+        
+            buffer.shadowBlur = 40;
+            buffer.shadowColor = 'rgb(255, 255, 255)';
+            buffer.beginPath();
+            buffer.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            buffer.arc(x, y, centralFlameSize, 0, 2 * Math.PI);
+            buffer.fill();
+            buffer.closePath();
+        
+            // Draw flares
+            buffer.shadowBlur = 30;
+            buffer.shadowColor = 'rgba(255, 255, 255, 0.7)';
+            for (let i = 0; i < this.flares.length * 2; i++) {
+                let flare = this.flares[i % this.flares.length];
+        
+                // Update flare properties to be faster
+                flare.angle += flare.speed * delta * 2;
+                if (flare.angle > 2 * Math.PI) {
+                    flare.angle -= 2 * Math.PI;
+                }
+        
+                let flareX = x + Math.cos(flare.angle) * flare.length;
+                let flareY = y + Math.sin(flare.angle) * flare.length;
+        
+                buffer.beginPath();
+                buffer.moveTo(x, y);
+                buffer.lineTo(flareX, flareY);
+                buffer.strokeStyle = `rgba(255, 255, 255, ${flare.opacity})`;
+                buffer.lineWidth = 2;
+                buffer.stroke();
+                buffer.closePath();
+            }
+        
+            // Draw twinkling arms of light (bokeh/lens flare effect)
+            for (let i = 0; i < 8; i++) {
+                let angle = Math.random() * 2 * Math.PI;
+                let length = Math.random() * 60 + 20;
+                let opacity = Math.random() * 0.5 + 0.5;
+        
+                let armX = x + Math.cos(angle) * length;
+                let armY = y + Math.sin(angle) * length;
+        
+                buffer.beginPath();
+                buffer.moveTo(x, y);
+                buffer.lineTo(armX, armY);
+                buffer.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+                buffer.lineWidth = 1;
+                buffer.stroke();
+                buffer.closePath();
+            }
+        
+            buffer.shadowBlur = 0;
+        };
 
         this.getBaseLaserColor = function() {
             switch (this.damageLevel) {
@@ -4579,6 +4756,23 @@ function Game()
             }
         } 
 
+        this.getBaseLightLaserColor = function() {
+            switch (this.damageLevel) {
+                case 0:
+                    return {r: 0, g: 200, b: 255}; // Blue
+                case 1:
+                    return {r: 165, g: 255, b: 165};   // Green
+                case 2:
+                    return {r: 255, g: 255, b: 200}; // Yellow
+                case 3:
+                    return {r: 255, g: 225, b: 0}; // Orange
+                case 4:
+                    return {r: 255, g: 125, b: 125};   // Red
+                default:
+                    return {r: 0, g: 200, b: 255}; // Default to Blue
+            }
+        }
+
         this.getBoundingBox = function() {
             // TL, TR, BR, BL
             let halfWidth = this.width / 2;
@@ -4595,31 +4789,28 @@ function Game()
         }
 
         this.dmgVal = function() {
-            return this.baseDamage * this.damageLevel;
+            return this.baseDamage * (this.damageLevel + 1);
         }
 
         this.checkCollisions = function() {
             if(!this.active) { return; }
+            let bb = this.getBoundingBox();
+            let ebb = null;
             for(var a = 0; a < enemies.length; a++) {
-                if(this.laserCollision(enemies[a])) {
-                    enemies[a].life -= this.dmgVal();
-                    explosions.push(new Explosion(enemies[a].x, enemies[a].y, 2, 4, 50, 0.1, 0.1, 3.0));
+                ebb = enemies[a].getBoundingBox();
+                if(self.isColliding(bb, ebb)) {
+                    if(this.level < 3) { // Collect collision data to stop laser from going to top of screen.
+                        if(collision == null || ebb[2].y > collision[2].y) {
+                            collision = ebb;
+                        }
+                    }
+                    if(doDmg) {
+                        // enemies[a].life -= this.dmgVal();
+                        explosions.push(new Explosion(enemies[a].x, enemies[a].y, 2, 4, 50, 0.1, 0.1, 3.0));
+                    }
                 }
             }
-                
         }
-
-        this.laserCollision = function(Target) {
-            // These logic are garbo. Remake...
-
-            if((this.laserY <= (Target.y + Target.height / 2) && this.laserHeight >= (Target.y - Target.height / 2))) {
-                if(((this.laserX - 10) <= (Target.x + Target.width / 2) && (this.laserX + 10) >= (Target.x - Target.width / 2))) {
-                    return true;
-                }
-                return false;
-            }
-        return false;
-	}
 
         this.stop = function() {
             if(!this.active) { return; }
