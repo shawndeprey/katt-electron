@@ -2117,12 +2117,25 @@ function Game()
 		gco.init_audio();
 	}
 	
-	function SFXObject()
-	{
-		// Audio Channels
-		this.explosion = {index: 0, channel: [], channels: 40} // Explosion Channels
-		this.laser = 0; this.laserPlaying = false; // Player Laser Channel
-		this.bossLaser = 0; this.bossLaserPlaying = false; // Boss Laser Channel
+    function SFXObject()
+    {
+        // Web Audio API Integration
+        if (!this.audioContext) {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        // Other Variables
+        this.masterVolume = 0.2;
+
+        // Create and configure the master gain node for volume control
+        this.masterGain = this.audioContext.createGain();
+        this.masterGain.gain.value = this.masterVolume;
+        this.masterGain.connect(this.audioContext.destination);
+
+        // Audio Channels
+        this.explosion = {index: 0, channel: [], channels: 40} // Explosion Channels
+        this.laser = 0; this.laserPlaying = false; this.laserSource = null; // Player Laser Channel
+        this.bossLaser = 0; this.bossLaserPlaying = false; // Boss Laser Channel
         this.whooshOne = {index: 0, channel: [], channels: 3}; // Whoosh One Channels
         this.dialogueLow = {index: 0, channel: [], channels: 10} // Low Dialogue Channels
         this.dialogueMid = {index: 0, channel: [], channels: 10} // Mid Dialogue Channels
@@ -2144,10 +2157,7 @@ function Game()
         this.startBoost = {index: 0, channel: [], channels: 5} // Pickup Coin Channels
         this.repeatBoost = {index: 0, channel: [], channels: 30} // Pickup Coin Channels
         this.stopBoost = {index: 0, channel: [], channels: 5} // Pickup Coin Channels
-        this.transition = {index: 0, channel: [], channels: 2} // Transition Channels
-
-        // Other Variables
-        this.masterVolume = 0.2;
+        this.transition = {index: 0, channel: [], channels: 2} // Transition Channelss
         
         this.Init = function() {
             // Explosions
@@ -2159,10 +2169,14 @@ function Game()
             }
 
             // Player Lasers
-            this.laser = new Audio('Audio/lasorz.mp3');
-            this.laser.volume = this.masterVolume;
-            this.laser.preload = 'auto';
-            this.laser.loop = true;
+            fetch('Audio/sfx/laser.mp3')
+            .then(response => response.arrayBuffer())
+            .then(arrayBuffer => this.audioContext.decodeAudioData(arrayBuffer))
+            .then(audioBuffer => {
+                this.laser = audioBuffer;
+            })
+            .catch(e => console.error('Error with decoding audio data: ' + e.err));
+
             
             // Boss Lasers
             this.bossLaser = new Audio('Audio/lasorz.mp3');
@@ -2344,7 +2358,7 @@ function Game()
                 this.transition.channel.push(a);
             }
         }
-		
+        
         this.play = function(playfx) {
             switch(playfx) {
                 case 0: { // Explode
@@ -2355,7 +2369,11 @@ function Game()
                     break;
                 }
                 case 1: { // Laser
-                    this.laser.play();
+                    this.laserSource = this.audioContext.createBufferSource();
+                    this.laserSource.buffer = this.laser;
+                    this.laserSource.loop = true;
+                    this.laserSource.connect(this.masterGain);
+                    this.laserSource.start(0);
                     this.laserPlaying = true;
                     break;
                 }
@@ -2517,11 +2535,15 @@ function Game()
                 }
             }
         }
-		
+        
         this.pause = function(stopfx) { // Only some SFX can be paused once started
             switch(stopfx) {
                 case 1: { // Laser
-                    this.laser.pause();
+                    if (this.laserSource) {
+                        this.laserSource.stop();
+                        this.laserSource.disconnect();
+                        this.laserSource = null;
+                    }
                     this.laserPlaying = false;
                     break;
                 }
@@ -2535,7 +2557,7 @@ function Game()
         
         this.volume = function(value) {
             for(var i = 0; i < this.explosion.channel.length; i++) { this.explosion.channel[i].volume = value; }
-            this.laser.volume = value;
+            // this.laser.volume = value;
             this.bossLaser.volume = value;
             for(var i = 0; i < this.whooshOne.channel.length; i++) { this.whooshOne.channel[i].volume = value; }
             for(var i = 0; i < this.dialogueLow.channel.length; i++) { this.dialogueLow.channel[i].volume = value; }
@@ -2560,6 +2582,7 @@ function Game()
             for(var i = 0; i < this.stopBoost.channel.length; i++) { this.stopBoost.channel[i].volume = value; }
             for(var i = 0; i < this.transition.channel.length; i++) { this.transition.channel[i].volume = value; }
             this.masterVolume = value;
+            this.masterGain.gain.value = this.masterVolume; // All tracks using the audio API will follow this.
         }
     }
 	
@@ -4548,17 +4571,15 @@ function Game()
     function PlayerLaser()
     {
         this.onTick = 0;
-        this.level = 0;
+        this.level = 4;
         this.baseDamage = 3;
-        this.damageLevel = 4;
+        this.damageLevel = 1;
         this.charge = 100;
         this.active = false;
         this.x = 0;
         this.y = 0;
         this.width = 10;
         this.height = 150;
-        this.laserGlowWidth = 5; // Initial width of the glow effect
-        this.glowDirection = 0; // Direction of the glow (0 = out, 1 = in)
         let heightOffset = 20;
         let collision = null;
         let doDmg = false;
@@ -4607,16 +4628,17 @@ function Game()
             buffer.shadowColor = `rgb(${baseColor.r}, ${baseColor.g}, ${baseColor.b})`;
         
             let bb = this.getBoundingBox();
-            let radius = Math.min(this.height / 2, this.width / 2); // Adjust the radius as needed
+            let bWidth = this.beamWidth();
+            let radius = Math.min(this.height / 2, bWidth / 2); // Adjust the radius as needed
         
             // Draw outer part of the laser with rounded top and bottom
             buffer.beginPath();
             buffer.fillStyle = `rgb(${baseColor.r}, ${baseColor.g}, ${baseColor.b})`;
             buffer.moveTo(bb[0].x + radius, bb[0].y);
-            buffer.lineTo(bb[0].x + this.width - radius, bb[0].y);
-            buffer.arcTo(bb[0].x + this.width, bb[0].y, bb[0].x + this.width, bb[0].y + radius, radius);
-            buffer.lineTo(bb[0].x + this.width, bb[0].y + this.height - radius);
-            buffer.arcTo(bb[0].x + this.width, bb[0].y + this.height, bb[0].x + this.width - radius, bb[0].y + this.height, radius);
+            buffer.lineTo(bb[0].x + bWidth - radius, bb[0].y);
+            buffer.arcTo(bb[0].x + bWidth, bb[0].y, bb[0].x + bWidth, bb[0].y + radius, radius);
+            buffer.lineTo(bb[0].x + bWidth, bb[0].y + this.height - radius);
+            buffer.arcTo(bb[0].x + bWidth, bb[0].y + this.height, bb[0].x + bWidth - radius, bb[0].y + this.height, radius);
             buffer.lineTo(bb[0].x + radius, bb[0].y + this.height);
             buffer.arcTo(bb[0].x, bb[0].y + this.height, bb[0].x, bb[0].y + this.height - radius, radius);
             buffer.lineTo(bb[0].x, bb[0].y + radius);
@@ -4627,8 +4649,8 @@ function Game()
             // Draw inner part of the laser with rounded top and bottom
             buffer.beginPath();
             buffer.fillStyle = `rgb(${lighterColor.r}, ${lighterColor.g}, ${lighterColor.b})`;
-            let innerX = bb[0].x + this.width / 4;
-            let innerWidth = this.width / 2;
+            let innerX = bb[0].x + bWidth / 4;
+            let innerWidth = bWidth / 2;
             buffer.moveTo(innerX + radius, bb[0].y);
             buffer.lineTo(innerX + innerWidth - radius, bb[0].y);
             buffer.arcTo(innerX + innerWidth, bb[0].y, innerX + innerWidth, bb[0].y + radius, radius);
@@ -4775,7 +4797,8 @@ function Game()
 
         this.getBoundingBox = function() {
             // TL, TR, BR, BL
-            let halfWidth = this.width / 2;
+            let bWidth = this.beamWidth();
+            let halfWidth = bWidth / 2;
             let top = this.y - (heightOffset + this.height);
             let bottom = this.y - heightOffset;
             let left = this.x - halfWidth;
@@ -4792,6 +4815,11 @@ function Game()
             return this.baseDamage * (this.damageLevel + 1);
         }
 
+        this.beamWidth = function() {
+            this.width
+            return this.width + [0, 4, 8, 12, 16][this.level]
+        }
+
         this.checkCollisions = function() {
             if(!this.active) { return; }
             let bb = this.getBoundingBox();
@@ -4806,7 +4834,7 @@ function Game()
                     }
                     if(doDmg) {
                         // enemies[a].life -= this.dmgVal();
-                        explosions.push(new Explosion(enemies[a].x, enemies[a].y, 2, 4, 50, 0.1, 0.1, 3.0));
+                        explosions.push(new Explosion(enemies[a].x, enemies[a].y, 10, 4, 100, 0.1, 0.1, 3.0));
                     }
                 }
             }
