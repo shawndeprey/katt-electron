@@ -469,6 +469,27 @@ function Game()
         }
         return true;
     }
+
+    this.getCentralOverlapX = function(bb1, bb2) {
+        // Find the min and max x-coordinates for both bounding boxes
+        const bbMinX = Math.min(bb1[0].x, bb1[1].x, bb1[2].x, bb1[3].x);
+        const bbMaxX = Math.max(bb1[0].x, bb1[1].x, bb1[2].x, bb1[3].x);
+        const colMinX = Math.min(bb2[0].x, bb2[1].x, bb2[2].x, bb2[3].x);
+        const colMaxX = Math.max(bb2[0].x, bb2[1].x, bb2[2].x, bb2[3].x);
+    
+        // Determine the overlapping range
+        const overlapMinX = Math.max(bbMinX, colMinX);
+        const overlapMaxX = Math.min(bbMaxX, colMaxX);
+    
+        // If there is no overlap, return null or some indication of no overlap
+        if (overlapMinX >= overlapMaxX) {
+            return null; // No overlap
+        }
+    
+        // Calculate the central x-coordinate of the overlap
+        const centralOverlapX = (overlapMinX + overlapMaxX) / 2;
+        return centralOverlapX;
+    }
     /******************************************************/
     
     
@@ -4571,9 +4592,9 @@ function Game()
     function PlayerLaser()
     {
         this.onTick = 0;
-        this.level = 4;
+        this.level = 0;
         this.baseDamage = 3;
-        this.damageLevel = 1;
+        this.damageLevel = 0;
         this.charge = 100;
         this.active = false;
         this.x = 0;
@@ -4582,10 +4603,10 @@ function Game()
         this.height = 150;
         let heightOffset = 20;
         let collision = null;
+        let collisions = [];
         let doDmg = false;
         this.plasmaFlameSize = 20; // Initial size of the plasma flame
         this.plasmaFlameSizeChange = 20; // Adjusted for delta time
-        this.flares = []
 
         this.Update = function() {
             if(Keys[19] != 0) {
@@ -4669,6 +4690,13 @@ function Game()
             if (collision) {
                 this.drawPlasmaFlame(bb);
             }
+
+            // Minor plasma flames for higher level lasers
+            if(collisions.length > 0) {
+                for(let i = 0; i < collisions.length; i++) {
+                    this.drawMinorPlasmaFlame(bb, collisions[i]);
+                }
+            }
         };
 
         this.drawPlasmaFlame = function(bb) {
@@ -4716,34 +4744,46 @@ function Game()
             buffer.fill();
             buffer.closePath();
         
-            // Draw flares
-            buffer.shadowBlur = 30;
-            buffer.shadowColor = 'rgba(255, 255, 255, 0.7)';
-            for (let i = 0; i < this.flares.length * 2; i++) {
-                let flare = this.flares[i % this.flares.length];
-        
-                // Update flare properties to be faster
-                flare.angle += flare.speed * delta * 2;
-                if (flare.angle > 2 * Math.PI) {
-                    flare.angle -= 2 * Math.PI;
-                }
-        
-                let flareX = x + Math.cos(flare.angle) * flare.length;
-                let flareY = y + Math.sin(flare.angle) * flare.length;
-        
-                buffer.beginPath();
-                buffer.moveTo(x, y);
-                buffer.lineTo(flareX, flareY);
-                buffer.strokeStyle = `rgba(255, 255, 255, ${flare.opacity})`;
-                buffer.lineWidth = 2;
-                buffer.stroke();
-                buffer.closePath();
-            }
-        
             // Draw twinkling arms of light (bokeh/lens flare effect)
             for (let i = 0; i < 8; i++) {
                 let angle = Math.random() * 2 * Math.PI;
                 let length = Math.random() * 60 + 20;
+                let opacity = Math.random() * 0.5 + 0.5;
+        
+                let armX = x + Math.cos(angle) * length;
+                let armY = y + Math.sin(angle) * length;
+        
+                buffer.beginPath();
+                buffer.moveTo(x, y);
+                buffer.lineTo(armX, armY);
+                buffer.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+                buffer.lineWidth = 1;
+                buffer.stroke();
+                buffer.closePath();
+            }
+        
+            buffer.shadowBlur = 0;
+        };
+
+        this.drawMinorPlasmaFlame = function(bb, col) {
+            // Calculate the exact center of the colliding ship
+            let x = self.getCentralOverlapX(bb, col);
+            let y = col[0].y + ((col[2].y - col[0].y) / 2);
+        
+            // Draw the central bright spot with random pulsating effect
+            let centralFlameSize = Math.random() * (15 - 5) + 5;
+            buffer.shadowBlur = 20;
+            buffer.shadowColor = 'rgb(255, 255, 255)';
+            buffer.beginPath();
+            buffer.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            buffer.arc(x, y, centralFlameSize, 0, 2 * Math.PI);
+            buffer.fill();
+            buffer.closePath();
+        
+            // Draw twinkling arms of light (bokeh/lens flare effect)
+            for (let i = 0; i < 3; i++) {
+                let angle = Math.random() * 2 * Math.PI;
+                let length = Math.random() * 20 + 20;
                 let opacity = Math.random() * 0.5 + 0.5;
         
                 let armX = x + Math.cos(angle) * length;
@@ -4817,13 +4857,14 @@ function Game()
 
         this.beamWidth = function() {
             this.width
-            return this.width + [0, 4, 8, 12, 16][this.level]
+            return this.width + [0, 6, 12, 18, 24][this.level]
         }
 
         this.checkCollisions = function() {
             if(!this.active) { return; }
             let bb = this.getBoundingBox();
             let ebb = null;
+            collisions = []; // Only used for higher level lasers.
             for(var a = 0; a < enemies.length; a++) {
                 ebb = enemies[a].getBoundingBox();
                 if(self.isColliding(bb, ebb)) {
@@ -4831,9 +4872,11 @@ function Game()
                         if(collision == null || ebb[2].y > collision[2].y) {
                             collision = ebb;
                         }
+                    } else {
+                        collisions.push(ebb);
                     }
                     if(doDmg) {
-                        // enemies[a].life -= this.dmgVal();
+                        enemies[a].life -= this.dmgVal();
                         explosions.push(new Explosion(enemies[a].x, enemies[a].y, 10, 4, 100, 0.1, 0.1, 3.0));
                     }
                 }
