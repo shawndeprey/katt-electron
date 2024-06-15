@@ -254,10 +254,24 @@ function Game()
         missileImages[i].src = (`Graphics/Missiles/missile_${i}.png`);
     }
 
+    var lasImages = [];
+    for(var i = 0; i < 5; i++) {
+        lasImages[i] = new Image();
+        lasImages[i].addEventListener('load', self.loadedImage, false);
+        lasImages[i].src = (`Graphics/UI/las_${i}.png`);
+    }
+
+    var lasdmgImages = [];
+    for(var i = 0; i < 5; i++) {
+        lasdmgImages[i] = new Image();
+        lasdmgImages[i].addEventListener('load', self.loadedImage, false);
+        lasdmgImages[i].src = (`Graphics/UI/lasdmg_${i}.png`);
+    }
+
 	var numOfImages = (starImages.length + images.length + enemyImages.length + playerImages1.length + playerImages2.length + playerImages3.length
         + playerImages4.length + playerImages5.length + playerImages6.length + playerImages7.length + playerImages8.length
         + itemImages.length + logoImages.length + fgImages.length + portraitImages.length + transitionImages.length + cutsceneImages.length + wepImages.length
-        + dmgImages.length + missileImages.length);
+        + dmgImages.length + missileImages.length + lasImages.length + lasdmgImages.length);
 
     // Containers
     var stars = [];
@@ -522,9 +536,10 @@ function Game()
             this.enemiesKilled = []; // [enemyNum] = 126
             this.weaponsOwned = []; // [weaponNum] = true
             this.weaponPrice = []; // [weaponNum] = 486 (cores)
+            this.laserPrice = []; // [laser.level] = 486 (cores)
             this.damagePrice = []; // [damageLevel] = 486 (cores)
+            this.laserDamagePrice = []; // [damageLevel] = 486 (cores)
             this.ownLaser = false;
-            this.laserPrice = 1000;
             this.levelMission = new LevelMission();
             this.extras = [];
             this.extraPrices = [];
@@ -555,12 +570,22 @@ function Game()
             this.weaponPrice[2] = 250;//Rapid Fire Cyclone
             this.weaponPrice[3] = 350;//Rapid Fire Cyclone
             this.weaponPrice[4] = 500;//Rapid Fire Cyclone
-
             this.damagePrice[0] = 0;
             this.damagePrice[1] = 150;
             this.damagePrice[2] = 250;
             this.damagePrice[3] = 350;
             this.damagePrice[4] = 500;
+
+            this.laserPrice[0] = 0;//Laser 1
+            this.laserPrice[1] = 150;//Laser 2
+            this.laserPrice[2] = 250;//Laser 3
+            this.laserPrice[3] = 350;//Laser 4
+            this.laserPrice[4] = 500;//Laser 5
+            this.laserDamagePrice[0] = 0;
+            this.laserDamagePrice[1] = 150;
+            this.laserDamagePrice[2] = 250;
+            this.laserDamagePrice[3] = 350;
+            this.laserDamagePrice[4] = 500;
         }
 
         this.Ended = function() {
@@ -1828,7 +1853,7 @@ function Game()
             this.states = [
                 [true, false, false, false],
                 [true, false, false],
-                [[false, false], [false, false, true], [false, false, false, false, false, false, false]],
+                [[false, false], [false, false, true], [false, false, false]],
                 [true, false, false],
                 [true],
                 [true, false],
@@ -2003,12 +2028,16 @@ function Game()
                     // Primary Weapon
                     if(this.states[2][1][0]){ if(player.weapon == 4) { sfx.play(8); } else { if(player.money >= gco.weaponPrice[player.weapon + 1]) { gco.PurchaseWeapon(player.weapon + 1); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }} }
                     // Weapon Damage
-                    if(this.states[2][1][1]){ if(player.damageLevel == 4) { sfx.play(8); } else { if(player.money >= gco.damagePrice[player.damageLevel + 1]) { player.upgradeDamage(); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }} }
+                    if(this.states[2][1][1]){ if(player.damageLevel == 4) { sfx.play(8); } else { if(player.money >= gco.damagePrice[player.damageLevel + 1]) { player.upgradeDamage(); player.buy(gco.damagePrice[player.damageLevel]); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }} }
                     // Start Level
                     if(this.states[2][1][2]){ if(player.weapon != 49){ gco.StartLevel(); sfx.play(8); }}
 
+                    // Laser
+                    if(this.states[2][2][0]){ if(player.laser.level == 4) { sfx.play(8); } else { if(player.money >= gco.laserPrice[player.laser.level + 1]) { player.laser.upgradeLevel(); player.buy(gco.laserPrice[player.laser.level]); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }} }
+                    // Laser Damage
+                    if(this.states[2][2][1]){ if(player.laser.damageLevel == 4) { sfx.play(8); } else { if(player.money >= gco.laserDamagePrice[player.laser.damageLevel + 1]) { player.laser.upgradeDamage(); player.buy(gco.laserDamagePrice[player.laser.damageLevel]); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }} }
                     // Shield
-                    if(this.states[2][2][4]){ if(player.money >= (player.shieldLevel + 1) * 250){gco.PurchaseExtras(0); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); } }
+                    if(this.states[2][2][2]){ if(player.money >= (player.shieldLevel + 1) * 250){gco.PurchaseExtras(0); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); } }
 
                     break;
                 }
@@ -4587,6 +4616,12 @@ function Game()
             this.damageLevel += 1;
             if(this.damageLevel > 4) { this.damageLevel = 4; }
         }
+
+        this.buy = function(price) {
+            this.money -= price;
+            sfx.play(15);
+            sfx.play(16);
+        }
     }
 
     function PlayerLaser()
@@ -4887,6 +4922,16 @@ function Game()
             if(!this.active) { return; }
             this.active = false;
             if(sfx.laserPlaying){ sfx.pause(1); }
+        }
+
+        this.upgradeLevel = function() {
+            this.level += 1;
+            if(this.level > 4) { this.level = 4; }
+        }
+
+        this.upgradeDamage = function() {
+            this.damageLevel += 1;
+            if(this.damageLevel > 4) { this.damageLevel = 4; }
         }
     }
 
@@ -5505,7 +5550,13 @@ function Game()
                     if(player.weapon == 4) { sfx.play(8); } else { if(player.money >= gco.weaponPrice[player.weapon + 1]) { gco.PurchaseWeapon(player.weapon + 1); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }}
                 }
                 if(mouseX > 60 && mouseX < 108 && mouseY > 280 && mouseY < 328) { // Weapon Damage
-                    if(player.damageLevel == 4) { sfx.play(8); } else { if(player.money >= gco.damagePrice[player.damageLevel + 1]) { player.upgradeDamage(); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }}
+                    if(player.damageLevel == 4) { sfx.play(8); } else { if(player.money >= gco.damagePrice[player.damageLevel + 1]) { player.upgradeDamage(); player.buy(gco.damagePrice[player.damageLevel]); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }}
+                }
+                if(mouseX > 10 && mouseX < 58 && mouseY > 448 && mouseY < 496) { // Laser
+                    if(player.laser.level == 4) { sfx.play(8); } else { if(player.money >= gco.laserPrice[player.laser.level + 1]) { player.laser.upgradeLevel(); player.buy(gco.laserPrice[player.laser.level]); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }}
+                }
+                if(mouseX > 60 && mouseX < 108 && mouseY > 448 && mouseY < 496) { // Laser Damage
+                    if(player.laser.damageLevel == 4) { sfx.play(8); } else { if(player.money >= gco.laserDamagePrice[player.laser.damageLevel + 1]) { player.laser.upgradeDamage(); player.buy(gco.laserDamagePrice[player.laser.damageLevel]); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }}
                 }
                 if(mouseX > _canvas.width - 300 && mouseX < _canvas.width - 252 && mouseY > 448 && mouseY < 496) { // Shield
                     if(player.money >= (player.shieldLevel + 1) * 250){gco.PurchaseExtras(0); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}
@@ -6324,8 +6375,8 @@ function Game()
     
     this.drawGUI = function()
     {
-		//State GUIs
-			// 0 = Main Menu
+        //State GUIs
+            // 0 = Main Menu
             // 1 = Pause Menu
             // 2 = Upgrade Up Menu
             // 3 = Continue Menu
@@ -6333,16 +6384,15 @@ function Game()
             // 5 = Game Over Menu
             // 6 = Options Menu
             // 7 = Submit Score Menu
-		//Non-State Guis
-		// Debug
-		// Life & other ingame info(can't be on any state gui's)
-		
-		//Draw State Gui's
-		var guiText = [];
-		switch(currentGui)
-		{
-			case 0:
-			{// Main Menu
+        //Non-State Guis
+        // Debug
+        // Life & other ingame info(can't be on any state gui's)
+        
+        //Draw State Gui's
+        var guiText = [];
+        switch(currentGui)
+        {
+            case 0: {// Main Menu
                 guiText[0] = new GUIText("Kill All The Things", _canvas.width / 2, _canvas.height / 2 - 100, "48px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 255)");
                 guiText[1] = new GUIText("Insert Coin", _canvas.width / 2, _canvas.height / 2, "28px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
                 if(menu.states[0][0] || (mouseX > (_canvas.width / 2 + 10) - 105 && mouseX < (_canvas.width / 2 + 10) + 90 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10))
@@ -6368,10 +6418,9 @@ function Game()
                     if(menu.states[0][3]) menu.DrawArrow(3, (_canvas.width / 2) - 80, _canvas.height / 2 + 158)
                     guiText[4] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2) + 145, "28px VT323", "center", "top", "rgb(255, 255, 255)");
                 }
-				break;
-			}
-            case 1:
-            {// Pause Menu
+                break;
+            }
+            case 1: {// Pause Menu
                 guiText[0] = new GUIText("Paused", _canvas.width / 2, _canvas.height / 2 - 80, "40px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
                 guiText[1] = new GUIText("Options", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(210, 210, 210)");
                 if(menu.states[1][0] || (mouseX > (_canvas.width / 2) - 50 && mouseX < (_canvas.width / 2) + 50 && mouseY < (_canvas.height / 2) + 30 && mouseY > (_canvas.height / 2))) {
@@ -6389,38 +6438,30 @@ function Game()
                     guiText[3] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2) + 80, "28px VT323", "center", "top", "rgb(255, 255, 255)");
                 }
                 break;
-			}
-			case 2:
-			{// Upgrade Menu
+            }
+            case 2: {// Upgrade Menu
                 //**********************************************************************//
                 //						UPGRADE MENU SECTION							//
                 //**********************************************************************//
 
                 //Static Text
-                guiText[0] = new GUIText("Missions", 10, 10, "20px VT323", "left", "top", "rgb(230, 230, 255)");
-                guiText[1] = new GUIText("Primary Fire", 10, _canvas.height / 2 - 50, "20px VT323", "left", "top", "rgb(230, 230, 255)");
-                guiText[2] = new GUIText("Artillery", 10, 420, "20px VT323", "left", "top", "rgb(230, 230, 255)");
-                guiText[3] = new GUIText("Cores: " + player.money, _canvas.width - 100, _canvas.height - 53, "20px VT323", "left", "top", "rgb(230, 230, 255)");
-                guiText[4] = new GUIText("Extra Items", _canvas.width - 300, 420, "20px VT323", "left", "top", "rgb(230, 230, 255)");
-                guiText[7] = new GUIText(gco.levelTitle(), 5, _buffer.height / 2 - 76, "20px VT323", "left", "top", "rgb(230, 230, 255)");
-				guiText[8] = new GUIText("", _canvas.width - 271, 448, "20px VT323", "left", "top", "rgb(0, 0, 0)");
-				guiText[9] = new GUIText("", _canvas.width - 221, 448, "20px VT323", "left", "top", "rgb(0, 0, 0)");
+                guiText[0] = new GUIText("Primary Fire", 10, _canvas.height / 2 - 50, "20px VT323", "left", "top", "rgb(230, 230, 255)");
+                guiText[1] = new GUIText("Artillery", 10, 420, "20px VT323", "left", "top", "rgb(230, 230, 255)");
+                guiText[2] = new GUIText("Cores: " + player.money, _canvas.width - 100, _canvas.height - 53, "20px VT323", "left", "top", "rgb(230, 230, 255)");
+                guiText[3] = new GUIText("Extra Items", _canvas.width - 300, 420, "20px VT323", "left", "top", "rgb(230, 230, 255)");
+                guiText[4] = new GUIText(gco.levelTitle(), 5, _buffer.height / 2 - 76, "20px VT323", "left", "top", "rgb(230, 230, 255)");
                 
                 if(menu.states[2][1][2] || (mouseX > (_canvas.width - 210) && mouseX < (_canvas.width - 10) && mouseY < (278) && mouseY > (250))) { // Start Level
                     guiText[5] = new GUIText("Start Level", _canvas.width - 110, 250, "28px Thunderstrike", "center", "top", "rgb(96, 255, 96)");
                     menu.DrawArrow(3, _canvas.width - 225, 262);
-                    if(player.weapon == 49){guiText[12] = new GUIText("Must equip main weapon", _canvas.width - 100, 280, "12px VT323", "center", "top", "rgb(255, 50, 50)");}
                 } else {
                     guiText[5] = new GUIText("Start Level", _canvas.width - 110, 250, "28px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
                 }
 
                 // Bottom text tooltip initialization
-				guiText[6] = new GUIText("", _canvas.width / 2, _canvas.height - 53, "18px VT323", "center", "top", "rgb(230, 230, 255)");
-				guiText[10] = new GUIText("", _canvas.width / 2, _canvas.height - 303, "16px VT323", "center", "top", "rgb(230, 230, 255)");
-				guiText[11] = new GUIText("", _canvas.width / 2, _canvas.height - 303, "16px VT323", "center", "top", "rgb(230, 230, 255)");
-				guiText[12] = new GUIText("", _canvas.width / 2, _canvas.height - 303, "16px VT323", "center", "top", "rgb(230, 230, 255)");
-				guiText[13] = new GUIText("", _canvas.width / 2, _canvas.height - 33, "14px VT323", "center", "top", "rgb(230, 230, 255)");
-				guiText[14] = new GUIText("", _canvas.width / 2, _canvas.height - 23, "14px VT323", "center", "top", "rgb(230, 230, 255)");
+                guiText[6] = new GUIText("", _canvas.width / 2, _canvas.height - 53, "18px VT323", "center", "top", "rgb(230, 230, 255)");
+                guiText[7] = new GUIText("", _canvas.width / 2, _canvas.height - 33, "14px VT323", "center", "top", "rgb(230, 230, 255)");
+                guiText[8] = new GUIText("", _canvas.width / 2, _canvas.height - 33, "14px VT323", "center", "top", "rgb(230, 230, 255)");
 
                 // GUI Icons
                 // NEW WEAPON Primary Assult
@@ -6433,9 +6474,13 @@ function Game()
                     let wepNames = ["Primary Assult", "Rapid Fire Assult", "Cone Assult", "Rapid Fire Cyclone", "Ultimate Cyclone Assult"];	
                     guiText[6].text = wepNames[player.weapon];
                     if(player.weapon == 4) {
-                        guiText[13].text = "Primary Fully Upgraded";
+                        guiText[7].text = "Primary Fully Upgraded";
                     } else {
-                        guiText[13].text = "Select to Upgrade";
+                        if(player.money >= gco.weaponPrice[player.weapon + 1]) {
+                            guiText[7].text = "Select to Upgrade";
+                        } else {
+                            guiText[7].text = gco.weaponPrice[player.weapon + 1] + " Cores";
+                        }
                     }
                 }
                 buffer.shadowBlur = 1;
@@ -6451,15 +6496,15 @@ function Game()
                     buffer.drawImage(dmgImages[player.damageLevel], 60, 280, 48, 48);
                     buffer.shadowBlur = 0;
                     menu.DrawArrow(0, 84, 336);
-					guiText[6].text = "Damage Upgrade";
+                    guiText[6].text = "Damage Upgrade";
 
                     if(player.damageLevel == 4) {
-                        guiText[13].text = "Maximum Damage";
+                        guiText[7].text = "Maximum Damage";
                     } else {
                         if(player.money >= gco.damagePrice[player.damageLevel + 1]) {
-                            guiText[13].text = "Select to Increase Damage";
+                            guiText[7].text = "Select to Increase Damage";
                         } else {
-                            guiText[13].text = gco.damagePrice[player.damageLevel] + " Cores";
+                            guiText[7].text = gco.damagePrice[player.damageLevel + 1] + " Cores";
                         }
                     }
                 }
@@ -6468,82 +6513,133 @@ function Game()
                 buffer.drawImage(dmgImages[player.damageLevel], 60, 280, 48, 48);
                 buffer.shadowBlur = 0;
                 //END WEAPON
-				
+
+                // NEW WEAPON Laser
+                if(menu.states[2][2][0] || (mouseX > 10 && mouseX < 58 && mouseY > 448 && mouseY < 496)) {
+                    buffer.shadowBlur = 1;
+                    buffer.shadowColor = 'rgb(0, 173, 239)';
+                    buffer.drawImage(lasImages[player.laser.level], 10, 448, 48, 48);    
+                    buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, 34, 504);
+                    let lasNames = ["Laser 1", "Laser 2", "Laser 3", "Laser 4", "Laser 5"];	
+                    guiText[6].text = lasNames[player.laser.level];
+                    if(player.laser.level == 4) {
+                        guiText[7].text = "Laser Fully Upgraded";
+                    } else {
+                        if(player.money >= gco.laserPrice[player.laser.level + 1]) {
+                            guiText[7].text = "Select to Upgrade";
+                        } else {
+                            guiText[7].text = gco.laserPrice[player.laser.level + 1] + " Cores";
+                        }
+                    }
+                }
+                buffer.shadowBlur = 1;
+                buffer.shadowColor = 'rgb(0, 173, 239)';
+                buffer.drawImage(lasImages[player.laser.level], 10, 448, 48, 48);
+                buffer.shadowBlur = 0;
+                //END WEAPON
+
+                // LASER DAMAGE UPGRADE Primary Fire
+                if(menu.states[2][2][1] || (mouseX > 60 && mouseX < 108 && mouseY > 448 && mouseY < 496)) {
+                    buffer.shadowBlur = 1;
+                    buffer.shadowColor = 'rgb(0, 173, 239)';
+                    buffer.drawImage(lasdmgImages[player.laser.damageLevel], 60, 448, 48, 48);
+                    buffer.shadowBlur = 0;
+                    menu.DrawArrow(0, 84, 504);
+                    guiText[6].text = "Damage Upgrade";
+
+                    if(player.laser.damageLevel == 4) {
+                        guiText[7].text = "Maximum Damage";
+                    } else {
+                        if(player.money >= gco.laserDamagePrice[player.laser.damageLevel + 1]) {
+                            guiText[7].text = "Select to Increase Damage";
+                        } else {
+                            guiText[7].text = gco.laserDamagePrice[player.laser.damageLevel + 1] + " Cores";
+                        }
+                    }
+                }
+                buffer.shadowBlur = 1;
+                buffer.shadowColor = 'rgb(0, 150, 250)';
+                buffer.drawImage(lasdmgImages[player.laser.damageLevel], 60, 448, 48, 48);
+                buffer.shadowBlur = 0;
+                //END WEAPON
+                
                 // NEW POWERUP Shield
-                if(menu.states[2][2][4] || (mouseX > _canvas.width - 300 && mouseX < _canvas.width - 252 && mouseY > 448 && mouseY < 496))
-                {//Shield
+                if(menu.states[2][2][2] || (mouseX > _canvas.width - 300 && mouseX < _canvas.width - 252 && mouseY > 448 && mouseY < 496)) { // Shield
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[4], _canvas.width - 300, 448, 48, 48);
                     buffer.shadowBlur = 0;
                     menu.DrawArrow(0, _canvas.width - 276, 504);
-					guiText[6].text = "Shield"
-					guiText[6].y = _canvas.height - 65
-					guiText[6].fontStyle = "20px VT323"
-                    if(player.hasShield)
-                     {
-						guiText[14] = new GUIText("Upgrade: " + (player.shieldLevel + 1) * 250 + " Cores", _canvas.width / 2, _canvas.height - 23, "14px VT323", "center", "top", "rgb(230, 230, 255)");
-						guiText[13].text = "Level: " + player.shieldLevel
-						guiText[13].y = _canvas.height - 43
-                     } else {
-						guiText[14] = new GUIText("250 Cores", _canvas.width / 2, _canvas.height - 33, "14px VT323", "center", "top", "rgb(230, 230, 255)");
-					 }
+                    guiText[6].text = "Shield"
+                    guiText[6].y = _canvas.height - 65
+                    guiText[6].fontStyle = "20px VT323"
+                    if(player.hasShield) {
+                        guiText[8] = new GUIText("Upgrade: " + (player.shieldLevel + 1) * 250 + " Cores", _canvas.width / 2, _canvas.height - 23, "14px VT323", "center", "top", "rgb(230, 230, 255)");
+                        guiText[7].text = "Level: " + player.shieldLevel
+                        guiText[7].y = _canvas.height - 43
+                    } else {
+                        guiText[8] = new GUIText("250 Cores", _canvas.width / 2, _canvas.height - 33, "14px VT323", "center", "top", "rgb(230, 230, 255)");
+                    }
                 }
-                if(player.hasShield)
-                {
-					buffer.shadowBlur = 1;
+                if(player.hasShield) {
+                    buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[4], _canvas.width - 300, 448, 48, 48);
-					buffer.shadowBlur = 0;
-                }
-                else
-                {
-					buffer.globalAlpha = 0.5;
+                    buffer.shadowBlur = 0;
+                } else {
+                    buffer.globalAlpha = 0.5;
                     buffer.drawImage(images[4], _canvas.width - 300, 448, 48, 48);
-					buffer.globalAlpha = 1.0;
+                    buffer.globalAlpha = 1.0;
                 }
                 //END WEAPON
-				
-				guiText[12] = new GUIText("Score: " + score, 10, _canvas.height - 53, "18px VT323", "left", "top", "rgb(230, 230, 255)");
-//**********************************************************************//
-//					  BEGIN PILOT SELECT SECTION						//
-//**********************************************************************//
 
-//**********************************************************************//
-//					  END PILOT SELECT SECTION							//
-//**********************************************************************//
+                // Options Menu Selection
+                if(menu.states[2][0][0] || (mouseX > (_canvas.width - 248) && mouseX < (_canvas.width - 147) && mouseY < (48) && mouseY > (20))) { // Options Menu
+                    guiText[9] = new GUIText("Options", _canvas.width - 200, 20, "20px Thunderstrike", "center", "top", "rgb(96, 255, 96)");
+                    menu.DrawArrow(3, _canvas.width - 263, 28);
+                } else {
+                    guiText[9] = new GUIText("Options", _canvas.width - 200, 20, "20px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
+                }
 
-//**********************************************************************//
-//					  END UPGRADE MENU SECTION							//
-//**********************************************************************//
+                // Quit game
+                if(menu.states[2][0][1] || (mouseX > (_canvas.width - 86) && mouseX < (_canvas.width - 30) && mouseY < (48) && mouseY > (20))) { // Quit
+                    guiText[10] = new GUIText("Quit", _canvas.width - 60, 20, "20px Thunderstrike", "center", "top", "rgb(96, 255, 96)");
+                    menu.DrawArrow(3, _canvas.width - 100, 28);
+                } else {
+                    guiText[10] = new GUIText("Quit", _canvas.width - 60, 20, "20px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
+                }
+                guiText[11] = new GUIText("Score: " + score, 10, _canvas.height - 53, "18px VT323", "left", "top", "rgb(230, 230, 255)");
+
+            //**********************************************************************//
+            //					  END UPGRADE MENU SECTION							//
+            //**********************************************************************//
                 break;
-			}
-			case 3:
-			{// Continue Menu
-				guiText[0] = new GUIText("You Died", _canvas.width / 2, _canvas.height / 2 - 100, "42px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
-										 
-        		if(menu.states[3][0] || (mouseX > (_canvas.width / 2 + 15) - 65 && mouseX < (_canvas.width / 2 + 15) + 36 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 14)) {
+            }
+            case 3: {// Continue Menu
+                guiText[0] = new GUIText("You Died", _canvas.width / 2, _canvas.height / 2 - 100, "42px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
+                                            
+                if(menu.states[3][0] || (mouseX > (_canvas.width / 2 + 15) - 65 && mouseX < (_canvas.width / 2 + 15) + 36 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 14)) {
                     if(menu.states[3][0]) menu.DrawArrow(3, _canvas.width / 2 - 56, _canvas.height / 2 + 15);
-					guiText[1] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(255, 255, 255)");
-				} else {
-					guiText[1] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(210, 210, 210)");
-				}
-				if(menu.states[3][1] || (mouseX > (_canvas.width / 2 + 10) - 63 && mouseX < (_canvas.width / 2 + 10) + 43 && mouseY < (_canvas.height / 2 + 53) + 20 && mouseY > (_canvas.height / 2 + 50)))	{
+                    guiText[1] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(255, 255, 255)");
+                } else {
+                    guiText[1] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(210, 210, 210)");
+                }
+                if(menu.states[3][1] || (mouseX > (_canvas.width / 2 + 10) - 63 && mouseX < (_canvas.width / 2 + 10) + 43 && mouseY < (_canvas.height / 2 + 53) + 20 && mouseY > (_canvas.height / 2 + 50)))	{
                     if(menu.states[3][1]) menu.DrawArrow(3, _canvas.width / 2 - 60, _canvas.height / 2 + 66);
-					guiText[2] = new GUIText("Main Menu", _canvas.width / 2, (_canvas.height / 2 + 50), "28px VT323", "center", "top", "rgb(255, 255, 255)");
-				} else {
-					guiText[2] = new GUIText("Main Menu", _canvas.width / 2, (_canvas.height / 2 + 50), "28px VT323", "center", "top", "rgb(210, 210, 210)");
-				}
-				if(menu.states[3][2] || (mouseX > (_canvas.width / 2 + 10) - 63 && mouseX < (_canvas.width / 2 + 10) + 43 && mouseY < (_canvas.height / 2 + 106) + 20 && mouseY > (_canvas.height / 2 + 100))) {
+                    guiText[2] = new GUIText("Main Menu", _canvas.width / 2, (_canvas.height / 2 + 50), "28px VT323", "center", "top", "rgb(255, 255, 255)");
+                } else {
+                    guiText[2] = new GUIText("Main Menu", _canvas.width / 2, (_canvas.height / 2 + 50), "28px VT323", "center", "top", "rgb(210, 210, 210)");
+                }
+                if(menu.states[3][2] || (mouseX > (_canvas.width / 2 + 10) - 63 && mouseX < (_canvas.width / 2 + 10) + 43 && mouseY < (_canvas.height / 2 + 106) + 20 && mouseY > (_canvas.height / 2 + 100))) {
                     if(menu.states[3][2]) menu.DrawArrow(3, _canvas.width / 2 - 60, _canvas.height / 2 + 115);
-					guiText[3] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2 + 100), "28px VT323", "center", "top", "rgb(255, 255, 255)");
-				} else {
-					guiText[3] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2 + 100), "28px VT323", "center", "top", "rgb(210, 210, 210)");
-				}
-				break;
-			}
-			case 4:
-			{// Level Up Menu
+                    guiText[3] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2 + 100), "28px VT323", "center", "top", "rgb(255, 255, 255)");
+                } else {
+                    guiText[3] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2 + 100), "28px VT323", "center", "top", "rgb(210, 210, 210)");
+                }
+                break;
+            }
+            case 4: {// Level Up Menu
                 guiText[0] = new GUIText("Level Up!", _canvas.width / 2, _canvas.height / 2 - 150, "44px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
                 guiText[1] = new GUIText("Now on " + gco.levelTitle(), _canvas.width / 2, _canvas.height / 2 - 100, "28px VT323", "center", "top", "rgb(255, 0, 0)");						 
                 if(menu.states[4][0] || (mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)) {
@@ -6553,9 +6649,8 @@ function Game()
                     guiText[2] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(255, 255, 255)");
                 }
                 break;
-			}
-			case 5:
-			{// Game Over Menu
+            }
+            case 5: {// Game Over Menu
                 guiText[0] = new GUIText("Game Over", _canvas.width / 2, _canvas.height / 2 - 100, "44px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
                 if(menu.states[5][0] || (mouseX > (_canvas.width / 2 - 65) && mouseX < (_canvas.width / 2 + 70) && mouseY < (_canvas.height / 2 + 30) && mouseY > (_canvas.height / 2))) {
                     if(menu.states[5][0]) menu.DrawArrow(3, _canvas.width / 2 - 65, _canvas.height / 2 + 15);
@@ -6570,17 +6665,15 @@ function Game()
                     guiText[2] = new GUIText("Exit Game", _canvas.width / 2, _canvas.height / 2 + 50, "28px VT323", "center", "top", "rgb(210, 210, 210)");
                 }
                 break;
-			}
-			case 6:
-			{
-                //Options Menu
-				guiText[0] = new GUIText("Options", _canvas.width / 2, 25, "36px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
-				guiText[1] = new GUIText("Back", 10, _canvas.height - 35, "28px Thunderstrike", "left", "top", `rgb(96, ${menu.states[6][3] ? '255' : '150'}, 96)`);
+            }
+            case 6: { // Options Menu
+                guiText[0] = new GUIText("Options", _canvas.width / 2, 25, "36px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
+                guiText[1] = new GUIText("Back", 10, _canvas.height - 35, "28px Thunderstrike", "left", "top", `rgb(96, ${menu.states[6][3] ? '255' : '150'}, 96)`);
                 if(menu.states[6][3]) menu.DrawArrow(1, 105, _canvas.height - 20)
-				if(mouseX > 0 && mouseX < 90 && mouseY < _canvas.height && mouseY > _canvas.height - 45)
-				{
-					guiText[1] = new GUIText("Back", 10, _canvas.height - 35, "28px Thunderstrike", "left", "top", "rgb(96, 255, 96)");
-				}
+                if(mouseX > 0 && mouseX < 90 && mouseY < _canvas.height && mouseY > _canvas.height - 45)
+                {
+                    guiText[1] = new GUIText("Back", 10, _canvas.height - 35, "28px Thunderstrike", "left", "top", "rgb(96, 255, 96)");
+                }
 
                 // Graphics
                 guiText[2] = new GUIText("Particles", (_canvas.width / 2), 125, "20px Thunderstrike", "center", "top", `rgb(96, ${menu.states[6][0] ? '255' : '150'}, 96)`);
@@ -6588,8 +6681,8 @@ function Game()
                 
                 if(mouseX >= 200 && mouseX <= 225 && mouseY >= 150 && mouseY <= 200)
                 {
-					buffer.drawImage(images[11], (_canvas.width / 4), 150, 400, 50);
-				}
+                    buffer.drawImage(images[11], (_canvas.width / 4), 150, 400, 50);
+                }
                 else if(mouseX >= 575 && mouseX <= 600 && mouseY >= 150 && mouseY <= 200)
                 {
                     buffer.drawImage(images[12], (_canvas.width / 4), 150, 400, 50);
@@ -6598,31 +6691,31 @@ function Game()
                 {
                     buffer.drawImage(images[10], (_canvas.width / 4), 150, 400, 50);
                 }
-				
+                
                 buffer.drawImage(images[13], (19 + (87.5 * particleOffset) - 87.5) + (_canvas.width / 4), 161, 13, 28);
                 
-				switch(particleOffset)
-				{
-					case 1:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px VT323", "center", "top", "rgb(96, 255, 96)");
-							guiText[4] = new GUIText("Need new computer...", _canvas.width / 2, 235, "14px VT323", "center", "top", "rgb(96, 255, 96)");break;}
-					case 2:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px VT323", "center", "top", "rgb(120, 200, 60)");
-							guiText[4] = new GUIText("Needs Shinies :(", _canvas.width / 2, 235, "14px VT323", "center", "top", "rgb(120, 200, 60)");break;}
-					case 3:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px VT323", "center", "top", "rgb(150, 100, 20)");
-							guiText[4] = new GUIText("Less Shinies.", _canvas.width / 2, 235, "14px VT323", "center", "top", "rgb(150, 100, 20)");break;}
-					case 4:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px VT323", "center", "top", "rgb(200, 25, 0)");
-							guiText[4] = new GUIText("Shinies!", _canvas.width / 2, 235, "14px VT323", "center", "top", "rgb(200, 55, 0)");break;}
-					case 5:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px VT323", "center", "top", "rgb(255, 0, 0)");
-							guiText[4] = new GUIText("OMFG SPARKLES!", _canvas.width / 2, 235, "14px VT323", "center", "top", "rgb(255, 0, 0)");break;}
-				}
-				
+                switch(particleOffset)
+                {
+                    case 1:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px VT323", "center", "top", "rgb(96, 255, 96)");
+                            guiText[4] = new GUIText("Need new computer...", _canvas.width / 2, 235, "14px VT323", "center", "top", "rgb(96, 255, 96)");break;}
+                    case 2:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px VT323", "center", "top", "rgb(120, 200, 60)");
+                            guiText[4] = new GUIText("Needs Shinies :(", _canvas.width / 2, 235, "14px VT323", "center", "top", "rgb(120, 200, 60)");break;}
+                    case 3:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px VT323", "center", "top", "rgb(150, 100, 20)");
+                            guiText[4] = new GUIText("Less Shinies.", _canvas.width / 2, 235, "14px VT323", "center", "top", "rgb(150, 100, 20)");break;}
+                    case 4:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px VT323", "center", "top", "rgb(200, 25, 0)");
+                            guiText[4] = new GUIText("Shinies!", _canvas.width / 2, 235, "14px VT323", "center", "top", "rgb(200, 55, 0)");break;}
+                    case 5:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px VT323", "center", "top", "rgb(255, 0, 0)");
+                            guiText[4] = new GUIText("OMFG SPARKLES!", _canvas.width / 2, 235, "14px VT323", "center", "top", "rgb(255, 0, 0)");break;}
+                }
+                
                 // BGM Volume
-				guiText[5] = new GUIText("BGM Volume", (_canvas.width / 2), 265, "20px Thunderstrike", "center", "top", `rgb(96, ${menu.states[6][1] ? '255' : '150'}, 96)`);
+                guiText[5] = new GUIText("BGM Volume", (_canvas.width / 2), 265, "20px Thunderstrike", "center", "top", `rgb(96, ${menu.states[6][1] ? '255' : '150'}, 96)`);
                 if(menu.states[6][1]) menu.DrawArrow(3, _canvas.width / 2 - 95, 274)
                 
                 if(mouseX >= 200 && mouseX <= 225 && mouseY >= 290 && mouseY <= 340)
                 {
-					buffer.drawImage(images[11], (_canvas.width / 4), 290, 400, 50);
-				}
+                    buffer.drawImage(images[11], (_canvas.width / 4), 290, 400, 50);
+                }
                 else if(mouseX >= 575 && mouseX <= 600 && mouseY >= 290 && mouseY <= 340)
                 {
                     buffer.drawImage(images[12], (_canvas.width / 4), 290, 400, 50);
@@ -6631,19 +6724,19 @@ function Game()
                 {
                     buffer.drawImage(images[10], (_canvas.width / 4), 290, 400, 50);
                 }
-				
+                
                 buffer.drawImage(images[13], (19 + (35 * Math.round(gco.bgm.volume * 10))) + (_canvas.width / 4), 301, 13, 28);
                 
                 guiText[6] = new GUIText(Math.round(gco.bgm.volume * 100) + "%", _canvas.width / 2, 345, "26px VT323", "center", "top", "rgb(96, 255, 96)");
                 
                 // SFX Volume
-				guiText[7] = new GUIText("SFX Volume", (_canvas.width / 2), 405, "20px Thunderstrike", "center", "top", `rgb(96, ${menu.states[6][2] ? '255' : '150'}, 96)`);
+                guiText[7] = new GUIText("SFX Volume", (_canvas.width / 2), 405, "20px Thunderstrike", "center", "top", `rgb(96, ${menu.states[6][2] ? '255' : '150'}, 96)`);
                 if(menu.states[6][2]) menu.DrawArrow(3, _canvas.width / 2 - 92, 414)
                 
                 if(mouseX >= 200 && mouseX <= 225 && mouseY >= 430 && mouseY <= 480)
                 {
-					buffer.drawImage(images[11], (_canvas.width / 4), 430, 400, 50);
-				}
+                    buffer.drawImage(images[11], (_canvas.width / 4), 430, 400, 50);
+                }
                 else if(mouseX >= 575 && mouseX <= 600 && mouseY >= 430 && mouseY <= 480)
                 {
                     buffer.drawImage(images[12], (_canvas.width / 4), 430, 400, 50);
@@ -6652,72 +6745,73 @@ function Game()
                 {
                     buffer.drawImage(images[10], (_canvas.width / 4), 430, 400, 50);
                 }
-				
+                
                 buffer.drawImage(images[13], (19 + (35 * Math.round(sfx.masterVolume * 10))) + (_canvas.width / 4), 441, 13, 28);
                 
                 guiText[8] = new GUIText(Math.round(sfx.masterVolume * 100) + "%", _canvas.width / 2, 485, "26px VT323", "center", "top", "rgb(96, 255, 96)");
                 break;
-			}
-			case 7:
-			{ // Score Menu
-				guiText[0] = new GUIText("Score" , _canvas.width / 2, _canvas.height / 2 - 230, "48px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
-				guiText[1] = new GUIText(score , _canvas.width / 2, _canvas.height / 2 - 160, "38px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
-				guiText[2] = new GUIText("Kills: " + enemiesKilled + "  Cores: " + totalCores + "  Items Used: " + itemsUsed, _canvas.width / 2, _canvas.height / 2 - 80, "20px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
-        		if(menu.states[7][0] || (mouseX > _canvas.width / 2 - 60 && mouseX < _canvas.width / 2 + 60 && mouseY < _canvas.height / 2 + 30 && mouseY > _canvas.height / 2)) {
+            }
+            case 7: { // Score Menu
+                guiText[0] = new GUIText("Score" , _canvas.width / 2, _canvas.height / 2 - 230, "48px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
+                guiText[1] = new GUIText(score , _canvas.width / 2, _canvas.height / 2 - 160, "38px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
+                guiText[2] = new GUIText("Kills: " + enemiesKilled + "  Cores: " + totalCores + "  Items Used: " + itemsUsed, _canvas.width / 2, _canvas.height / 2 - 80, "20px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
+                if(menu.states[7][0] || (mouseX > _canvas.width / 2 - 60 && mouseX < _canvas.width / 2 + 60 && mouseY < _canvas.height / 2 + 30 && mouseY > _canvas.height / 2)) {
                     if(menu.states[7][0]) menu.DrawArrow(3, _canvas.width / 2 - 60, _canvas.height / 2 + 15);
-					guiText[3] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(255, 255, 255)");
-				} else {
-					guiText[3] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(210, 210, 210)");
-				}
-				if(menu.states[7][1] || (mouseX > _canvas.width / 2 - 60 && mouseX < _canvas.width / 2 + 60 && mouseY < _canvas.height / 2 + 78 && mouseY > _canvas.height / 2 + 48)) {
+                    guiText[3] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(255, 255, 255)");
+                } else {
+                    guiText[3] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(210, 210, 210)");
+                }
+                if(menu.states[7][1] || (mouseX > _canvas.width / 2 - 60 && mouseX < _canvas.width / 2 + 60 && mouseY < _canvas.height / 2 + 78 && mouseY > _canvas.height / 2 + 48)) {
                     if(menu.states[7][1]) menu.DrawArrow(3, _canvas.width / 2 - 60, _canvas.height / 2 + 65);
-					guiText[4] = new GUIText("Exit Game", _canvas.width / 2, _canvas.height / 2 + 50, "28px VT323", "center", "top", "rgb(255, 255, 255)");
-				} else {
-					guiText[4] = new GUIText("Exit Game", _canvas.width / 2, _canvas.height / 2 + 50, "28px VT323", "center", "top", "rgb(210, 210, 210)");
-				}
-				break;
-			}
-			default:{break;}
-		}
-		buffer.beginPath();
-		for(var i = 0; i < guiText.length; i++)
-        {
-			buffer.fillStyle = guiText[i].color;
-			buffer.font = guiText[i].fontStyle;
-			buffer.textAlign = guiText[i].alignX;
-			buffer.textBaseline = guiText[i].alignY;
-			buffer.fillText(guiText[i].text, guiText[i].x, guiText[i].y);
-		}
-		buffer.closePath();
-		delete guiText;
-		if(!gco.win)
-		{//Stateless Menu Items
-			var guiText = [];
-			//Debug
-			if(debug)
-			{
-				guiText[0] = new GUIText("Shot: " + player.totalMissiles, 32, 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[1] = new GUIText("In Air: " + missiles.length, _canvas.width - 100, 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[2] = new GUIText("Enemies: " + enemies.length, _canvas.width - 250, 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[3] = new GUIText("Explosions: " + explosions.length, _canvas.width - 150, _canvas.height - 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[4] = new GUIText("FPS: " + FPS, 182, 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[5] = new GUIText("Seconds: " + seconds, 182, 52, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[6] = new GUIText("Tick: " + ticks, 182, 72, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				buffer.beginPath();
-				for(var i = 0; i < guiText.length; i++)
-				{
-					buffer.fillStyle = guiText[i].color;
-					buffer.font = guiText[i].fontStyle;
-					buffer.textAlign = guiText[i].alignX;
-					buffer.textBaseline = guiText[i].alignY;
-					buffer.fillText(guiText[i].text, guiText[i].x, guiText[i].y);
-				}
-				buffer.closePath();
-			}
-			delete guiText;
-			//End Debug
+                    guiText[4] = new GUIText("Exit Game", _canvas.width / 2, _canvas.height / 2 + 50, "28px VT323", "center", "top", "rgb(255, 255, 255)");
+                } else {
+                    guiText[4] = new GUIText("Exit Game", _canvas.width / 2, _canvas.height / 2 + 50, "28px VT323", "center", "top", "rgb(210, 210, 210)");
+                }
+                break;
+            }
+            default:{break;}
+        }
 
-			// Player Info
+        // Draw the menu from guiText cache
+        buffer.beginPath();
+        for(var i = 0; i < guiText.length; i++) {
+            buffer.fillStyle = guiText[i].color;
+            buffer.font = guiText[i].fontStyle;
+            buffer.textAlign = guiText[i].alignX;
+            buffer.textBaseline = guiText[i].alignY;
+            buffer.fillText(guiText[i].text, guiText[i].x, guiText[i].y);
+        }
+        buffer.closePath();
+        delete guiText;
+
+        // Stateless Menu Items
+        if(!gco.win) {
+            var guiText = [];
+            //Debug
+            if(debug)
+            {
+                guiText[0] = new GUIText("Shot: " + player.totalMissiles, 32, 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[1] = new GUIText("In Air: " + missiles.length, _canvas.width - 100, 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[2] = new GUIText("Enemies: " + enemies.length, _canvas.width - 250, 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[3] = new GUIText("Explosions: " + explosions.length, _canvas.width - 150, _canvas.height - 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[4] = new GUIText("FPS: " + FPS, 182, 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[5] = new GUIText("Seconds: " + seconds, 182, 52, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[6] = new GUIText("Tick: " + ticks, 182, 72, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                buffer.beginPath();
+                for(var i = 0; i < guiText.length; i++)
+                {
+                    buffer.fillStyle = guiText[i].color;
+                    buffer.font = guiText[i].fontStyle;
+                    buffer.textAlign = guiText[i].alignX;
+                    buffer.textBaseline = guiText[i].alignY;
+                    buffer.fillText(guiText[i].text, guiText[i].x, guiText[i].y);
+                }
+                buffer.closePath();
+            }
+            delete guiText;
+            //End Debug
+
+            // Player Info
             var guiText = [];
             if(playerInfo) {
                 guiText[0] = new GUIText(player.hasShield ? "Shield: " + Math.floor(player.shield) : "" , 105, _canvas.height - 53, "18px VT323", "left", "top", "rgb(96, 255, 96)");
@@ -6741,42 +6835,42 @@ function Game()
                 }
             buffer.closePath();
             delete guiText;
-			//Must Purchase Previous Weapon Dialogue
-			var guiText = [];
-			if(gameState != 1 && gco.mustPurchasePrevious > 0)
-			{
-				guiText[0] = new GUIText("Must Purchase Previous Weapon", _canvas.width / 2, _canvas.height / 2, "18px VT323", "center", "center", "rgb(255, 0, 0)");
-				buffer.beginPath();
-				for(var i = 0; i < guiText.length; i++)
-				{
-					buffer.fillStyle = guiText[i].color;
-					buffer.font = guiText[i].fontStyle;
-					buffer.textAlign = guiText[i].alignX;
-					buffer.textBaseline = guiText[i].alignY;
-					buffer.fillText(guiText[i].text, guiText[i].x, guiText[i].y);
-				}
-				buffer.closePath();
-			}
-			delete guiText;
-			//Not Enough Cores Menu
-			var guiText = [];
-			if(gameState != 1 && gco.notEnoughCores > 0)
-			{
-				guiText[0] = new GUIText("Not Enough Cores", _canvas.width / 2, (_canvas.height / 2) - 20, "18px VT323", "center", "center", "rgb(255, 0, 0)");
-				buffer.beginPath();
-				for(var i = 0; i < guiText.length; i++)
-				{
-					buffer.fillStyle = guiText[i].color;
-					buffer.font = guiText[i].fontStyle;
-					buffer.textAlign = guiText[i].alignX;
-					buffer.textBaseline = guiText[i].alignY;
-					buffer.fillText(guiText[i].text, guiText[i].x, guiText[i].y);
-				}
-				buffer.closePath();
-			}
-		}
-		delete guiText;
-		// End Player Info
+            //Must Purchase Previous Weapon Dialogue
+            var guiText = [];
+            if(gameState != 1 && gco.mustPurchasePrevious > 0)
+            {
+                guiText[0] = new GUIText("Must Purchase Previous Weapon", _canvas.width / 2, _canvas.height / 2, "18px VT323", "center", "center", "rgb(255, 0, 0)");
+                buffer.beginPath();
+                for(var i = 0; i < guiText.length; i++)
+                {
+                    buffer.fillStyle = guiText[i].color;
+                    buffer.font = guiText[i].fontStyle;
+                    buffer.textAlign = guiText[i].alignX;
+                    buffer.textBaseline = guiText[i].alignY;
+                    buffer.fillText(guiText[i].text, guiText[i].x, guiText[i].y);
+                }
+                buffer.closePath();
+            }
+            delete guiText;
+            //Not Enough Cores Menu
+            var guiText = [];
+            if(gameState != 1 && gco.notEnoughCores > 0)
+            {
+                guiText[0] = new GUIText("Not Enough Cores", _canvas.width / 2, (_canvas.height / 2) - 20, "18px VT323", "center", "center", "rgb(255, 0, 0)");
+                buffer.beginPath();
+                for(var i = 0; i < guiText.length; i++)
+                {
+                    buffer.fillStyle = guiText[i].color;
+                    buffer.font = guiText[i].fontStyle;
+                    buffer.textAlign = guiText[i].alignX;
+                    buffer.textBaseline = guiText[i].alignY;
+                    buffer.fillText(guiText[i].text, guiText[i].x, guiText[i].y);
+                }
+                buffer.closePath();
+            }
+        }
+        delete guiText;
+        // End Player Info
     }
     
     /******************************************************/
