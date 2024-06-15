@@ -6446,7 +6446,7 @@ function Game()
 
                 //Static Text
                 guiText[0] = new GUIText("Primary Fire", 10, _canvas.height / 2 - 50, "20px VT323", "left", "top", "rgb(230, 230, 255)");
-                guiText[1] = new GUIText("Artillery", 10, 420, "20px VT323", "left", "top", "rgb(230, 230, 255)");
+                guiText[1] = new GUIText("Laser", 10, 420, "20px VT323", "left", "top", "rgb(230, 230, 255)");
                 guiText[2] = new GUIText("Cores: " + player.money, _canvas.width - 100, _canvas.height - 53, "20px VT323", "left", "top", "rgb(230, 230, 255)");
                 guiText[3] = new GUIText("Extra Items", _canvas.width - 300, 420, "20px VT323", "left", "top", "rgb(230, 230, 255)");
                 guiText[4] = new GUIText(gco.levelTitle(), 5, _buffer.height / 2 - 76, "20px VT323", "left", "top", "rgb(230, 230, 255)");
