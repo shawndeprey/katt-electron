@@ -254,10 +254,24 @@ function Game()
         missileImages[i].src = (`Graphics/Missiles/missile_${i}.png`);
     }
 
+    var lasImages = [];
+    for(var i = 0; i < 5; i++) {
+        lasImages[i] = new Image();
+        lasImages[i].addEventListener('load', self.loadedImage, false);
+        lasImages[i].src = (`Graphics/UI/las_${i}.png`);
+    }
+
+    var lasdmgImages = [];
+    for(var i = 0; i < 5; i++) {
+        lasdmgImages[i] = new Image();
+        lasdmgImages[i].addEventListener('load', self.loadedImage, false);
+        lasdmgImages[i].src = (`Graphics/UI/lasdmg_${i}.png`);
+    }
+
 	var numOfImages = (starImages.length + images.length + enemyImages.length + playerImages1.length + playerImages2.length + playerImages3.length
         + playerImages4.length + playerImages5.length + playerImages6.length + playerImages7.length + playerImages8.length
         + itemImages.length + logoImages.length + fgImages.length + portraitImages.length + transitionImages.length + cutsceneImages.length + wepImages.length
-        + dmgImages.length + missileImages.length);
+        + dmgImages.length + missileImages.length + lasImages.length + lasdmgImages.length);
 
     // Containers
     var stars = [];
@@ -268,11 +282,10 @@ function Game()
 	var randomItems = [];
     var playerTrails = [];
     
-	var NUM_OF_RANDOM_ITEMS = 4;
+	var NUM_OF_RANDOM_ITEMS = 3;
 	//0 = Health
 	//1 = Shield
-	//2 = Secondary Ammo
-	//3 = Cores
+	//2 = Cores
     
     // Scoring
     var destroys = 0;
@@ -404,7 +417,6 @@ function Game()
 		gco = new GameControlObject();
 		gco.Init();
         gco.EquipWeapon(0);
-        gco.EquipWeapon(50);
         menu = new Menu();
         menu.Init()
 		sfx.pause(1);
@@ -459,6 +471,39 @@ function Game()
     this.clamp = function(value, min, max) {
         return Math.min(Math.max(value, min), max);
     }
+
+    this.isColliding = function(bb1, bb2) {
+        // Extract the bounding box coordinates
+        const [bb1Left, bb1Top, bb1Right, bb1Bottom] = [bb1[0].x, bb1[0].y, bb1[1].x, bb1[2].y];
+        const [bb2Left, bb2Top, bb2Right, bb2Bottom] = [bb2[0].x, bb2[0].y, bb2[1].x, bb2[2].y];
+
+        // Check for collision
+        if (bb1Right < bb2Left || bb1Left > bb2Right || bb1Bottom < bb2Top || bb1Top > bb2Bottom) {
+            return false;
+        }
+        return true;
+    }
+
+    this.getCentralOverlapX = function(bb1, bb2) {
+        // Find the min and max x-coordinates for both bounding boxes
+        const bbMinX = Math.min(bb1[0].x, bb1[1].x, bb1[2].x, bb1[3].x);
+        const bbMaxX = Math.max(bb1[0].x, bb1[1].x, bb1[2].x, bb1[3].x);
+        const colMinX = Math.min(bb2[0].x, bb2[1].x, bb2[2].x, bb2[3].x);
+        const colMaxX = Math.max(bb2[0].x, bb2[1].x, bb2[2].x, bb2[3].x);
+    
+        // Determine the overlapping range
+        const overlapMinX = Math.max(bbMinX, colMinX);
+        const overlapMaxX = Math.min(bbMaxX, colMaxX);
+    
+        // If there is no overlap, return null or some indication of no overlap
+        if (overlapMinX >= overlapMaxX) {
+            return null; // No overlap
+        }
+    
+        // Calculate the central x-coordinate of the overlap
+        const centralOverlapX = (overlapMinX + overlapMaxX) / 2;
+        return centralOverlapX;
+    }
     /******************************************************/
     
     
@@ -469,7 +514,7 @@ function Game()
     {   
         this.Init = function() {
             // Levels
-            this.level = 0;
+            this.level = 3;
             this.levelDefs = {
                 0: {title: "Tutorial", upgradeTutorial: false},
                 1: {title: "Level 1 Gauntlet", upgradeTutorial: false}, 2: {title: "Level 1 Boss", upgradeTutorial: false},
@@ -491,14 +536,14 @@ function Game()
             this.enemiesKilled = []; // [enemyNum] = 126
             this.weaponsOwned = []; // [weaponNum] = true
             this.weaponPrice = []; // [weaponNum] = 486 (cores)
+            this.laserPrice = []; // [laser.level] = 486 (cores)
             this.damagePrice = []; // [damageLevel] = 486 (cores)
+            this.laserDamagePrice = []; // [damageLevel] = 486 (cores)
             this.ownLaser = false;
-            this.laserPrice = 1000;
             this.levelMission = new LevelMission();
             this.extras = [];
             this.extraPrices = [];
             this.onTick = 0;
-            this.secondaryAmmoPrice = 25;
             this.bgm = null;
             
             this.bossX = 0; // Final Boss X set when boss dies
@@ -519,24 +564,28 @@ function Game()
             this.weaponsOwned[3] = false;//Rapid Fire Cyclone
             this.weaponsOwned[4] = false;//Rapid Fire Cyclone
             this.weaponsOwned[49] = true;//Null Weapon
-            this.weaponsOwned[50] = true;//SD-15 Sidewinder
-            this.weaponsOwned[51] = false;//DM-21 Auto Strike
-            this.weaponsOwned[52] = false;//Impact Burst Mine
             
             this.weaponPrice[0] = 0;//Primary Assult
             this.weaponPrice[1] = 150;//Rapid Fire Assult
             this.weaponPrice[2] = 250;//Rapid Fire Cyclone
             this.weaponPrice[3] = 350;//Rapid Fire Cyclone
             this.weaponPrice[4] = 500;//Rapid Fire Cyclone
-            this.weaponPrice[50] = 0;//SD-15 Sidewinder
-            this.weaponPrice[51] = 250;//DM-21 Auto Strike
-            this.weaponPrice[52] = 500;//Impact Burst Mine
-
             this.damagePrice[0] = 0;
             this.damagePrice[1] = 150;
             this.damagePrice[2] = 250;
             this.damagePrice[3] = 350;
             this.damagePrice[4] = 500;
+
+            this.laserPrice[0] = 0;//Laser 1
+            this.laserPrice[1] = 150;//Laser 2
+            this.laserPrice[2] = 250;//Laser 3
+            this.laserPrice[3] = 350;//Laser 4
+            this.laserPrice[4] = 500;//Laser 5
+            this.laserDamagePrice[0] = 0;
+            this.laserDamagePrice[1] = 150;
+            this.laserDamagePrice[2] = 250;
+            this.laserDamagePrice[3] = 350;
+            this.laserDamagePrice[4] = 500;
         }
 
         this.Ended = function() {
@@ -569,35 +618,13 @@ function Game()
         }
         
         this.PurchaseWeapon = function(wepID) { //assumes player has the cash/doesn't own weapon
-            if(wepID < 9000) {
-                if(wepID > 49) {
-                    if(this.weaponsOwned[wepID - 1]) {
-                        this.weaponsOwned[wepID] = true;
-                        player.money -= this.weaponPrice[wepID];
-                        sfx.play(15);
-                        this.EquipWeapon(wepID);
-                    } else {
-                        this.mustPurchasePrevious = 1000;
-                    }
-                } else {
-                    if(wepID - 1 < 0) {
-                        this.weaponsOwned[wepID] = true;
-                        this.EquipWeapon(wepID);
-                    } else {
-                        if(this.weaponsOwned[wepID - 1]) {
-                            this.weaponsOwned[wepID] = true;
-                            player.money -= this.weaponPrice[wepID];
-                            sfx.play(15);
-                            this.EquipWeapon(wepID);
-                        } else {
-                            this.mustPurchasePrevious = 1000;
-                        }
-                    }
-                }
+            if(wepID - 1 < 0) {
+                this.weaponsOwned[wepID] = true;
+                this.EquipWeapon(wepID);
             } else {
-                if(this.weaponsOwned[52]) {
-                    this.ownLaser = true;
-                    player.money -= gco.laserPrice;
+                if(this.weaponsOwned[wepID - 1]) {
+                    this.weaponsOwned[wepID] = true;
+                    player.money -= this.weaponPrice[wepID];
                     sfx.play(15);
                     this.EquipWeapon(wepID);
                 } else {
@@ -608,11 +635,7 @@ function Game()
         
         this.EquipWeapon = function(wepID) {
             sfx.play(16);
-            if(wepID > 48) {
-                player.secondary = wepID;
-            } else {
-                player.weapon = wepID;
-            }
+            player.weapon = wepID;
         }
         
         this.PurchaseExtras = function(itemNumber) {
@@ -621,17 +644,6 @@ function Game()
                 case 0: { // Shield
                     player.money -= (player.shieldLevel + 1) * 250;
                     player.upgradeShield();
-                    break;
-                }
-                case 2: { // Secondary Ammo Level
-                    player.money -= (player.secondaryAmmoLevel + 1) * 50;
-                    player.upgradeSecondaryAmmo();
-                    break;
-                }
-                case 3: { // Extra Secondary Ammo
-                    player.money -= this.secondaryAmmoPrice;
-                    player.secondaryAmmo += 25;
-                    if(player.secondaryAmmo > player.maxSecondaryAmmo){player.secondaryAmmo = player.maxSecondaryAmmo;}
                     break;
                 }
             }
@@ -740,7 +752,7 @@ function Game()
         this.globalActionCull = function() {
             // We needed a method to stop or pause things in the game when an event started.
             // This function serves that need an culls things from around that app that conflict with events.
-            player.stopLaser();
+            player.laser.stop();
             player.turnOffBoost();
         }
 
@@ -1841,7 +1853,7 @@ function Game()
             this.states = [
                 [true, false, false, false],
                 [true, false, false],
-                [[false, false], [false, false, true], [false, false, false, false, false, false, false]],
+                [[false, false], [false, false, true], [false, false, false]],
                 [true, false, false],
                 [true],
                 [true, false],
@@ -2016,24 +2028,16 @@ function Game()
                     // Primary Weapon
                     if(this.states[2][1][0]){ if(player.weapon == 4) { sfx.play(8); } else { if(player.money >= gco.weaponPrice[player.weapon + 1]) { gco.PurchaseWeapon(player.weapon + 1); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }} }
                     // Weapon Damage
-                    if(this.states[2][1][1]){ if(player.damageLevel == 4) { sfx.play(8); } else { if(player.money >= gco.damagePrice[player.damageLevel + 1]) { player.upgradeDamage(); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }} }
+                    if(this.states[2][1][1]){ if(player.damageLevel == 4) { sfx.play(8); } else { if(player.money >= gco.damagePrice[player.damageLevel + 1]) { player.upgradeDamage(); player.buy(gco.damagePrice[player.damageLevel]); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }} }
                     // Start Level
                     if(this.states[2][1][2]){ if(player.weapon != 49){ gco.StartLevel(); sfx.play(8); }}
 
-                    // Missile
-                    if(this.states[2][2][0]){ if(gco.weaponsOwned[50]){ gco.EquipWeapon(50); sfx.play(8); } else { if(player.money >= gco.weaponPrice[50]){ gco.PurchaseWeapon(50); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); }} }
-                    // DM-21 Auto Strike
-                    if(this.states[2][2][1]){ if(gco.weaponsOwned[51]){ gco.EquipWeapon(51); sfx.play(8); } else { if(player.money >= gco.weaponPrice[51]){ gco.PurchaseWeapon(51); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); }} }
-                    // Impact Burst Mine
-                    if(this.states[2][2][2]){ if(gco.weaponsOwned[52]){ gco.EquipWeapon(52); sfx.play(8); } else { if(player.money >= gco.weaponPrice[52]){ gco.PurchaseWeapon(52); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); }} }
                     // Laser
-                    if(this.states[2][2][3]){ if(gco.ownLaser){ gco.EquipWeapon(9000); sfx.play(8); } else { if(player.money >= gco.laserPrice){ gco.PurchaseWeapon(9000); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); }} }
+                    if(this.states[2][2][0]){ if(player.laser.level == 4) { sfx.play(8); } else { if(player.money >= gco.laserPrice[player.laser.level + 1]) { player.laser.upgradeLevel(); player.buy(gco.laserPrice[player.laser.level]); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }} }
+                    // Laser Damage
+                    if(this.states[2][2][1]){ if(player.laser.damageLevel == 4) { sfx.play(8); } else { if(player.money >= gco.laserDamagePrice[player.laser.damageLevel + 1]) { player.laser.upgradeDamage(); player.buy(gco.laserDamagePrice[player.laser.damageLevel]); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }} }
                     // Shield
-                    if(this.states[2][2][4]){ if(player.money >= (player.shieldLevel + 1) * 250){gco.PurchaseExtras(0); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); } }
-                    // Ammo Capacity
-                    if(this.states[2][2][5]){ if(player.money >= (player.secondaryAmmoLevel + 1) * 50){gco.PurchaseExtras(2); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); } }
-                    // Purchase Ammo
-                    if(this.states[2][2][6]){ if(player.money >= gco.secondaryAmmoPrice && player.secondaryAmmo < player.maxSecondaryAmmo){gco.PurchaseExtras(3); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); } }
+                    if(this.states[2][2][2]){ if(player.money >= (player.shieldLevel + 1) * 250){gco.PurchaseExtras(0); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10); } }
 
                     break;
                 }
@@ -2163,12 +2167,25 @@ function Game()
 		gco.init_audio();
 	}
 	
-	function SFXObject()
-	{
-		// Audio Channels
-		this.explosion = {index: 0, channel: [], channels: 40} // Explosion Channels
-		this.laser = 0; this.laserPlaying = false; // Player Laser Channel
-		this.bossLaser = 0; this.bossLaserPlaying = false; // Boss Laser Channel
+    function SFXObject()
+    {
+        // Web Audio API Integration
+        if (!this.audioContext) {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        // Other Variables
+        this.masterVolume = 0.2;
+
+        // Create and configure the master gain node for volume control
+        this.masterGain = this.audioContext.createGain();
+        this.masterGain.gain.value = this.masterVolume;
+        this.masterGain.connect(this.audioContext.destination);
+
+        // Audio Channels
+        this.explosion = {index: 0, channel: [], channels: 40} // Explosion Channels
+        this.laser = 0; this.laserPlaying = false; this.laserSource = null; // Player Laser Channel
+        this.bossLaser = 0; this.bossLaserPlaying = false; // Boss Laser Channel
         this.whooshOne = {index: 0, channel: [], channels: 3}; // Whoosh One Channels
         this.dialogueLow = {index: 0, channel: [], channels: 10} // Low Dialogue Channels
         this.dialogueMid = {index: 0, channel: [], channels: 10} // Mid Dialogue Channels
@@ -2190,10 +2207,7 @@ function Game()
         this.startBoost = {index: 0, channel: [], channels: 5} // Pickup Coin Channels
         this.repeatBoost = {index: 0, channel: [], channels: 30} // Pickup Coin Channels
         this.stopBoost = {index: 0, channel: [], channels: 5} // Pickup Coin Channels
-        this.transition = {index: 0, channel: [], channels: 2} // Transition Channels
-
-        // Other Variables
-        this.masterVolume = 0.2;
+        this.transition = {index: 0, channel: [], channels: 2} // Transition Channelss
         
         this.Init = function() {
             // Explosions
@@ -2205,10 +2219,14 @@ function Game()
             }
 
             // Player Lasers
-            this.laser = new Audio('Audio/lasorz.mp3');
-            this.laser.volume = this.masterVolume;
-            this.laser.preload = 'auto';
-            this.laser.loop = true;
+            fetch('Audio/sfx/laser.mp3')
+            .then(response => response.arrayBuffer())
+            .then(arrayBuffer => this.audioContext.decodeAudioData(arrayBuffer))
+            .then(audioBuffer => {
+                this.laser = audioBuffer;
+            })
+            .catch(e => console.error('Error with decoding audio data: ' + e.err));
+
             
             // Boss Lasers
             this.bossLaser = new Audio('Audio/lasorz.mp3');
@@ -2390,7 +2408,7 @@ function Game()
                 this.transition.channel.push(a);
             }
         }
-		
+        
         this.play = function(playfx) {
             switch(playfx) {
                 case 0: { // Explode
@@ -2401,7 +2419,11 @@ function Game()
                     break;
                 }
                 case 1: { // Laser
-                    this.laser.play();
+                    this.laserSource = this.audioContext.createBufferSource();
+                    this.laserSource.buffer = this.laser;
+                    this.laserSource.loop = true;
+                    this.laserSource.connect(this.masterGain);
+                    this.laserSource.start(0);
                     this.laserPlaying = true;
                     break;
                 }
@@ -2563,11 +2585,15 @@ function Game()
                 }
             }
         }
-		
+        
         this.pause = function(stopfx) { // Only some SFX can be paused once started
             switch(stopfx) {
                 case 1: { // Laser
-                    this.laser.pause();
+                    if (this.laserSource) {
+                        this.laserSource.stop();
+                        this.laserSource.disconnect();
+                        this.laserSource = null;
+                    }
                     this.laserPlaying = false;
                     break;
                 }
@@ -2581,7 +2607,7 @@ function Game()
         
         this.volume = function(value) {
             for(var i = 0; i < this.explosion.channel.length; i++) { this.explosion.channel[i].volume = value; }
-            this.laser.volume = value;
+            // this.laser.volume = value;
             this.bossLaser.volume = value;
             for(var i = 0; i < this.whooshOne.channel.length; i++) { this.whooshOne.channel[i].volume = value; }
             for(var i = 0; i < this.dialogueLow.channel.length; i++) { this.dialogueLow.channel[i].volume = value; }
@@ -2606,6 +2632,7 @@ function Game()
             for(var i = 0; i < this.stopBoost.channel.length; i++) { this.stopBoost.channel[i].volume = value; }
             for(var i = 0; i < this.transition.channel.length; i++) { this.transition.channel[i].volume = value; }
             this.masterVolume = value;
+            this.masterGain.gain.value = this.masterVolume; // All tracks using the audio API will follow this.
         }
     }
 	
@@ -2879,7 +2906,7 @@ function Game()
                 colors[primaryColorIndex] = 225 + Math.floor(Math.random() * 30); // Set the primary color component to a high value from 225 to 255
                 this.color = { r: colors[0], g: colors[1], b: colors[2] };
             } else {
-                // Secondary color star: one component is reduced near zero
+                // Star Color: one component is reduced near zero
                 let colors = [225, 225, 225].map(val => val + Math.floor(Math.random() * 30)); // Start with high values from 225 to 255
                 const reduceIndex = Math.floor(Math.random() * 3); // Select one color to reduce
                 colors[reduceIndex] = Math.max(0, colors[reduceIndex] - 200); // Reduce one component significantly to near zero
@@ -3828,6 +3855,22 @@ function Game()
 				}
 			}
         }
+
+        this.getBoundingBox = function() {
+            // TL, TR, BR, BL
+            let halfWidth = this.width / 2;
+            let halfHeight = this.height / 2;
+            let top = this.y - halfHeight;
+            let bottom = this.y + halfHeight;
+            let left = this.x - halfWidth;
+            let right = this.x + halfWidth;
+            return [
+                {x: left, y: top},
+                {x: right, y: top},
+                {x: right, y: bottom},
+                {x: left, y: bottom},
+            ]
+        }
 		
 		this.spawnKamakaze = function(X, Y)
 		{
@@ -3916,27 +3959,24 @@ function Game()
 	function RandomItemGeneration()
 	{// randomItems[]
 		this.onTick = 0;
-		this.generate = function()
-		{
-			if(ticks != this.onTick)
-			{
+		this.generate = function() {
+			if(ticks != this.onTick) {
 				this.onTick = ticks;
-				//Random enemy spawning with random levels
+				// Random enemy spawning with random levels
 				var rand = Math.floor(Math.random() * (200));
 				if(rand == 10)
 				{
-					//1% chance per tick to get an enemy.
+					// 1% chance per tick to get an enemy.
 					var startingX = Math.floor(Math.random() * _buffer.width);
-					var itemNumber = (Math.floor(Math.random() * NUM_OF_RANDOM_ITEMS));
-					newItem = new Item(itemNumber, startingX, 0);
-					randomItems.push(newItem);
+					var itemNumber = Math.floor(Math.random() * NUM_OF_RANDOM_ITEMS);
+					randomItems.push(new Item(itemNumber, startingX, 0));
 				}
 			}
 		}
 	}
 	
 	function Item(itemNumber, inX, inY)
-	{
+    {
 		this.itemNum = itemNumber;
 		this.x = inX;
         this.y = inY;
@@ -3945,24 +3985,21 @@ function Game()
         this.height = 15;
 		this.used = false;
 		
-		this.Update = function()
-		{
+		this.Update = function() {
             this.y += this.speed * delta;
 			if(this.used || this.y > _canvas.height)
 			{
                 if(this.used) {
-                    if(this.itemNum == 3) { sfx.play(17); } // Corez!!!
-                    if(this.itemNum == 1) { sfx.play(18); } // Shield
                     if(this.itemNum == 0) { sfx.play(19); } // Health
-                    if(this.itemNum == 2) { sfx.play(20); } // Ammo
+                    if(this.itemNum == 1) { sfx.play(18); } // Shield
+                    if(this.itemNum == 2) { sfx.play(17); } // Ammo
                 }
 				return 1;
 			}
 			return 0;
 		}
 		
-		this.doItemEffect = function()
-		{
+		this.doItemEffect = function() {
 			if(!this.used)
 			{
 				itemsUsed += 1;
@@ -3985,13 +4022,6 @@ function Game()
 						break;
 					}
 					case 2:
-					{//secondary ammo
-						this.used = true;
-						player.secondaryAmmo += 25;
-						if(player.secondaryAmmo > player.maxSecondaryAmmo){player.secondaryAmmo = player.maxSecondaryAmmo;}
-						break;
-					}
-					case 3:
 					{// Corez!!!
 						this.used = true;
 						var newAmount = 25 * self.clamp(gco.level + 1, 1, 8);
@@ -4055,22 +4085,6 @@ function Game()
                 this.sinOffset = this.custom.direction;
                 break;
             }
-            case 51: {
-                var distance = 1000;
-                var tempTarget = 1000;
-                for(var i = 0; i < enemies.length; i++) {
-                    if(enemies[i].x > this.x - 50 && enemies[i].x < this.x + 50) { // Enemy is within missile's sight
-                        if(this.y - enemies[i].y > 0 && this.y - enemies[i].y < distance) { // Enemy is in front of missile and is the closest to missile
-                            distance = this.y - enemies[i].y;
-                            tempTarget = enemies[i].enemyNum;
-                        }
-                    }
-                }
-                if(tempTarget != 1000) {
-                    this.missileTarget = tempTarget;
-                }
-                break;
-            }
             case 104: {
                 this.timer = Math.floor(Math.random() * (4)) + 2;
                 break;
@@ -4099,29 +4113,6 @@ function Game()
                     console.log("Missile 3!!!")
                     this.x = this.startX + (30 * Math.sin(30 * 3.14 * 100 * (this.timeAlive / 1000))) * this.sinOffset;
                     this.y -= this.speed * delta;
-                    break;
-                }
-                case 50: { // SD-15 Sidewinder
-                    this.y -= this.speed * delta;
-                    break;
-                }
-                case 51: { // DM-21 Auto Strike
-                    this.y -= this.speed * delta;
-                    if(this.missileTarget != 1000) {
-                        if(self.isEnemyAlive(this.missileTarget)) {
-                            var targetEnemy = self.getEnemy(this.missileTarget);
-                            if(targetEnemy.x < this.x) {
-                                this.x -= (this.speed / 2) * delta;
-                            } else if(targetEnemy.x > this.x) {
-                                this.x += (this.speed / 2) * delta;
-                            } else {
-                                this.x = targetEnemy.x;
-                            }
-                        }
-                    }
-                    break;
-                }
-                case 52: { // Impact Burst Mine
                     break;
                 }
                 case 100: { // Level 2 enemy bullet
@@ -4245,14 +4236,9 @@ function Game()
         this.shield = 100;
         this.maxShield = this.shield * this.shieldLevel;
         this.hasShield = false;
-        this.captain = 2;
         this.invicibility = false;
 
         this.weapon = 0; // 0 - 48
-        this.secondary = 50; // Starts at 50, 49 = no secondary.
-        this.secondaryAmmo = 50;
-        this.secondaryAmmoLevel = 1;
-        this.maxSecondaryAmmo = 50 * this.secondaryAmmoLevel;
         this.damageLevel = 0;
 
         this.weaponFunc = true; // Used for weapon effects
@@ -4262,15 +4248,13 @@ function Game()
 
         this.isPewing = false;
         this.pewTick = 0;
-        this.laser = false;//true if laser is on
-        this.laserX = this.x;
-        this.laserY = this.y - 25;
-        this.laserWidth = 20;
-        this.laserHeight = this.y - 25;
         this.idleAnim = 0; // 0-3
         this.turnAnimL = 4; // 4-11
         this.turnAnimR = 12; // 12-19
         this.activeAnim = 0;
+
+        // Laser
+        this.laser = new PlayerLaser();
 
         // ONLY called in hardReset, let's keep it that way!
         this.ResetAll = function() {
@@ -4279,9 +4263,6 @@ function Game()
             this.resetBoost();
             this.shieldLevel = 0;
             this.recharge = true;
-            this.secondaryAmmoLevel = 0;
-            this.maxSecondaryAmmo = 50;
-            this.secondaryAmmo = 50;
             this.money = 0;
             this.damageLevel = 0;
             this.resetPosition();
@@ -4312,8 +4293,7 @@ function Game()
             return this.damageLevel + 1;
         }
     
-        this.DamagePlayer = function(dmg)
-        {
+        this.DamagePlayer = function(dmg) {
             if(this.hasShield && this.shield > 0) {
                 this.shield -= dmg * 3;
             } else {
@@ -4327,7 +4307,7 @@ function Game()
                 sfx.play(0);
                 explosion = new Explosion(player.x, player.y, 350, 5, 200, 0.1, 3, 0.1);
                 explosions.push(explosion);
-                this.laser = false;
+                this.laser.stop();
             }
         }
 
@@ -4362,16 +4342,9 @@ function Game()
                 this.movingLeft = false;
                 this.movingRight = false;
             }
-        }
+        }       
 
-        this.stopLaser = function() {
-            if(!this.laser) { return; }
-            this.laser = false;
-            if(sfx.laserPlaying){ sfx.pause(1); }
-        }
-
-        this.Update = function()
-        {
+        this.Update = function() {
             if(ed.eventPlaying()) { return; }
             this.x1 = this.x;
             this.y1 = this.y - (this.height / 2);
@@ -4379,27 +4352,13 @@ function Game()
             this.y2 = this.y + (this.height / 2);
             this.x3 = this.x + (this.width / 2);
             this.y3 = this.y + (this.height / 2);
-
-            //Laser Updating
-            if(this.secondary >= 9000) {
-                if(Keys[19] != 0 && this.secondaryAmmo > 0) {
-                    if(!sfx.laserPlaying){ sfx.play(1); }
-                    this.laser = true;
-                    this.laserX = this.x;
-                    this.laserY = 0;
-                    this.laserHeight = this.y - 25;
-                } else { 
-                    this.stopLaser();
-                }
-            } else {
-                this.stopLaser();
-            }
             
             if(this.hasShield && this.shield <= 0) {
                 this.shield = 0;
             }
 
             this.handleBoost();
+            this.laser.Update();
         }
 
         this.handleBoost = function() {
@@ -4537,19 +4496,13 @@ function Game()
                 }  
             }
             buffer.filter = 'none';
+
+            this.laser.Draw();
         }
 
-        this.runOnTick = function()
-        {
+        this.runOnTick = function() {
             if(this.boosting) {
                 playerTrails.push(new PlayerTrail(this.ship, this.x, this.y, this.width, this.height, this.activeAnim))
-            }
-
-            if(Keys[19] != 0 && this.secondaryAmmo > 0) {
-                if(this.onTick == 0) {
-                    this.secondaryAmmo -= 2;
-                    if(this.secondaryAmmo < 0) { this.secondaryAmmo = 0; }
-                }
             }
 
             if(this.onTick % 2 == 0) {
@@ -4581,32 +4534,15 @@ function Game()
             if(Keys[3] == 0) this.turnAnimR = 12;
         }
 		
-		this.upgradeShield = function()
-		{
+		this.upgradeShield = function() {
 			this.hasShield = true;
 			this.shieldLevel += 1;
 			this.maxShield = 100 * this.shieldLevel
 			this.resetShield();
 		}
 		
-		this.resetShield = function()
-		{
+		this.resetShield = function() {
 			this.shield = this.maxShield;
-		}
-		
-		this.upgradeSecondaryAmmo = function()
-		{
-			this.secondaryAmmoLevel += 1;
-			this.maxSecondaryAmmo = 50 * this.secondaryAmmoLevel;
-			this.resetSecondaryAmmo();
-		}
-		
-		this.resetSecondaryAmmo = function()
-		{
-			if(this.secondaryAmmo < this.maxSecondaryAmmo)
-			{
-				this.secondaryAmmo = this.maxSecondaryAmmo;
-			}
 		}
 
         this.shoot = function() {
@@ -4676,39 +4612,322 @@ function Game()
             }
         }
 
-		this.shootSecondary = function()
-		{
-			if(this.secondaryAmmo > 0 && this.secondary < 9000)
-			{
-				switch(this.secondary)
-				{
-					case 50:
-					{
-                        this.secondaryAmmo -= 1;
-						this.totalMissiles += 1;
-						missile = new Missile(missiles.length, 200, this.secondary, this.x, this.y - 25, 20);
-						missiles.push(missile);
-						break;
-					}
-					case 51:
-					{
-                        this.secondaryAmmo -= 1;
-						this.totalMissiles += 1;
-						missile = new Missile(missiles.length, 200, this.secondary, this.x, this.y - 25, 15);
-						missiles.push(missile);
-						break;
-					}
-                    case 52:
-					{
-                        this.secondaryAmmo -= 1;
-						this.totalMissiles += 1;
-						missile = new Missile(missiles.length, 200, this.secondary, this.x, this.y - 25, 25);
-						missiles.push(missile);
-						break;
-					}
-				}
-			}
-		}
+        this.upgradeDamage = function() {
+            this.damageLevel += 1;
+            if(this.damageLevel > 4) { this.damageLevel = 4; }
+        }
+
+        this.buy = function(price) {
+            this.money -= price;
+            sfx.play(15);
+            sfx.play(16);
+        }
+    }
+
+    function PlayerLaser()
+    {
+        this.onTick = 0;
+        this.level = 0;
+        this.baseDamage = 3;
+        this.damageLevel = 0;
+        this.charge = 100;
+        this.active = false;
+        this.x = 0;
+        this.y = 0;
+        this.width = 10;
+        this.height = 150;
+        let heightOffset = 20;
+        let collision = null;
+        let collisions = [];
+        let doDmg = false;
+        this.plasmaFlameSize = 20; // Initial size of the plasma flame
+        this.plasmaFlameSizeChange = 20; // Adjusted for delta time
+
+        this.Update = function() {
+            if(Keys[19] != 0) {
+                this.active = true;
+                doDmg = false;
+                if(!sfx.laserPlaying){ sfx.play(1); }
+                this.x = player.x;
+                this.y = player.y;
+                if(this.onTick != ticks) {
+                    this.onTick = ticks;
+                    if(this.onTick % 2 == 0) {
+                        collision = null;
+                        doDmg = true;
+                    }
+                }
+                this.checkCollisions();
+                if(collision == null) {
+                    this.height = this.y - (heightOffset + 2); // Laser goes to top of screen
+                } else {
+                    this.height = (player.y - (collision[2].y - 20)) - (heightOffset + 2); // Laser goes to closest hit target + 10 pixels up
+                }
+                
+            } else {
+                this.stop();
+            }
+        }
+
+        this.Draw = function() {
+            if (!this.active) { return; }
+        
+            // Get the base laser color and the lighter color
+            let baseColor = this.getBaseLaserColor();
+            let lighterColor = this.getBaseLightLaserColor();
+        
+            // Calculate the dynamic shadow blur
+            let shadowBlurValue = 10 + Math.sin(Date.now() * 0.02) * 2;
+        
+            // Set the shadow color based on the base color
+            buffer.shadowBlur = shadowBlurValue;
+            buffer.shadowColor = `rgb(${baseColor.r}, ${baseColor.g}, ${baseColor.b})`;
+        
+            let bb = this.getBoundingBox();
+            let bWidth = this.beamWidth();
+            let radius = Math.min(this.height / 2, bWidth / 2); // Adjust the radius as needed
+        
+            // Draw outer part of the laser with rounded top and bottom
+            buffer.beginPath();
+            buffer.fillStyle = `rgb(${baseColor.r}, ${baseColor.g}, ${baseColor.b})`;
+            buffer.moveTo(bb[0].x + radius, bb[0].y);
+            buffer.lineTo(bb[0].x + bWidth - radius, bb[0].y);
+            buffer.arcTo(bb[0].x + bWidth, bb[0].y, bb[0].x + bWidth, bb[0].y + radius, radius);
+            buffer.lineTo(bb[0].x + bWidth, bb[0].y + this.height - radius);
+            buffer.arcTo(bb[0].x + bWidth, bb[0].y + this.height, bb[0].x + bWidth - radius, bb[0].y + this.height, radius);
+            buffer.lineTo(bb[0].x + radius, bb[0].y + this.height);
+            buffer.arcTo(bb[0].x, bb[0].y + this.height, bb[0].x, bb[0].y + this.height - radius, radius);
+            buffer.lineTo(bb[0].x, bb[0].y + radius);
+            buffer.arcTo(bb[0].x, bb[0].y, bb[0].x + radius, bb[0].y, radius);
+            buffer.closePath();
+            buffer.fill();
+        
+            // Draw inner part of the laser with rounded top and bottom
+            buffer.beginPath();
+            buffer.fillStyle = `rgb(${lighterColor.r}, ${lighterColor.g}, ${lighterColor.b})`;
+            let innerX = bb[0].x + bWidth / 4;
+            let innerWidth = bWidth / 2;
+            buffer.moveTo(innerX + radius, bb[0].y);
+            buffer.lineTo(innerX + innerWidth - radius, bb[0].y);
+            buffer.arcTo(innerX + innerWidth, bb[0].y, innerX + innerWidth, bb[0].y + radius, radius);
+            buffer.lineTo(innerX + innerWidth, bb[0].y + this.height - radius);
+            buffer.arcTo(innerX + innerWidth, bb[0].y + this.height, innerX + innerWidth - radius, bb[0].y + this.height, radius);
+            buffer.lineTo(innerX + radius, bb[0].y + this.height);
+            buffer.arcTo(innerX, bb[0].y + this.height, innerX, bb[0].y + this.height - radius, radius);
+            buffer.lineTo(innerX, bb[0].y + radius);
+            buffer.arcTo(innerX, bb[0].y, innerX + radius, bb[0].y, radius);
+            buffer.closePath();
+            buffer.fill();
+        
+            buffer.shadowBlur = 0;
+        
+            // Draw plasma
+            if (collision) {
+                this.drawPlasmaFlame(bb);
+            }
+
+            // Minor plasma flames for higher level lasers
+            if(collisions.length > 0) {
+                for(let i = 0; i < collisions.length; i++) {
+                    this.drawMinorPlasmaFlame(bb, collisions[i]);
+                }
+            }
+        };
+
+        this.drawPlasmaFlame = function(bb) {
+            if (!collision) return;
+        
+            // Determine if we are in the small pulsate mode or large pulsate mode
+            if (!this.largePulsateMode) {
+                // Small pulsate mode
+                this.plasmaFlameSize += (Math.random() - 0.5) * 3 * delta;
+                if (this.plasmaFlameSize > 10 || this.plasmaFlameSize < 2) {
+                    this.plasmaFlameSizeChange *= -1; // Reverse the size change direction
+                }
+        
+                // Occasionally switch to large pulsate mode
+                if (Math.random() < 0.01) { // Reduce chance to switch to large mode
+                    this.largePulsateMode = true;
+                    this.largePulsateDuration = Math.random() * 1000 + 500; // Duration for large pulsate mode
+                    this.largePulsateStartTime = performance.now();
+                }
+            } else {
+                // Large pulsate mode
+                this.plasmaFlameSize += (Math.random() - 0.5) * 20 * delta;
+                if (this.plasmaFlameSize > 60 || this.plasmaFlameSize < 10) {
+                    this.plasmaFlameSizeChange *= -1; // Reverse the size change direction
+                }
+        
+                // Check if we should switch back to small pulsate mode
+                if (performance.now() - this.largePulsateStartTime > this.largePulsateDuration) {
+                    this.largePulsateMode = false;
+                }
+            }
+        
+            // Calculate the exact center of the colliding ship
+            let x = bb[0].x + ((bb[1].x - bb[0].x) / 2);
+            let y = collision[0].y + ((collision[2].y - collision[0].y) / 2);
+        
+            // Draw the central bright spot with random pulsating effect
+            let centralFlameSize = this.plasmaFlameSize + (Math.random() - 0.5) * 6;
+        
+            buffer.shadowBlur = 40;
+            buffer.shadowColor = 'rgb(255, 255, 255)';
+            buffer.beginPath();
+            buffer.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            buffer.arc(x, y, centralFlameSize, 0, 2 * Math.PI);
+            buffer.fill();
+            buffer.closePath();
+        
+            // Draw twinkling arms of light (bokeh/lens flare effect)
+            for (let i = 0; i < 8; i++) {
+                let angle = Math.random() * 2 * Math.PI;
+                let length = Math.random() * 60 + 20;
+                let opacity = Math.random() * 0.5 + 0.5;
+        
+                let armX = x + Math.cos(angle) * length;
+                let armY = y + Math.sin(angle) * length;
+        
+                buffer.beginPath();
+                buffer.moveTo(x, y);
+                buffer.lineTo(armX, armY);
+                buffer.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+                buffer.lineWidth = 1;
+                buffer.stroke();
+                buffer.closePath();
+            }
+        
+            buffer.shadowBlur = 0;
+        };
+
+        this.drawMinorPlasmaFlame = function(bb, col) {
+            // Calculate the exact center of the colliding ship
+            let x = self.getCentralOverlapX(bb, col);
+            let y = col[0].y + ((col[2].y - col[0].y) / 2);
+        
+            // Draw the central bright spot with random pulsating effect
+            let centralFlameSize = Math.random() * (15 - 5) + 5;
+            buffer.shadowBlur = 20;
+            buffer.shadowColor = 'rgb(255, 255, 255)';
+            buffer.beginPath();
+            buffer.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            buffer.arc(x, y, centralFlameSize, 0, 2 * Math.PI);
+            buffer.fill();
+            buffer.closePath();
+        
+            // Draw twinkling arms of light (bokeh/lens flare effect)
+            for (let i = 0; i < 3; i++) {
+                let angle = Math.random() * 2 * Math.PI;
+                let length = Math.random() * 20 + 20;
+                let opacity = Math.random() * 0.5 + 0.5;
+        
+                let armX = x + Math.cos(angle) * length;
+                let armY = y + Math.sin(angle) * length;
+        
+                buffer.beginPath();
+                buffer.moveTo(x, y);
+                buffer.lineTo(armX, armY);
+                buffer.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+                buffer.lineWidth = 1;
+                buffer.stroke();
+                buffer.closePath();
+            }
+        
+            buffer.shadowBlur = 0;
+        };
+
+        this.getBaseLaserColor = function() {
+            switch (this.damageLevel) {
+                case 0:
+                    return {r: 0, g: 128, b: 255}; // Blue
+                case 1:
+                    return {r: 0, g: 255, b: 0};   // Green
+                case 2:
+                    return {r: 255, g: 255, b: 0}; // Yellow
+                case 3:
+                    return {r: 255, g: 165, b: 0}; // Orange
+                case 4:
+                    return {r: 255, g: 0, b: 0};   // Red
+                default:
+                    return {r: 0, g: 128, b: 255}; // Default to Blue
+            }
+        } 
+
+        this.getBaseLightLaserColor = function() {
+            switch (this.damageLevel) {
+                case 0:
+                    return {r: 0, g: 200, b: 255}; // Blue
+                case 1:
+                    return {r: 165, g: 255, b: 165};   // Green
+                case 2:
+                    return {r: 255, g: 255, b: 200}; // Yellow
+                case 3:
+                    return {r: 255, g: 225, b: 0}; // Orange
+                case 4:
+                    return {r: 255, g: 125, b: 125};   // Red
+                default:
+                    return {r: 0, g: 200, b: 255}; // Default to Blue
+            }
+        }
+
+        this.getBoundingBox = function() {
+            // TL, TR, BR, BL
+            let bWidth = this.beamWidth();
+            let halfWidth = bWidth / 2;
+            let top = this.y - (heightOffset + this.height);
+            let bottom = this.y - heightOffset;
+            let left = this.x - halfWidth;
+            let right = this.x + halfWidth;
+            return [
+                {x: left, y: top},
+                {x: right, y: top},
+                {x: right, y: bottom},
+                {x: left, y: bottom},
+            ]
+        }
+
+        this.dmgVal = function() {
+            return this.baseDamage * (this.damageLevel + 1);
+        }
+
+        this.beamWidth = function() {
+            this.width
+            return this.width + [0, 6, 12, 18, 24][this.level]
+        }
+
+        this.checkCollisions = function() {
+            if(!this.active) { return; }
+            let bb = this.getBoundingBox();
+            let ebb = null;
+            collisions = []; // Only used for higher level lasers.
+            for(var a = 0; a < enemies.length; a++) {
+                ebb = enemies[a].getBoundingBox();
+                if(self.isColliding(bb, ebb)) {
+                    if(this.level < 3) { // Collect collision data to stop laser from going to top of screen.
+                        if(collision == null || ebb[2].y > collision[2].y) {
+                            collision = ebb;
+                        }
+                    } else {
+                        collisions.push(ebb);
+                    }
+                    if(doDmg) {
+                        enemies[a].life -= this.dmgVal();
+                        explosions.push(new Explosion(enemies[a].x, enemies[a].y, 10, 4, 100, 0.1, 0.1, 3.0));
+                    }
+                }
+            }
+        }
+
+        this.stop = function() {
+            if(!this.active) { return; }
+            this.active = false;
+            if(sfx.laserPlaying){ sfx.pause(1); }
+        }
+
+        this.upgradeLevel = function() {
+            this.level += 1;
+            if(this.level > 4) { this.level = 4; }
+        }
 
         this.upgradeDamage = function() {
             this.damageLevel += 1;
@@ -5148,18 +5367,7 @@ function Game()
                     for(var a = 0; a < enemies.length; a++) { // Various Update Ticks and Collision with enemies
                         if(player.isAlive()) {
                             if(ticks % 2 == 0) { // Laser Collision Detection
-                                if(enemies[a].laser) { // Boss Laser
-                                    if(self.BossLaserCollision(player, enemies[a])) {
-                                        player.DamagePlayer(2);
-                                    }
-                                }
-                                if(player.laser) { // Player Laser
-                                    if(self.LaserCollision(enemies[a])) {
-                                        enemies[a].life -= 5;
-                                        explosion = new Explosion(enemies[a].x, enemies[a].y, 2, 4, 50, 0.1, 0.1, 3.0);
-                                        explosions.push(explosion);
-                                    }
-                                }
+                               a
                             }
                             
                             if(self.Collision(player, enemies[a])) { // Player Collision with enemies or boss
@@ -5248,19 +5456,6 @@ function Game()
         }
         return false;
     }
-	
-	this.LaserCollision = function(Target)
-	{
-		if((player.laserY <= (Target.y + Target.height / 2) && player.laserHeight >= (Target.y - Target.height / 2)))
-        {
-            if(((player.laserX - 10) <= (Target.x + Target.width / 2) && (player.laserX + 10) >= (Target.x - Target.width / 2)))
-            {
-                return true;
-            }
-            return false;
-        }
-        return false;
-	}
 	
 	this.BossLaserCollision = function(Target, Boss)
 	{
@@ -5355,28 +5550,16 @@ function Game()
                     if(player.weapon == 4) { sfx.play(8); } else { if(player.money >= gco.weaponPrice[player.weapon + 1]) { gco.PurchaseWeapon(player.weapon + 1); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }}
                 }
                 if(mouseX > 60 && mouseX < 108 && mouseY > 280 && mouseY < 328) { // Weapon Damage
-                    if(player.damageLevel == 4) { sfx.play(8); } else { if(player.money >= gco.damagePrice[player.damageLevel + 1]) { player.upgradeDamage(); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }}
+                    if(player.damageLevel == 4) { sfx.play(8); } else { if(player.money >= gco.damagePrice[player.damageLevel + 1]) { player.upgradeDamage(); player.buy(gco.damagePrice[player.damageLevel]); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }}
                 }
-                if(mouseX > 10 && mouseX < 58 && mouseY > 448 && mouseY < 496) { // SD-15 Sidewinder, Weapon ID: 50
-                    if(gco.weaponsOwned[50]){ gco.EquipWeapon(50); sfx.play(8); } else { if(player.money >= gco.weaponPrice[50]){ gco.PurchaseWeapon(50); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}}
+                if(mouseX > 10 && mouseX < 58 && mouseY > 448 && mouseY < 496) { // Laser
+                    if(player.laser.level == 4) { sfx.play(8); } else { if(player.money >= gco.laserPrice[player.laser.level + 1]) { player.laser.upgradeLevel(); player.buy(gco.laserPrice[player.laser.level]); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }}
                 }
-                if(mouseX > 60 && mouseX < 108 && mouseY > 448 && mouseY < 496) { // DM-21 Auto Strike, Weapon ID: 51
-                    if(gco.weaponsOwned[51]){ gco.EquipWeapon(51); sfx.play(8); } else { if(player.money >= gco.weaponPrice[51]){ gco.PurchaseWeapon(51); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}}
-                }
-                if(mouseX > 110 && mouseX < 158 && mouseY > 448 && mouseY < 496) { // Impact Burst Mine, Weapon ID: 52
-                    if(gco.weaponsOwned[52]){ gco.EquipWeapon(52); sfx.play(8); } else { if(player.money >= gco.weaponPrice[52]){ gco.PurchaseWeapon(52); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}}
-                }
-                if(mouseX > 160 && mouseX < 208 && mouseY > 448 && mouseY < 496) { // Laser: Weapon ID: 9000
-                    if(gco.ownLaser){ gco.EquipWeapon(9000); sfx.play(8); } else { if(player.money >= gco.laserPrice){ gco.PurchaseWeapon(9000); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}}
+                if(mouseX > 60 && mouseX < 108 && mouseY > 448 && mouseY < 496) { // Laser Damage
+                    if(player.laser.damageLevel == 4) { sfx.play(8); } else { if(player.money >= gco.laserDamagePrice[player.laser.damageLevel + 1]) { player.laser.upgradeDamage(); player.buy(gco.laserDamagePrice[player.laser.damageLevel]); sfx.play(8); } else { gco.notEnoughCores = 1000; sfx.play(10); }}
                 }
                 if(mouseX > _canvas.width - 300 && mouseX < _canvas.width - 252 && mouseY > 448 && mouseY < 496) { // Shield
                     if(player.money >= (player.shieldLevel + 1) * 250){gco.PurchaseExtras(0); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}
-                }
-                if(mouseX > _canvas.width - 250 && mouseX < _canvas.width - 202 && mouseY > 448 && mouseY < 496) { // Max Ammo
-                    if(player.money >= (player.secondaryAmmoLevel + 1) * 50){gco.PurchaseExtras(2); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}
-                }
-                if(mouseX > _canvas.width - 200 && mouseX < _canvas.width - 152 && mouseY > 448 && mouseY < 496) { // Buy Secondary Ammo
-                    if(player.money >= gco.secondaryAmmoPrice && player.secondaryAmmo < player.maxSecondaryAmmo){gco.PurchaseExtras(3); sfx.play(8); } else {gco.notEnoughCores = 1000; sfx.play(10);}
                 }
                 //**********************************************************************//
                 //                     END UPGRADE MENU SECTION                         //
@@ -5748,11 +5931,6 @@ function Game()
                         player.isPewing = false;
                     }
                 }
-				
-                if(Keys[19] == 1) // B
-                {
-                    player.shootSecondary();
-                }
             }
             else
             {
@@ -5825,7 +6003,10 @@ function Game()
 
             //Player Trails
             self.drawPlayerTrails();
-            
+
+            //Enemies
+            self.drawEnemies();
+
             // Player
             if(player.isAlive()) {
                 player.drawPlayer();
@@ -5833,15 +6014,9 @@ function Game()
                     self.drawShield();
                 }
             }
-
-            //Enemies
-            self.drawEnemies();
             
             // Missile
             self.drawMissiles();
-
-            //Laser
-            if(player.laser){ self.drawLaser(); }
             
             // Explosion
             self.drawExplosions();
@@ -5960,13 +6135,6 @@ function Game()
         var g_shield = rand1_shield;
         var b_shield = rand2_shield;
         
-        var rand_ammo = Math.floor(Math.random() * 100) + 128;
-        var rand1_ammo = Math.floor(Math.random() * 100) + 128;
-        var rand2_ammo = Math.floor(Math.random() * 100) + 128;
-        var r_ammo = rand_ammo;
-        var g_ammo = rand1_ammo;
-        var b_ammo = rand2_ammo;
-        
 		for(var i = 0; i < randomItems.length; i++)
 		{
 			switch(randomItems[i].itemNum)
@@ -6008,42 +6176,6 @@ function Game()
 					break;
 				}
 				case 2:
-				{//Secondary Ammo
-                    buffer.beginPath();
-				    buffer.fillStyle = "rgb(" + r_ammo + ", " + g_ammo + ", " + b_ammo + ")";
-                    buffer.strokeStyle = "rgb(128, 128, 128)";
-                        buffer.moveTo(randomItems[i].x - 10, randomItems[i].y - 10);
-                        buffer.lineTo(randomItems[i].x - 8.75, randomItems[i].y - 10);
-                        buffer.lineTo(randomItems[i].x - 7.5, randomItems[i].y - 5);
-                        buffer.lineTo(randomItems[i].x - 7.5, randomItems[i].y + 10);
-                        buffer.lineTo(randomItems[i].x - 12.5, randomItems[i].y + 10);
-                        buffer.lineTo(randomItems[i].x - 12.5, randomItems[i].y - 5);
-                        buffer.lineTo(randomItems[i].x - 11.25, randomItems[i].y - 10);
-                        buffer.lineTo(randomItems[i].x - 10, randomItems[i].y - 10);
-
-                        buffer.moveTo(randomItems[i].x, randomItems[i].y - 10);
-                        buffer.lineTo(randomItems[i].x + 1.25, randomItems[i].y - 10);
-                        buffer.lineTo(randomItems[i].x + 2.5, randomItems[i].y - 5);
-                        buffer.lineTo(randomItems[i].x + 2.5, randomItems[i].y + 10);
-                        buffer.lineTo(randomItems[i].x - 2.5, randomItems[i].y + 10);
-                        buffer.lineTo(randomItems[i].x - 2.5, randomItems[i].y - 5);
-                        buffer.lineTo(randomItems[i].x - 1.25, randomItems[i].y - 10);
-                        buffer.lineTo(randomItems[i].x, randomItems[i].y - 10);
-
-                        buffer.moveTo(randomItems[i].x + 10, randomItems[i].y - 10);
-                        buffer.lineTo(randomItems[i].x + 11.25, randomItems[i].y - 10);
-                        buffer.lineTo(randomItems[i].x + 12.5, randomItems[i].y - 5);
-                        buffer.lineTo(randomItems[i].x + 12.5, randomItems[i].y + 10);
-                        buffer.lineTo(randomItems[i].x + 7.5, randomItems[i].y + 10);
-                        buffer.lineTo(randomItems[i].x + 7.5, randomItems[i].y - 5);
-                        buffer.lineTo(randomItems[i].x + 8.75, randomItems[i].y - 10);
-                        buffer.lineTo(randomItems[i].x + 10, randomItems[i].y - 10);
-                    buffer.stroke();
-                    buffer.fill();
-                    buffer.closePath();
-					break;
-				}
-				case 3:
 				{	
 					buffer.fillStyle = 'rgb(200, 200, 255)';
 					buffer.shadowColor = 'rgb(200, 200, 255)';
@@ -6067,14 +6199,6 @@ function Game()
                     buffer.drawImage(missileImages[player.damageLevel], missiles[i].x - (missiles[i].width / 2), missiles[i].y - (missiles[i].height / 2), missiles[i].width, missiles[i].height);
                     break;
                 }
-                case 50: case 51: {
-                    buffer.drawImage(itemImages[2], missiles[i].x - (missiles[i].width / 2), missiles[i].y - (missiles[i].height / 2), missiles[i].width, missiles[i].height);
-                    break;
-                }
-                case 52: {
-                    buffer.drawImage(itemImages[3], missiles[i].x - (missiles[i].width / 2), missiles[i].y - (missiles[i].height / 2), missiles[i].width, missiles[i].height);
-                    break;
-                }
                 case 100: case 101: case 102: case 103: case 104: {
                     buffer.drawImage(itemImages[4], missiles[i].x - (missiles[i].width / 2), missiles[i].y - (missiles[i].height / 2), missiles[i].width, missiles[i].height);
                     break;
@@ -6082,29 +6206,7 @@ function Game()
             }
         }
     }
-    
-	this.drawLaser = function()
-	{
-		/* Data
-		this.laser = false;//true if laser is on
-		this.laserX = this.x;
-		this.laserY = this.y - 25;
-		this.laserWidth = 20;
-		this.laserHeight = this.y - 25;
-		this.laserGlowWidth = 5;
-		this.glowDirection = 0;//0=out, 1=in;
-		*/
-		buffer.shadowBlur = 20;
-		buffer.shadowColor = 'rgb(0, 128, 255)';
-		buffer.beginPath();
-			buffer.fillStyle = "rgb(0, 128, 255)";
-			buffer.fillRect(player.laserX - 10, player.laserY, player.laserWidth, player.laserHeight);
-			buffer.fillStyle = "rgb(0, 200, 255)";
-			buffer.fillRect(player.laserX - 5, player.laserY, player.laserWidth / 2, player.laserHeight);
-		buffer.closePath();
-		buffer.shadowBlur = 0;
-	}
-	
+
 	this.drawBossLaser = function(x, y, width, height)
 	{
 		/* Data
@@ -6149,66 +6251,10 @@ function Game()
 	  
     this.drawHUD = function()
     {
-		self.drawAmmoGui();
         self.drawLifeMeter();
         self.drawShieldMeter();
         self.drawBoostMeter();
     }
-	
-	this.drawAmmoGui = function()
-	{
-		var rand_ammo = Math.floor(Math.random() * 100) + 128;
-        var rand1_ammo = Math.floor(Math.random() * 100) + 128;
-        var rand2_ammo = Math.floor(Math.random() * 100) + 128;
-        var r_ammo = rand_ammo;
-        var g_ammo = rand1_ammo;
-        var b_ammo = rand2_ammo;
-		
-		this.x = 20;
-		this.y = _buffer.height - 95;
-		buffer.beginPath();
-		buffer.fillStyle = "rgb(" + r_ammo + ", " + g_ammo + ", " + b_ammo + ")";
-		buffer.strokeStyle = "rgb(128, 128, 128)";
-			buffer.moveTo(this.x - 10, this.y - 10);
-			buffer.lineTo(this.x - 8.75, this.y - 10);
-			buffer.lineTo(this.x - 7.5, this.y - 5);
-			buffer.lineTo(this.x - 7.5, this.y + 10);
-			buffer.lineTo(this.x - 12.5, this.y + 10);
-			buffer.lineTo(this.x - 12.5, this.y - 5);
-			buffer.lineTo(this.x - 11.25, this.y - 10);
-			buffer.lineTo(this.x - 10, this.y - 10);
-
-			buffer.moveTo(this.x, this.y - 10);
-			buffer.lineTo(this.x + 1.25, this.y - 10);
-			buffer.lineTo(this.x + 2.5, this.y - 5);
-			buffer.lineTo(this.x + 2.5, this.y + 10);
-			buffer.lineTo(this.x - 2.5, this.y + 10);
-			buffer.lineTo(this.x - 2.5, this.y - 5);
-			buffer.lineTo(this.x - 1.25, this.y - 10);
-			buffer.lineTo(this.x, this.y - 10);
-
-			buffer.moveTo(this.x + 10, this.y - 10);
-			buffer.lineTo(this.x + 11.25, this.y - 10);
-			buffer.lineTo(this.x + 12.5, this.y - 5);
-			buffer.lineTo(this.x + 12.5, this.y + 10);
-			buffer.lineTo(this.x + 7.5, this.y + 10);
-			buffer.lineTo(this.x + 7.5, this.y - 5);
-			buffer.lineTo(this.x + 8.75, this.y - 10);
-			buffer.lineTo(this.x + 10, this.y - 10);
-		buffer.stroke();
-		buffer.fill();
-		buffer.closePath();
-		
-		var guiText  = new GUIText("x" + player.secondaryAmmo, this.x + 15, this.y - 6, 
-                                    "18px VT323", "left", "top", "rgb(230, 230, 255)");
-		buffer.beginPath();
-			buffer.fillStyle = guiText.color;
-			buffer.font = guiText.fontStyle;
-			buffer.textAlign = guiText.alignX;
-			buffer.textBaseline = guiText.alignY;
-			buffer.fillText(guiText.text, guiText.x, guiText.y);
-		buffer.closePath();
-	}
     
     this.drawLifeMeter = function()
     {
@@ -6329,8 +6375,8 @@ function Game()
     
     this.drawGUI = function()
     {
-		//State GUIs
-			// 0 = Main Menu
+        //State GUIs
+            // 0 = Main Menu
             // 1 = Pause Menu
             // 2 = Upgrade Up Menu
             // 3 = Continue Menu
@@ -6338,16 +6384,15 @@ function Game()
             // 5 = Game Over Menu
             // 6 = Options Menu
             // 7 = Submit Score Menu
-		//Non-State Guis
-		// Debug
-		// Life & other ingame info(can't be on any state gui's)
-		
-		//Draw State Gui's
-		var guiText = [];
-		switch(currentGui)
-		{
-			case 0:
-			{// Main Menu
+        //Non-State Guis
+        // Debug
+        // Life & other ingame info(can't be on any state gui's)
+        
+        //Draw State Gui's
+        var guiText = [];
+        switch(currentGui)
+        {
+            case 0: {// Main Menu
                 guiText[0] = new GUIText("Kill All The Things", _canvas.width / 2, _canvas.height / 2 - 100, "48px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 255)");
                 guiText[1] = new GUIText("Insert Coin", _canvas.width / 2, _canvas.height / 2, "28px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
                 if(menu.states[0][0] || (mouseX > (_canvas.width / 2 + 10) - 105 && mouseX < (_canvas.width / 2 + 10) + 90 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10))
@@ -6373,10 +6418,9 @@ function Game()
                     if(menu.states[0][3]) menu.DrawArrow(3, (_canvas.width / 2) - 80, _canvas.height / 2 + 158)
                     guiText[4] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2) + 145, "28px VT323", "center", "top", "rgb(255, 255, 255)");
                 }
-				break;
-			}
-            case 1:
-            {// Pause Menu
+                break;
+            }
+            case 1: {// Pause Menu
                 guiText[0] = new GUIText("Paused", _canvas.width / 2, _canvas.height / 2 - 80, "40px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
                 guiText[1] = new GUIText("Options", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(210, 210, 210)");
                 if(menu.states[1][0] || (mouseX > (_canvas.width / 2) - 50 && mouseX < (_canvas.width / 2) + 50 && mouseY < (_canvas.height / 2) + 30 && mouseY > (_canvas.height / 2))) {
@@ -6394,38 +6438,30 @@ function Game()
                     guiText[3] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2) + 80, "28px VT323", "center", "top", "rgb(255, 255, 255)");
                 }
                 break;
-			}
-			case 2:
-			{// Upgrade Menu
+            }
+            case 2: {// Upgrade Menu
                 //**********************************************************************//
                 //						UPGRADE MENU SECTION							//
                 //**********************************************************************//
 
                 //Static Text
-                guiText[0] = new GUIText("Missions", 10, 10, "20px VT323", "left", "top", "rgb(230, 230, 255)");
-                guiText[1] = new GUIText("Primary Fire", 10, _canvas.height / 2 - 50, "20px VT323", "left", "top", "rgb(230, 230, 255)");
-                guiText[2] = new GUIText("Artillery", 10, 420, "20px VT323", "left", "top", "rgb(230, 230, 255)");
-                guiText[3] = new GUIText("Cores: " + player.money, _canvas.width - 100, _canvas.height - 53, "20px VT323", "left", "top", "rgb(230, 230, 255)");
-                guiText[4] = new GUIText("Extra Items", _canvas.width - 300, 420, "20px VT323", "left", "top", "rgb(230, 230, 255)");
-                guiText[7] = new GUIText(gco.levelTitle(), 5, _buffer.height / 2 - 76, "20px VT323", "left", "top", "rgb(230, 230, 255)");
-				guiText[8] = new GUIText("", _canvas.width - 271, 448, "20px VT323", "left", "top", "rgb(0, 0, 0)");
-				guiText[9] = new GUIText("", _canvas.width - 221, 448, "20px VT323", "left", "top", "rgb(0, 0, 0)");
+                guiText[0] = new GUIText("Primary Fire", 10, _canvas.height / 2 - 50, "20px VT323", "left", "top", "rgb(230, 230, 255)");
+                guiText[1] = new GUIText("Laser", 10, 420, "20px VT323", "left", "top", "rgb(230, 230, 255)");
+                guiText[2] = new GUIText("Cores: " + player.money, _canvas.width - 100, _canvas.height - 53, "20px VT323", "left", "top", "rgb(230, 230, 255)");
+                guiText[3] = new GUIText("Extra Items", _canvas.width - 300, 420, "20px VT323", "left", "top", "rgb(230, 230, 255)");
+                guiText[4] = new GUIText(gco.levelTitle(), 5, _buffer.height / 2 - 76, "20px VT323", "left", "top", "rgb(230, 230, 255)");
                 
                 if(menu.states[2][1][2] || (mouseX > (_canvas.width - 210) && mouseX < (_canvas.width - 10) && mouseY < (278) && mouseY > (250))) { // Start Level
                     guiText[5] = new GUIText("Start Level", _canvas.width - 110, 250, "28px Thunderstrike", "center", "top", "rgb(96, 255, 96)");
                     menu.DrawArrow(3, _canvas.width - 225, 262);
-                    if(player.weapon == 49){guiText[12] = new GUIText("Must equip main weapon", _canvas.width - 100, 280, "12px VT323", "center", "top", "rgb(255, 50, 50)");}
                 } else {
                     guiText[5] = new GUIText("Start Level", _canvas.width - 110, 250, "28px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
                 }
 
                 // Bottom text tooltip initialization
-				guiText[6] = new GUIText("", _canvas.width / 2, _canvas.height - 53, "18px VT323", "center", "top", "rgb(230, 230, 255)");
-				guiText[10] = new GUIText("", _canvas.width / 2, _canvas.height - 303, "16px VT323", "center", "top", "rgb(230, 230, 255)");
-				guiText[11] = new GUIText("", _canvas.width / 2, _canvas.height - 303, "16px VT323", "center", "top", "rgb(230, 230, 255)");
-				guiText[12] = new GUIText("", _canvas.width / 2, _canvas.height - 303, "16px VT323", "center", "top", "rgb(230, 230, 255)");
-				guiText[13] = new GUIText("", _canvas.width / 2, _canvas.height - 33, "14px VT323", "center", "top", "rgb(230, 230, 255)");
-				guiText[14] = new GUIText("", _canvas.width / 2, _canvas.height - 23, "14px VT323", "center", "top", "rgb(230, 230, 255)");
+                guiText[6] = new GUIText("", _canvas.width / 2, _canvas.height - 53, "18px VT323", "center", "top", "rgb(230, 230, 255)");
+                guiText[7] = new GUIText("", _canvas.width / 2, _canvas.height - 33, "14px VT323", "center", "top", "rgb(230, 230, 255)");
+                guiText[8] = new GUIText("", _canvas.width / 2, _canvas.height - 33, "14px VT323", "center", "top", "rgb(230, 230, 255)");
 
                 // GUI Icons
                 // NEW WEAPON Primary Assult
@@ -6438,9 +6474,13 @@ function Game()
                     let wepNames = ["Primary Assult", "Rapid Fire Assult", "Cone Assult", "Rapid Fire Cyclone", "Ultimate Cyclone Assult"];	
                     guiText[6].text = wepNames[player.weapon];
                     if(player.weapon == 4) {
-                        guiText[13].text = "Primary Fully Upgraded";
+                        guiText[7].text = "Primary Fully Upgraded";
                     } else {
-                        guiText[13].text = "Select to Upgrade";
+                        if(player.money >= gco.weaponPrice[player.weapon + 1]) {
+                            guiText[7].text = "Select to Upgrade";
+                        } else {
+                            guiText[7].text = gco.weaponPrice[player.weapon + 1] + " Cores";
+                        }
                     }
                 }
                 buffer.shadowBlur = 1;
@@ -6456,15 +6496,15 @@ function Game()
                     buffer.drawImage(dmgImages[player.damageLevel], 60, 280, 48, 48);
                     buffer.shadowBlur = 0;
                     menu.DrawArrow(0, 84, 336);
-					guiText[6].text = "Damage Upgrade";
+                    guiText[6].text = "Damage Upgrade";
 
                     if(player.damageLevel == 4) {
-                        guiText[13].text = "Maximum Damage";
+                        guiText[7].text = "Maximum Damage";
                     } else {
                         if(player.money >= gco.damagePrice[player.damageLevel + 1]) {
-                            guiText[13].text = "Select to Increase Damage";
+                            guiText[7].text = "Select to Increase Damage";
                         } else {
-                            guiText[13].text = gco.damagePrice[player.damageLevel] + " Cores";
+                            guiText[7].text = gco.damagePrice[player.damageLevel + 1] + " Cores";
                         }
                     }
                 }
@@ -6474,306 +6514,132 @@ function Game()
                 buffer.shadowBlur = 0;
                 //END WEAPON
 
-// NEW WEAPON SD-15 Sidewinder
-                if(menu.states[2][2][0] || (mouseX > 10 && mouseX < 58 && mouseY > 448 && mouseY < 496))
-                {//SD-15 Sidewinder, Weapon ID: 50
+                // NEW WEAPON Laser
+                if(menu.states[2][2][0] || (mouseX > 10 && mouseX < 58 && mouseY > 448 && mouseY < 496)) {
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[2], 10, 448, 48, 48);
+                    buffer.drawImage(lasImages[player.laser.level], 10, 448, 48, 48);    
                     buffer.shadowBlur = 0;
                     menu.DrawArrow(0, 34, 504);
-                    guiText[6].text = "SD-15 Sidewinder";
-					if(player.secondary == 50){
-						guiText[13].text = "Equipped";
-					}else{
-						guiText[13].text = "Select to Equip";
-					}
-                    
+                    let lasNames = ["Laser 1", "Laser 2", "Laser 3", "Laser 4", "Laser 5"];	
+                    guiText[6].text = lasNames[player.laser.level];
+                    if(player.laser.level == 4) {
+                        guiText[7].text = "Laser Fully Upgraded";
+                    } else {
+                        if(player.money >= gco.laserPrice[player.laser.level + 1]) {
+                            guiText[7].text = "Select to Upgrade";
+                        } else {
+                            guiText[7].text = gco.laserPrice[player.laser.level + 1] + " Cores";
+                        }
+                    }
                 }
-                if(gco.weaponsOwned[50] && player.secondary == 50)
-                {
-                    buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[2], 10, 448, 48, 48);
-					buffer.shadowBlur = 0;
-                }
-                else
-                {
-					buffer.globalAlpha = 0.5;
-                    buffer.drawImage(images[2], 10, 448, 48, 48);
-					buffer.globalAlpha = 1.0;
-                }
-
+                buffer.shadowBlur = 1;
+                buffer.shadowColor = 'rgb(0, 173, 239)';
+                buffer.drawImage(lasImages[player.laser.level], 10, 448, 48, 48);
+                buffer.shadowBlur = 0;
                 //END WEAPON
 
-// NEW WEAPON DM-21 Auto Strike
-                if(menu.states[2][2][1] || (mouseX > 60 && mouseX < 108 && mouseY > 448 && mouseY < 496))
-                {//DM-21 Auto Strike, Weapon ID: 51
+                // LASER DAMAGE UPGRADE Primary Fire
+                if(menu.states[2][2][1] || (mouseX > 60 && mouseX < 108 && mouseY > 448 && mouseY < 496)) {
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[3], 60, 448, 48, 48);
+                    buffer.drawImage(lasdmgImages[player.laser.damageLevel], 60, 448, 48, 48);
                     buffer.shadowBlur = 0;
                     menu.DrawArrow(0, 84, 504);
-					guiText[6].text = "DM-21 Auto Strike";
-                    if(gco.weaponsOwned[51])
-                    {
-						if(player.secondary == 51){
-							guiText[13].text = "Equipped";
-						}else{
-							guiText[13].text = "Select to Equip";
-						}
-                    } else
-                    {
-                        guiText[13].text = gco.weaponPrice[51] + " Cores";
-                    }
-                }
-                if(gco.weaponsOwned[51] && player.secondary == 51)
-                {
-					buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[3], 60, 448, 48, 48);
-					buffer.shadowBlur = 0;
-                }
-                else
-                {
-					buffer.globalAlpha = 0.5;
-                    buffer.drawImage(images[3], 60, 448, 48, 48);
-					buffer.globalAlpha = 1.0;
-                }
-                //END WEAPON
+                    guiText[6].text = "Damage Upgrade";
 
-// NEW WEAPON Impact Burst Mine
-                if(menu.states[2][2][2] || (mouseX > 110 && mouseX < 158 && mouseY > 448 && mouseY < 496))
-                {//Impact Burst Mine, Weapon ID: 52
-                    buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[8], 110, 448, 48, 48);
-                    buffer.shadowBlur = 0;
-                    menu.DrawArrow(0, 134, 504);
-					guiText[6].text = "Impact Burst Mine";
-                    if(gco.weaponsOwned[52])
-                    {
-						if(player.secondary == 52){
-							guiText[13].text = "Equipped";
-						}else{
-							guiText[13].text = "Select to Equip";
-						}
-                    } else
-                    {
-                        guiText[13].text = gco.weaponPrice[52] + " Cores";
+                    if(player.laser.damageLevel == 4) {
+                        guiText[7].text = "Maximum Damage";
+                    } else {
+                        if(player.money >= gco.laserDamagePrice[player.laser.damageLevel + 1]) {
+                            guiText[7].text = "Select to Increase Damage";
+                        } else {
+                            guiText[7].text = gco.laserDamagePrice[player.laser.damageLevel + 1] + " Cores";
+                        }
                     }
                 }
-                if(gco.weaponsOwned[52] && player.secondary == 52)
-                {
-					buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[8], 110, 448, 48, 48);
-					buffer.shadowBlur = 0;
-                }
-                else
-                {
-					buffer.globalAlpha = 0.5;
-                    buffer.drawImage(images[8], 110, 448, 48, 48);
-					buffer.globalAlpha = 1.0;
-                }
+                buffer.shadowBlur = 1;
+                buffer.shadowColor = 'rgb(0, 150, 250)';
+                buffer.drawImage(lasdmgImages[player.laser.damageLevel], 60, 448, 48, 48);
+                buffer.shadowBlur = 0;
                 //END WEAPON
-				
-// NEW WEAPON Laser
-                if(menu.states[2][2][3] || (mouseX > 160 && mouseX < 208 && mouseY > 448 && mouseY < 496))
-                {//Laser: Weapon ID: 9000
-                    buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[9], 160, 448, 48, 48);
-                    buffer.shadowBlur = 0;
-                    menu.DrawArrow(0, 184, 504);
-					guiText[6].text = "LB-24 Ultima Laser";
-                    if(gco.ownLaser)
-                    {
-						if(player.secondary == 9000){
-							guiText[13].text = "Equipped";
-						}else{
-							guiText[13].text = "Select to Equip";
-						}
-                    } else
-                    {
-                        guiText[13].text = gco.laserPrice + " Cores";
-                    }
-                }
-                if(gco.ownLaser && player.secondary == 9000)
-                {
-					buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[9], 160, 448, 48, 48);
-					buffer.shadowBlur = 0;
-                }
-                else
-                {
-					buffer.globalAlpha = 0.5;
-                    buffer.drawImage(images[9], 160, 448, 48, 48);
-					buffer.globalAlpha = 1.0;
-                }
-                //END WEAPON
-				
-// NEW POWERUP Shield
-                if(menu.states[2][2][4] || (mouseX > _canvas.width - 300 && mouseX < _canvas.width - 252 && mouseY > 448 && mouseY < 496))
-                {//Shield
+                
+                // NEW POWERUP Shield
+                if(menu.states[2][2][2] || (mouseX > _canvas.width - 300 && mouseX < _canvas.width - 252 && mouseY > 448 && mouseY < 496)) { // Shield
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
                     buffer.drawImage(images[4], _canvas.width - 300, 448, 48, 48);
                     buffer.shadowBlur = 0;
                     menu.DrawArrow(0, _canvas.width - 276, 504);
-					guiText[6].text = "Shield"
-					guiText[6].y = _canvas.height - 65
-					guiText[6].fontStyle = "20px VT323"
-                    if(player.hasShield)
-                     {
-						guiText[14] = new GUIText("Upgrade: " + (player.shieldLevel + 1) * 250 + " Cores", _canvas.width / 2, _canvas.height - 23, "14px VT323", "center", "top", "rgb(230, 230, 255)");
-						guiText[13].text = "Level: " + player.shieldLevel
-						guiText[13].y = _canvas.height - 43
-                     } else {
-						guiText[14] = new GUIText("250 Cores", _canvas.width / 2, _canvas.height - 33, "14px VT323", "center", "top", "rgb(230, 230, 255)");
-					 }
+                    guiText[6].text = "Shield"
+                    guiText[6].y = _canvas.height - 65
+                    guiText[6].fontStyle = "20px VT323"
+                    if(player.hasShield) {
+                        guiText[8] = new GUIText("Upgrade: " + (player.shieldLevel + 1) * 250 + " Cores", _canvas.width / 2, _canvas.height - 23, "14px VT323", "center", "top", "rgb(230, 230, 255)");
+                        guiText[7].text = "Level: " + player.shieldLevel
+                        guiText[7].y = _canvas.height - 43
+                    } else {
+                        guiText[8] = new GUIText("250 Cores", _canvas.width / 2, _canvas.height - 33, "14px VT323", "center", "top", "rgb(230, 230, 255)");
+                    }
                 }
-                if(player.hasShield)
-                {
-					buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[4], _canvas.width - 300, 448, 48, 48);
-					buffer.shadowBlur = 0;
-                }
-                else
-                {
-					buffer.globalAlpha = 0.5;
-                    buffer.drawImage(images[4], _canvas.width - 300, 448, 48, 48);
-					buffer.globalAlpha = 1.0;
-                }
-                //END WEAPON
-
-// NEW POWERUP Max Ammo
-                if(menu.states[2][2][5] || (mouseX > _canvas.width - 250 && mouseX < _canvas.width - 202 && mouseY > 448 && mouseY < 496))
-                {//Max Ammo
+                if(player.hasShield) {
                     buffer.shadowBlur = 1;
                     buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[5], _canvas.width - 250, 448, 48, 48);
+                    buffer.drawImage(images[4], _canvas.width - 300, 448, 48, 48);
                     buffer.shadowBlur = 0;
-                    menu.DrawArrow(0, _canvas.width - 226, 504);
-					guiText[6].text = "Ammo"
-					guiText[6].y = _canvas.height - 65
-					guiText[6].fontStyle = "20px VT323"
-					guiText[14] = new GUIText("Upgrade: " + (player.secondaryAmmoLevel + 1) * 50 + " Cores", _canvas.width / 2, _canvas.height - 23, "14px VT323", "center", "top", "rgb(230, 230, 255)");
-					guiText[13].text = "Level: " + player.secondaryAmmoLevel;
-					guiText[13].y = _canvas.height - 43;
-
-                    //guiText[6].text = "Ammo Level: " + player.secondaryAmmoLevel + "  Max Secondary Ammo: " + player.maxSecondaryAmmo + ". Upgrade for " + (player.secondaryAmmoLevel + 1) * 50 + " cores.";
-                }
-                if(player.secondaryAmmoLevel > 1) {
-					buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[5], _canvas.width - 250, 448, 48, 48);
-					buffer.shadowBlur = 0;
-                }
-				else {
-					buffer.globalAlpha = 0.5;
-                    buffer.drawImage(images[5], _canvas.width - 250, 448, 48, 48);
-					buffer.globalAlpha = 1.0;
-                }
-                //END WEAPON
-			
-// NEW POWERUP Buy Secondary Ammo
-                if(menu.states[2][2][6] || (mouseX > _canvas.width - 200 && mouseX < _canvas.width - 152 && mouseY > 448 && mouseY < 496))
-                {//Buy Secondary Ammo
-                    buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[6], _canvas.width - 200, 448, 48, 48);
-                    buffer.shadowBlur = 0;
-                    menu.DrawArrow(0, _canvas.width - 176, 504);
-					guiText[6].text = "Ammo"
-					guiText[6].y = _canvas.height - 65
-					guiText[6].fontStyle = "20px VT323"
-					guiText[13].text = "Level: " + player.secondaryAmmoLevel;
-					guiText[13].y = _canvas.height - 43;
-					guiText[13].text = player.secondaryAmmo + "/" + player.maxSecondaryAmmo;
-					if(player.secondaryAmmo < player.maxSecondaryAmmo) {
-						guiText[14] = new GUIText(gco.secondaryAmmoPrice + " Cores", _canvas.width / 2, _canvas.height - 23, "14px VT323", "center", "top", "rgb(230, 230, 255)");
-					} else {
-						guiText[14] = new GUIText("Full", _canvas.width / 2, _canvas.height - 23, "14px VT323", "center", "top", "rgb(255, 0, 0)");
-					}
-                }
-                if(player.secondaryAmmo < player.maxSecondaryAmmo)
-                {
-					buffer.shadowBlur = 1;
-                    buffer.shadowColor = 'rgb(0, 173, 239)';
-                    buffer.drawImage(images[6], _canvas.width - 200, 448, 48, 48);
-					buffer.shadowBlur = 0;
-                }
-                else
-                {
-					buffer.globalAlpha = 0.5;
-                    buffer.drawImage(images[6], _canvas.width - 200, 448, 48, 48);
-					buffer.globalAlpha = 1.0;
+                } else {
+                    buffer.globalAlpha = 0.5;
+                    buffer.drawImage(images[4], _canvas.width - 300, 448, 48, 48);
+                    buffer.globalAlpha = 1.0;
                 }
                 //END WEAPON
 
-				// Options Menu Selection
-                if(menu.states[2][0][0] || (mouseX > (_canvas.width - 248) && mouseX < (_canvas.width - 147) && mouseY < (48) && mouseY > (20)))
-                {//Options Menu
-                    guiText[10] = new GUIText("Options", _canvas.width - 200, 20, "20px Thunderstrike", "center", "top", "rgb(96, 255, 96)");
-					menu.DrawArrow(3, _canvas.width - 263, 28);
-                } else
-                {
-                    guiText[10] = new GUIText("Options", _canvas.width - 200, 20, "20px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
+                // Options Menu Selection
+                if(menu.states[2][0][0] || (mouseX > (_canvas.width - 248) && mouseX < (_canvas.width - 147) && mouseY < (48) && mouseY > (20))) { // Options Menu
+                    guiText[9] = new GUIText("Options", _canvas.width - 200, 20, "20px Thunderstrike", "center", "top", "rgb(96, 255, 96)");
+                    menu.DrawArrow(3, _canvas.width - 263, 28);
+                } else {
+                    guiText[9] = new GUIText("Options", _canvas.width - 200, 20, "20px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
                 }
 
                 // Quit game
-                if(menu.states[2][0][1] || (mouseX > (_canvas.width - 86) && mouseX < (_canvas.width - 30) && mouseY < (48) && mouseY > (20)))
-                {//Quit
-                    guiText[11] = new GUIText("Quit", _canvas.width - 60, 20, "20px Thunderstrike", "center", "top", "rgb(96, 255, 96)");
-					menu.DrawArrow(3, _canvas.width - 100, 28);
-                } else
-                {
-                    guiText[11] = new GUIText("Quit", _canvas.width - 60, 20, "20px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
+                if(menu.states[2][0][1] || (mouseX > (_canvas.width - 86) && mouseX < (_canvas.width - 30) && mouseY < (48) && mouseY > (20))) { // Quit
+                    guiText[10] = new GUIText("Quit", _canvas.width - 60, 20, "20px Thunderstrike", "center", "top", "rgb(96, 255, 96)");
+                    menu.DrawArrow(3, _canvas.width - 100, 28);
+                } else {
+                    guiText[10] = new GUIText("Quit", _canvas.width - 60, 20, "20px Thunderstrike", "center", "top", "rgb(96, 150, 96)");
                 }
-				
-				guiText[12] = new GUIText("Score: " + score, 10, _canvas.height - 53, "18px VT323", "left", "top", "rgb(230, 230, 255)");
-//**********************************************************************//
-//					  BEGIN PILOT SELECT SECTION						//
-//**********************************************************************//
+                guiText[11] = new GUIText("Score: " + score, 10, _canvas.height - 53, "18px VT323", "left", "top", "rgb(230, 230, 255)");
 
-//**********************************************************************//
-//					  END PILOT SELECT SECTION							//
-//**********************************************************************//
-
-//**********************************************************************//
-//					  END UPGRADE MENU SECTION							//
-//**********************************************************************//
+            //**********************************************************************//
+            //					  END UPGRADE MENU SECTION							//
+            //**********************************************************************//
                 break;
-			}
-			case 3:
-			{// Continue Menu
-				guiText[0] = new GUIText("You Died", _canvas.width / 2, _canvas.height / 2 - 100, "42px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
-										 
-        		if(menu.states[3][0] || (mouseX > (_canvas.width / 2 + 15) - 65 && mouseX < (_canvas.width / 2 + 15) + 36 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 14)) {
+            }
+            case 3: {// Continue Menu
+                guiText[0] = new GUIText("You Died", _canvas.width / 2, _canvas.height / 2 - 100, "42px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
+                                            
+                if(menu.states[3][0] || (mouseX > (_canvas.width / 2 + 15) - 65 && mouseX < (_canvas.width / 2 + 15) + 36 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 14)) {
                     if(menu.states[3][0]) menu.DrawArrow(3, _canvas.width / 2 - 56, _canvas.height / 2 + 15);
-					guiText[1] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(255, 255, 255)");
-				} else {
-					guiText[1] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(210, 210, 210)");
-				}
-				if(menu.states[3][1] || (mouseX > (_canvas.width / 2 + 10) - 63 && mouseX < (_canvas.width / 2 + 10) + 43 && mouseY < (_canvas.height / 2 + 53) + 20 && mouseY > (_canvas.height / 2 + 50)))	{
+                    guiText[1] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(255, 255, 255)");
+                } else {
+                    guiText[1] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(210, 210, 210)");
+                }
+                if(menu.states[3][1] || (mouseX > (_canvas.width / 2 + 10) - 63 && mouseX < (_canvas.width / 2 + 10) + 43 && mouseY < (_canvas.height / 2 + 53) + 20 && mouseY > (_canvas.height / 2 + 50)))	{
                     if(menu.states[3][1]) menu.DrawArrow(3, _canvas.width / 2 - 60, _canvas.height / 2 + 66);
-					guiText[2] = new GUIText("Main Menu", _canvas.width / 2, (_canvas.height / 2 + 50), "28px VT323", "center", "top", "rgb(255, 255, 255)");
-				} else {
-					guiText[2] = new GUIText("Main Menu", _canvas.width / 2, (_canvas.height / 2 + 50), "28px VT323", "center", "top", "rgb(210, 210, 210)");
-				}
-				if(menu.states[3][2] || (mouseX > (_canvas.width / 2 + 10) - 63 && mouseX < (_canvas.width / 2 + 10) + 43 && mouseY < (_canvas.height / 2 + 106) + 20 && mouseY > (_canvas.height / 2 + 100))) {
+                    guiText[2] = new GUIText("Main Menu", _canvas.width / 2, (_canvas.height / 2 + 50), "28px VT323", "center", "top", "rgb(255, 255, 255)");
+                } else {
+                    guiText[2] = new GUIText("Main Menu", _canvas.width / 2, (_canvas.height / 2 + 50), "28px VT323", "center", "top", "rgb(210, 210, 210)");
+                }
+                if(menu.states[3][2] || (mouseX > (_canvas.width / 2 + 10) - 63 && mouseX < (_canvas.width / 2 + 10) + 43 && mouseY < (_canvas.height / 2 + 106) + 20 && mouseY > (_canvas.height / 2 + 100))) {
                     if(menu.states[3][2]) menu.DrawArrow(3, _canvas.width / 2 - 60, _canvas.height / 2 + 115);
-					guiText[3] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2 + 100), "28px VT323", "center", "top", "rgb(255, 255, 255)");
-				} else {
-					guiText[3] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2 + 100), "28px VT323", "center", "top", "rgb(210, 210, 210)");
-				}
-				break;
-			}
-			case 4:
-			{// Level Up Menu
+                    guiText[3] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2 + 100), "28px VT323", "center", "top", "rgb(255, 255, 255)");
+                } else {
+                    guiText[3] = new GUIText("Exit Game", _canvas.width / 2, (_canvas.height / 2 + 100), "28px VT323", "center", "top", "rgb(210, 210, 210)");
+                }
+                break;
+            }
+            case 4: {// Level Up Menu
                 guiText[0] = new GUIText("Level Up!", _canvas.width / 2, _canvas.height / 2 - 150, "44px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
                 guiText[1] = new GUIText("Now on " + gco.levelTitle(), _canvas.width / 2, _canvas.height / 2 - 100, "28px VT323", "center", "top", "rgb(255, 0, 0)");						 
                 if(menu.states[4][0] || (mouseX > (_canvas.width / 2 + 10) - 75 && mouseX < (_canvas.width / 2 + 10) + 60 && mouseY < (_canvas.height / 2 + 10) + 20 && mouseY > (_canvas.height / 2 + 10) - 10)) {
@@ -6783,9 +6649,8 @@ function Game()
                     guiText[2] = new GUIText("Continue", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(255, 255, 255)");
                 }
                 break;
-			}
-			case 5:
-			{// Game Over Menu
+            }
+            case 5: {// Game Over Menu
                 guiText[0] = new GUIText("Game Over", _canvas.width / 2, _canvas.height / 2 - 100, "44px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
                 if(menu.states[5][0] || (mouseX > (_canvas.width / 2 - 65) && mouseX < (_canvas.width / 2 + 70) && mouseY < (_canvas.height / 2 + 30) && mouseY > (_canvas.height / 2))) {
                     if(menu.states[5][0]) menu.DrawArrow(3, _canvas.width / 2 - 65, _canvas.height / 2 + 15);
@@ -6800,17 +6665,15 @@ function Game()
                     guiText[2] = new GUIText("Exit Game", _canvas.width / 2, _canvas.height / 2 + 50, "28px VT323", "center", "top", "rgb(210, 210, 210)");
                 }
                 break;
-			}
-			case 6:
-			{
-                //Options Menu
-				guiText[0] = new GUIText("Options", _canvas.width / 2, 25, "36px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
-				guiText[1] = new GUIText("Back", 10, _canvas.height - 35, "28px Thunderstrike", "left", "top", `rgb(96, ${menu.states[6][3] ? '255' : '150'}, 96)`);
+            }
+            case 6: { // Options Menu
+                guiText[0] = new GUIText("Options", _canvas.width / 2, 25, "36px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
+                guiText[1] = new GUIText("Back", 10, _canvas.height - 35, "28px Thunderstrike", "left", "top", `rgb(96, ${menu.states[6][3] ? '255' : '150'}, 96)`);
                 if(menu.states[6][3]) menu.DrawArrow(1, 105, _canvas.height - 20)
-				if(mouseX > 0 && mouseX < 90 && mouseY < _canvas.height && mouseY > _canvas.height - 45)
-				{
-					guiText[1] = new GUIText("Back", 10, _canvas.height - 35, "28px Thunderstrike", "left", "top", "rgb(96, 255, 96)");
-				}
+                if(mouseX > 0 && mouseX < 90 && mouseY < _canvas.height && mouseY > _canvas.height - 45)
+                {
+                    guiText[1] = new GUIText("Back", 10, _canvas.height - 35, "28px Thunderstrike", "left", "top", "rgb(96, 255, 96)");
+                }
 
                 // Graphics
                 guiText[2] = new GUIText("Particles", (_canvas.width / 2), 125, "20px Thunderstrike", "center", "top", `rgb(96, ${menu.states[6][0] ? '255' : '150'}, 96)`);
@@ -6818,8 +6681,8 @@ function Game()
                 
                 if(mouseX >= 200 && mouseX <= 225 && mouseY >= 150 && mouseY <= 200)
                 {
-					buffer.drawImage(images[11], (_canvas.width / 4), 150, 400, 50);
-				}
+                    buffer.drawImage(images[11], (_canvas.width / 4), 150, 400, 50);
+                }
                 else if(mouseX >= 575 && mouseX <= 600 && mouseY >= 150 && mouseY <= 200)
                 {
                     buffer.drawImage(images[12], (_canvas.width / 4), 150, 400, 50);
@@ -6828,31 +6691,31 @@ function Game()
                 {
                     buffer.drawImage(images[10], (_canvas.width / 4), 150, 400, 50);
                 }
-				
+                
                 buffer.drawImage(images[13], (19 + (87.5 * particleOffset) - 87.5) + (_canvas.width / 4), 161, 13, 28);
                 
-				switch(particleOffset)
-				{
-					case 1:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px VT323", "center", "top", "rgb(96, 255, 96)");
-							guiText[4] = new GUIText("Need new computer...", _canvas.width / 2, 235, "14px VT323", "center", "top", "rgb(96, 255, 96)");break;}
-					case 2:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px VT323", "center", "top", "rgb(120, 200, 60)");
-							guiText[4] = new GUIText("Needs Shinies :(", _canvas.width / 2, 235, "14px VT323", "center", "top", "rgb(120, 200, 60)");break;}
-					case 3:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px VT323", "center", "top", "rgb(150, 100, 20)");
-							guiText[4] = new GUIText("Less Shinies.", _canvas.width / 2, 235, "14px VT323", "center", "top", "rgb(150, 100, 20)");break;}
-					case 4:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px VT323", "center", "top", "rgb(200, 25, 0)");
-							guiText[4] = new GUIText("Shinies!", _canvas.width / 2, 235, "14px VT323", "center", "top", "rgb(200, 55, 0)");break;}
-					case 5:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px VT323", "center", "top", "rgb(255, 0, 0)");
-							guiText[4] = new GUIText("OMFG SPARKLES!", _canvas.width / 2, 235, "14px VT323", "center", "top", "rgb(255, 0, 0)");break;}
-				}
-				
+                switch(particleOffset)
+                {
+                    case 1:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px VT323", "center", "top", "rgb(96, 255, 96)");
+                            guiText[4] = new GUIText("Need new computer...", _canvas.width / 2, 235, "14px VT323", "center", "top", "rgb(96, 255, 96)");break;}
+                    case 2:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px VT323", "center", "top", "rgb(120, 200, 60)");
+                            guiText[4] = new GUIText("Needs Shinies :(", _canvas.width / 2, 235, "14px VT323", "center", "top", "rgb(120, 200, 60)");break;}
+                    case 3:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px VT323", "center", "top", "rgb(150, 100, 20)");
+                            guiText[4] = new GUIText("Less Shinies.", _canvas.width / 2, 235, "14px VT323", "center", "top", "rgb(150, 100, 20)");break;}
+                    case 4:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px VT323", "center", "top", "rgb(200, 25, 0)");
+                            guiText[4] = new GUIText("Shinies!", _canvas.width / 2, 235, "14px VT323", "center", "top", "rgb(200, 55, 0)");break;}
+                    case 5:{guiText[3] = new GUIText(particleOffset, _canvas.width / 2, 205, "26px VT323", "center", "top", "rgb(255, 0, 0)");
+                            guiText[4] = new GUIText("OMFG SPARKLES!", _canvas.width / 2, 235, "14px VT323", "center", "top", "rgb(255, 0, 0)");break;}
+                }
+                
                 // BGM Volume
-				guiText[5] = new GUIText("BGM Volume", (_canvas.width / 2), 265, "20px Thunderstrike", "center", "top", `rgb(96, ${menu.states[6][1] ? '255' : '150'}, 96)`);
+                guiText[5] = new GUIText("BGM Volume", (_canvas.width / 2), 265, "20px Thunderstrike", "center", "top", `rgb(96, ${menu.states[6][1] ? '255' : '150'}, 96)`);
                 if(menu.states[6][1]) menu.DrawArrow(3, _canvas.width / 2 - 95, 274)
                 
                 if(mouseX >= 200 && mouseX <= 225 && mouseY >= 290 && mouseY <= 340)
                 {
-					buffer.drawImage(images[11], (_canvas.width / 4), 290, 400, 50);
-				}
+                    buffer.drawImage(images[11], (_canvas.width / 4), 290, 400, 50);
+                }
                 else if(mouseX >= 575 && mouseX <= 600 && mouseY >= 290 && mouseY <= 340)
                 {
                     buffer.drawImage(images[12], (_canvas.width / 4), 290, 400, 50);
@@ -6861,19 +6724,19 @@ function Game()
                 {
                     buffer.drawImage(images[10], (_canvas.width / 4), 290, 400, 50);
                 }
-				
+                
                 buffer.drawImage(images[13], (19 + (35 * Math.round(gco.bgm.volume * 10))) + (_canvas.width / 4), 301, 13, 28);
                 
                 guiText[6] = new GUIText(Math.round(gco.bgm.volume * 100) + "%", _canvas.width / 2, 345, "26px VT323", "center", "top", "rgb(96, 255, 96)");
                 
                 // SFX Volume
-				guiText[7] = new GUIText("SFX Volume", (_canvas.width / 2), 405, "20px Thunderstrike", "center", "top", `rgb(96, ${menu.states[6][2] ? '255' : '150'}, 96)`);
+                guiText[7] = new GUIText("SFX Volume", (_canvas.width / 2), 405, "20px Thunderstrike", "center", "top", `rgb(96, ${menu.states[6][2] ? '255' : '150'}, 96)`);
                 if(menu.states[6][2]) menu.DrawArrow(3, _canvas.width / 2 - 92, 414)
                 
                 if(mouseX >= 200 && mouseX <= 225 && mouseY >= 430 && mouseY <= 480)
                 {
-					buffer.drawImage(images[11], (_canvas.width / 4), 430, 400, 50);
-				}
+                    buffer.drawImage(images[11], (_canvas.width / 4), 430, 400, 50);
+                }
                 else if(mouseX >= 575 && mouseX <= 600 && mouseY >= 430 && mouseY <= 480)
                 {
                     buffer.drawImage(images[12], (_canvas.width / 4), 430, 400, 50);
@@ -6882,72 +6745,73 @@ function Game()
                 {
                     buffer.drawImage(images[10], (_canvas.width / 4), 430, 400, 50);
                 }
-				
+                
                 buffer.drawImage(images[13], (19 + (35 * Math.round(sfx.masterVolume * 10))) + (_canvas.width / 4), 441, 13, 28);
                 
                 guiText[8] = new GUIText(Math.round(sfx.masterVolume * 100) + "%", _canvas.width / 2, 485, "26px VT323", "center", "top", "rgb(96, 255, 96)");
                 break;
-			}
-			case 7:
-			{ // Score Menu
-				guiText[0] = new GUIText("Score" , _canvas.width / 2, _canvas.height / 2 - 230, "48px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
-				guiText[1] = new GUIText(score , _canvas.width / 2, _canvas.height / 2 - 160, "38px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
-				guiText[2] = new GUIText("Kills: " + enemiesKilled + "  Cores: " + totalCores + "  Items Used: " + itemsUsed, _canvas.width / 2, _canvas.height / 2 - 80, "20px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
-        		if(menu.states[7][0] || (mouseX > _canvas.width / 2 - 60 && mouseX < _canvas.width / 2 + 60 && mouseY < _canvas.height / 2 + 30 && mouseY > _canvas.height / 2)) {
+            }
+            case 7: { // Score Menu
+                guiText[0] = new GUIText("Score" , _canvas.width / 2, _canvas.height / 2 - 230, "48px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
+                guiText[1] = new GUIText(score , _canvas.width / 2, _canvas.height / 2 - 160, "38px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
+                guiText[2] = new GUIText("Kills: " + enemiesKilled + "  Cores: " + totalCores + "  Items Used: " + itemsUsed, _canvas.width / 2, _canvas.height / 2 - 80, "20px Thunderstrike Halftone", "center", "top", "rgb(255, 0, 0)");
+                if(menu.states[7][0] || (mouseX > _canvas.width / 2 - 60 && mouseX < _canvas.width / 2 + 60 && mouseY < _canvas.height / 2 + 30 && mouseY > _canvas.height / 2)) {
                     if(menu.states[7][0]) menu.DrawArrow(3, _canvas.width / 2 - 60, _canvas.height / 2 + 15);
-					guiText[3] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(255, 255, 255)");
-				} else {
-					guiText[3] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(210, 210, 210)");
-				}
-				if(menu.states[7][1] || (mouseX > _canvas.width / 2 - 60 && mouseX < _canvas.width / 2 + 60 && mouseY < _canvas.height / 2 + 78 && mouseY > _canvas.height / 2 + 48)) {
+                    guiText[3] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(255, 255, 255)");
+                } else {
+                    guiText[3] = new GUIText("Main Menu", _canvas.width / 2, _canvas.height / 2, "28px VT323", "center", "top", "rgb(210, 210, 210)");
+                }
+                if(menu.states[7][1] || (mouseX > _canvas.width / 2 - 60 && mouseX < _canvas.width / 2 + 60 && mouseY < _canvas.height / 2 + 78 && mouseY > _canvas.height / 2 + 48)) {
                     if(menu.states[7][1]) menu.DrawArrow(3, _canvas.width / 2 - 60, _canvas.height / 2 + 65);
-					guiText[4] = new GUIText("Exit Game", _canvas.width / 2, _canvas.height / 2 + 50, "28px VT323", "center", "top", "rgb(255, 255, 255)");
-				} else {
-					guiText[4] = new GUIText("Exit Game", _canvas.width / 2, _canvas.height / 2 + 50, "28px VT323", "center", "top", "rgb(210, 210, 210)");
-				}
-				break;
-			}
-			default:{break;}
-		}
-		buffer.beginPath();
-		for(var i = 0; i < guiText.length; i++)
-        {
-			buffer.fillStyle = guiText[i].color;
-			buffer.font = guiText[i].fontStyle;
-			buffer.textAlign = guiText[i].alignX;
-			buffer.textBaseline = guiText[i].alignY;
-			buffer.fillText(guiText[i].text, guiText[i].x, guiText[i].y);
-		}
-		buffer.closePath();
-		delete guiText;
-		if(!gco.win)
-		{//Stateless Menu Items
-			var guiText = [];
-			//Debug
-			if(debug)
-			{
-				guiText[0] = new GUIText("Shot: " + player.totalMissiles, 32, 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[1] = new GUIText("In Air: " + missiles.length, _canvas.width - 100, 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[2] = new GUIText("Enemies: " + enemies.length, _canvas.width - 250, 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[3] = new GUIText("Explosions: " + explosions.length, _canvas.width - 150, _canvas.height - 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[4] = new GUIText("FPS: " + FPS, 182, 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[5] = new GUIText("Seconds: " + seconds, 182, 52, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				guiText[6] = new GUIText("Tick: " + ticks, 182, 72, "18px VT323", "left", "top", "rgb(96, 255, 96)");
-				buffer.beginPath();
-				for(var i = 0; i < guiText.length; i++)
-				{
-					buffer.fillStyle = guiText[i].color;
-					buffer.font = guiText[i].fontStyle;
-					buffer.textAlign = guiText[i].alignX;
-					buffer.textBaseline = guiText[i].alignY;
-					buffer.fillText(guiText[i].text, guiText[i].x, guiText[i].y);
-				}
-				buffer.closePath();
-			}
-			delete guiText;
-			//End Debug
+                    guiText[4] = new GUIText("Exit Game", _canvas.width / 2, _canvas.height / 2 + 50, "28px VT323", "center", "top", "rgb(255, 255, 255)");
+                } else {
+                    guiText[4] = new GUIText("Exit Game", _canvas.width / 2, _canvas.height / 2 + 50, "28px VT323", "center", "top", "rgb(210, 210, 210)");
+                }
+                break;
+            }
+            default:{break;}
+        }
 
-			// Player Info
+        // Draw the menu from guiText cache
+        buffer.beginPath();
+        for(var i = 0; i < guiText.length; i++) {
+            buffer.fillStyle = guiText[i].color;
+            buffer.font = guiText[i].fontStyle;
+            buffer.textAlign = guiText[i].alignX;
+            buffer.textBaseline = guiText[i].alignY;
+            buffer.fillText(guiText[i].text, guiText[i].x, guiText[i].y);
+        }
+        buffer.closePath();
+        delete guiText;
+
+        // Stateless Menu Items
+        if(!gco.win) {
+            var guiText = [];
+            //Debug
+            if(debug)
+            {
+                guiText[0] = new GUIText("Shot: " + player.totalMissiles, 32, 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[1] = new GUIText("In Air: " + missiles.length, _canvas.width - 100, 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[2] = new GUIText("Enemies: " + enemies.length, _canvas.width - 250, 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[3] = new GUIText("Explosions: " + explosions.length, _canvas.width - 150, _canvas.height - 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[4] = new GUIText("FPS: " + FPS, 182, 32, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[5] = new GUIText("Seconds: " + seconds, 182, 52, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                guiText[6] = new GUIText("Tick: " + ticks, 182, 72, "18px VT323", "left", "top", "rgb(96, 255, 96)");
+                buffer.beginPath();
+                for(var i = 0; i < guiText.length; i++)
+                {
+                    buffer.fillStyle = guiText[i].color;
+                    buffer.font = guiText[i].fontStyle;
+                    buffer.textAlign = guiText[i].alignX;
+                    buffer.textBaseline = guiText[i].alignY;
+                    buffer.fillText(guiText[i].text, guiText[i].x, guiText[i].y);
+                }
+                buffer.closePath();
+            }
+            delete guiText;
+            //End Debug
+
+            // Player Info
             var guiText = [];
             if(playerInfo) {
                 guiText[0] = new GUIText(player.hasShield ? "Shield: " + Math.floor(player.shield) : "" , 105, _canvas.height - 53, "18px VT323", "left", "top", "rgb(96, 255, 96)");
@@ -6971,42 +6835,42 @@ function Game()
                 }
             buffer.closePath();
             delete guiText;
-			//Must Purchase Previous Weapon Dialogue
-			var guiText = [];
-			if(gameState != 1 && gco.mustPurchasePrevious > 0)
-			{
-				guiText[0] = new GUIText("Must Purchase Previous Weapon", _canvas.width / 2, _canvas.height / 2, "18px VT323", "center", "center", "rgb(255, 0, 0)");
-				buffer.beginPath();
-				for(var i = 0; i < guiText.length; i++)
-				{
-					buffer.fillStyle = guiText[i].color;
-					buffer.font = guiText[i].fontStyle;
-					buffer.textAlign = guiText[i].alignX;
-					buffer.textBaseline = guiText[i].alignY;
-					buffer.fillText(guiText[i].text, guiText[i].x, guiText[i].y);
-				}
-				buffer.closePath();
-			}
-			delete guiText;
-			//Not Enough Cores Menu
-			var guiText = [];
-			if(gameState != 1 && gco.notEnoughCores > 0)
-			{
-				guiText[0] = new GUIText("Not Enough Cores", _canvas.width / 2, (_canvas.height / 2) - 20, "18px VT323", "center", "center", "rgb(255, 0, 0)");
-				buffer.beginPath();
-				for(var i = 0; i < guiText.length; i++)
-				{
-					buffer.fillStyle = guiText[i].color;
-					buffer.font = guiText[i].fontStyle;
-					buffer.textAlign = guiText[i].alignX;
-					buffer.textBaseline = guiText[i].alignY;
-					buffer.fillText(guiText[i].text, guiText[i].x, guiText[i].y);
-				}
-				buffer.closePath();
-			}
-		}
-		delete guiText;
-		// End Player Info
+            //Must Purchase Previous Weapon Dialogue
+            var guiText = [];
+            if(gameState != 1 && gco.mustPurchasePrevious > 0)
+            {
+                guiText[0] = new GUIText("Must Purchase Previous Weapon", _canvas.width / 2, _canvas.height / 2, "18px VT323", "center", "center", "rgb(255, 0, 0)");
+                buffer.beginPath();
+                for(var i = 0; i < guiText.length; i++)
+                {
+                    buffer.fillStyle = guiText[i].color;
+                    buffer.font = guiText[i].fontStyle;
+                    buffer.textAlign = guiText[i].alignX;
+                    buffer.textBaseline = guiText[i].alignY;
+                    buffer.fillText(guiText[i].text, guiText[i].x, guiText[i].y);
+                }
+                buffer.closePath();
+            }
+            delete guiText;
+            //Not Enough Cores Menu
+            var guiText = [];
+            if(gameState != 1 && gco.notEnoughCores > 0)
+            {
+                guiText[0] = new GUIText("Not Enough Cores", _canvas.width / 2, (_canvas.height / 2) - 20, "18px VT323", "center", "center", "rgb(255, 0, 0)");
+                buffer.beginPath();
+                for(var i = 0; i < guiText.length; i++)
+                {
+                    buffer.fillStyle = guiText[i].color;
+                    buffer.font = guiText[i].fontStyle;
+                    buffer.textAlign = guiText[i].alignX;
+                    buffer.textBaseline = guiText[i].alignY;
+                    buffer.fillText(guiText[i].text, guiText[i].x, guiText[i].y);
+                }
+                buffer.closePath();
+            }
+        }
+        delete guiText;
+        // End Player Info
     }
     
     /******************************************************/
