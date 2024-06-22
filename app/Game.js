@@ -372,29 +372,6 @@ function Game()
 		gco.bgm = document.getElementById('bgm_square');
 		gco.init_audio();
 	}
-	
-	this.isEnemyAlive = function(enemyNumber)
-	{
-		for(var i = 0; i < enemies.length; i++)
-		{
-			if(enemies[i].enemyNum == enemyNumber && enemies[i].life > 0)
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	this.getEnemy = function(enemyNumber)
-	{
-		for(var i = 0; i < enemies.length; i++)
-		{
-			if(enemies[i].enemyNum == enemyNumber)
-			{
-				return enemies[i];
-			}
-		}
-	}
    
     this.hardReset = function()
     {
@@ -422,6 +399,7 @@ function Game()
 		sfx.pause(1);
 		self.RefreshSoundsOnGameLoss();
 		enemyGeneration = new EnemyGeneration();
+        lg = new LevelGen();
         ed.ResetAll();
         playerInfo = false;
     }
@@ -514,7 +492,7 @@ function Game()
     {   
         this.Init = function() {
             // Levels
-            this.level = 3;
+            this.level = 0;
             this.levelDefs = {
                 0: {title: "Tutorial", upgradeTutorial: false},
                 1: {title: "Level 1 Gauntlet", upgradeTutorial: false}, 2: {title: "Level 1 Boss", upgradeTutorial: false},
@@ -762,6 +740,7 @@ function Game()
             if(this.activeEvent == 1) {
                 this.eventTime = 60; // 3 Seconds
                 player.y = _buffer.height + player.height;
+                lg.resetForLevel();
                 sfx.play(3);
             } else if(this.activeEvent == 2) {
                 this.eventTime = 60; // 3 Seconds
@@ -947,6 +926,7 @@ function Game()
 
         this.initDialogueForLevelIntro = function() {
             d = introDialogues[gco.level];
+            introCustomStateOverrides();
             resetDialogueSteppingValues();
         }
 
@@ -959,6 +939,10 @@ function Game()
             let onUpgradeDialogue = {3: 0, 7: 1, 13: 2, 19: 3}[gco.level];
             d = upgradeDialogues[onUpgradeDialogue];
             resetDialogueSteppingValues();
+        }
+
+        const introCustomStateOverrides = function() {
+            if(gco.level == 0 && hasControllerInput) d.lines = d.altLines; // Custom Tutorial Dialogue
         }
 
         const resetDialogueSteppingValues = function() {
@@ -1149,7 +1133,9 @@ function Game()
         let introDialogues = [
             // Level 0
             {lines: [
-                {character: 1, line: "Tutorial Dialogue."},
+                {character: 1, line: "KBM Tutorial Dialogue"},
+            ], altLines: [
+                {character: 1, line: "Controller Tutorial Dialogue"},
             ]},
 
             // Level 1
@@ -2643,7 +2629,7 @@ function Game()
         this.skipLevelUp = [1];
         this.skipBossLevelStart = [23];
         this.objectives = [
-            {0: 1}, // Tutorial
+            {1001: 5}, // Tutorial
             {0: 1}, // Level 1 Gauntlet
             {1: 1}, // Level 1 Boss
             {0: 1, 1: 1}, // Level 2 Gauntlet
@@ -3151,6 +3137,123 @@ function Game()
         
     }
 
+    function LevelGen()
+    {
+        let onTick = 0;
+        let gens = [new TutorialGen()];
+        let runTick = false;
+        let runTime = 0;
+
+        this.resetForLevel = function() {
+            runTick = false;
+            runTime = 0;
+            gens[gco.level].reset();
+        }
+
+        this.Update = function() {
+            runTick = false;
+            runTime += delta;
+            if(onTick != ticks) {
+                onTick = ticks;
+                runTick = true;
+            }
+            gens[gco.level].Update({runTick: runTick, runTime: runTime});
+        }
+    }
+
+    function TutorialGen()
+    {
+        let droneCount = 0;
+        const segment = _canvas.width / 6;
+
+        this.reset = function() {
+            droneCount = 0;
+        }
+
+        this.Update = function(args) {
+            let timeframe = droneCount + 1;
+            if(args.runTime > timeframe && droneCount < timeframe && droneCount < 5) {
+                droneCount++;
+                this.spawn(segment * timeframe);
+            }
+        }
+
+        this.spawn = function(x) {
+            enemies.push(new TutorialDrone({x: x}));
+        }
+    }
+
+    function Drone()
+    {
+        numEnemies++;
+        this.type = 1000;
+        this.life = 5;
+        this.speed = 100;
+        this.width = 15;
+        this.height = 24;
+        this.x = 0;
+        this.y = 0;
+        this.damage = 5; // Damage the drone does when colliding with player.
+        this.img = 0;
+        this.cores = 1;
+        this.points = 1;
+
+        this.resetPosition = function() {
+            this.y = -1 * this.height + 10
+        }
+
+        this.getBoundingBox = function() {
+            // TL, TR, BR, BL
+            let halfWidth = this.width / 2;
+            let halfHeight = this.height / 2;
+            let top = this.y - halfHeight;
+            let bottom = this.y + halfHeight;
+            let left = this.x - halfWidth;
+            let right = this.x + halfWidth;
+            return [
+                {x: left, y: top},
+                {x: right, y: top},
+                {x: right, y: bottom},
+                {x: left, y: bottom},
+            ]
+        }
+
+        this.Update = function() {}
+
+        this.Draw = function() {
+            buffer.drawImage(enemyImages[this.img], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
+        }
+
+        this.destroyClause = function() {
+            if(this.life <= 0 || this.y > _canvas.height + this.height) {
+                destroys += 1;
+                explosions.push(new Explosion(this.x, this.y, 75, 4, 200, 3, 3, 3));
+                gco.levelMission.UpdateProgress(this.type);
+                return 1;
+            }
+            return 0;
+        }
+    }
+
+    function TutorialDrone(args) {
+        Drone.call(this);
+        this.type = 1001;
+        this.x = args.x;
+        this.speed = 300;
+        const minSpeed = 10;
+        const targetY = (_canvas.height / 2) - 100;
+        this.resetPosition();
+
+        this.Update = function() {
+            if(this.y < targetY) {
+                this.y += this.speed * delta;
+                if(this.speed > minSpeed) {
+                    this.speed -= this.speed * delta;
+                }
+            }
+        }
+    }
+
 	function EnemyGeneration()
 	{
 		this.hasBoss = false;
@@ -3171,7 +3274,7 @@ function Game()
                     var theSpeed = 0;
                     var theDmg = 0;
                     var theLife = 0;
-                    var Cores = 0;
+                    var cores = 0;
                     var height = 0;
                     var width = 0;
                     var model = 0;
@@ -3181,7 +3284,7 @@ function Game()
                             theLife = Math.round(Math.random() * 4) + 2;
                             theSpeed = Math.round(Math.random() * 50) + 50;
                             theDmg = Math.round(Math.random() * 5) + 5;
-                            Cores = Math.round(Math.random() * 2) + 1;
+                            cores = Math.round(Math.random() * 2) + 1;
                             if(theDmg > 7){model = 1; points = 2;} else {model = 0; points = 1;}
                             width = 15;
                             height = 25;
@@ -3191,7 +3294,7 @@ function Game()
                             theLife = Math.round(Math.random() * 10) + 7;
                             theSpeed = Math.round(Math.random() * 50) + 50;
                             theDmg = Math.round(Math.random() * 7) + 7;
-                            Cores = Math.round(Math.random() * 5) + 1;
+                            cores = Math.round(Math.random() * 5) + 1;
                             if(theDmg > 10){model = 3; points = 4;} else {model = 2; points = 3;}
                             width = 31;
                             height = 21;
@@ -3204,13 +3307,13 @@ function Game()
                             if(theDmg >= 16) {
                                 model = 5;
                                 theDmg = Math.round(Math.random() * 10) + 10;
-                                Cores = Math.round(Math.random() * 15) + 10;
+                                cores = Math.round(Math.random() * 15) + 10;
                                 points = 6;
                             } else {
                                 points = 5;
                                 model = 4;
                                 theDmg = Math.round(Math.random() * 9) + 9;
-                                Cores = Math.round(Math.random() * 5) + 1;
+                                cores = Math.round(Math.random() * 5) + 1;
                             }
                             width = 21;
                             height = 31;
@@ -3224,13 +3327,13 @@ function Game()
                                 points = 8;
                                 model = 8;
                                 theDmg = Math.round(Math.random() * 17) + 17;
-                                Cores = Math.round(Math.random() * 30) + 20;
+                                cores = Math.round(Math.random() * 30) + 20;
                                 width = 37;
                                 height = 31;
                             } else {
                                 points = 7;
                                 model = 6;
-                                Cores = Math.round(Math.random() * 25) + 10;
+                                cores = Math.round(Math.random() * 25) + 10;
                                 width = 29;
                                 height = 30;
                             }//Missiles 15 x 31
@@ -3244,13 +3347,13 @@ function Game()
                                 points = 10;
                                 theLife = Math.round(Math.random() * 25) + 25;
                                 model = 11;
-                                Cores = Math.round(Math.random() * 30) + 20;
+                                cores = Math.round(Math.random() * 30) + 20;
                                 width = 26;
                                 height = 21;
                             } else {
                                 points = 9;
                                 model = 10;
-                                Cores = Math.round(Math.random() * 25) + 10;
+                                cores = Math.round(Math.random() * 25) + 10;
                                 width = 26;
                                 height = 21;
                             }//Missiles 15 x 31
@@ -3263,25 +3366,24 @@ function Game()
                             theDmg = 75;
                             model = 16;
                             points = 1000;
-                            Cores = 1000;
+                            cores = 1000;
                             width = 116;
                             height = 72;
                             break;
                         }
                     }
                     
-                    enemy = new Enemy(theSpeed, theDmg, theLife, Cores, width, height, model, startingX, 0, type, points);
+                    enemy = new Enemy(theSpeed, theDmg, theLife, cores, width, height, model, startingX, 0, type, points);
                     enemies.push(enemy);
                 }
             }
 		}
 	}
-	
+
 	function Enemy(spd, dmg, lfe, crs, wdth, hght, mdl, inX, inY, theType, pts)
     {
 		numEnemies++;
 		this.onTick = 0;
-		this.enemyNum = numEnemies;
         
         // Position and movement
         this.x = inX;
@@ -3310,7 +3412,7 @@ function Game()
 		this.damage = dmg;
         this.life = lfe;
 		this.type = theType;
-		this.Cores = crs;
+		this.cores = crs;
 		this.Model = mdl;
 		this.timeAlive = 0;
 		this.startLife = this.life;
@@ -3494,7 +3596,7 @@ function Game()
 								var xStart = Math.round(Math.random() * 40) + 10;
 								var LOR = Math.round(Math.random() * 1) + 1;//Left or Right...1 or 2
 								if(LOR == 0){xStart *= -1;}
-								enemy = new Enemy(this.speed, this.damage, Math.round(this.startLife / 2) + 1, Math.round(this.Cores / 3) + 1, 15, 31, 7, this.x + xStart, this.y, 50, 2);
+								enemy = new Enemy(this.speed, this.damage, Math.round(this.startLife / 2) + 1, Math.round(this.cores / 3) + 1, 15, 31, 7, this.x + xStart, this.y, 50, 2);
 								enemies.push(enemy);
 							}
 							return 1;
@@ -3514,7 +3616,7 @@ function Game()
 								var xStart = Math.round(Math.random() * 40) + 10;
 								var LOR = Math.round(Math.random() * 1) + 1;//Left or Right...1 or 2
 								if(LOR == 0){xStart *= -1;}
-								enemy = new Enemy(this.speed, this.damage, Math.round(this.startLife / 2) + 1, Math.round(this.Cores / 3) + 1, 15, 31, 9, this.x + xStart, this.y, 50, 2);
+								enemy = new Enemy(this.speed, this.damage, Math.round(this.startLife / 2) + 1, Math.round(this.cores / 3) + 1, 15, 31, 9, this.x + xStart, this.y, 50, 2);
 								enemies.push(enemy);
 							}
 							return 1;
@@ -3878,24 +3980,24 @@ function Game()
 			var theSpeed = Math.round(Math.random() * 150) + 200;
 			var theDmg = Math.round(Math.random() * 10) + 10;
 			var model;
-			var Cores;
+			var cores;
 			var points;
 			if(theDmg >= 16)
 			{
 				model = 5;
 				theDmg = Math.round(Math.random() * 10) + 10;
-				Cores = Math.round(Math.random() * 15) + 10;
+				cores = Math.round(Math.random() * 15) + 10;
 				points = 6;
 			}else 
 			{
 				points = 5;
 				model = 4;
 				theDmg = Math.round(Math.random() * 9) + 9;
-				Cores = Math.round(Math.random() * 5) + 1;
+				cores = Math.round(Math.random() * 5) + 1;
 			}
 			width = 21;
 			height = 31;
-			var enemy = new Enemy(theSpeed, theDmg, theLife, Cores, width, height, model, X, Y, 2, points);
+			var enemy = new Enemy(theSpeed, theDmg, theLife, cores, width, height, model, X, Y, 2, points);
 			enemies.push(enemy);
 		}
 		this.spawnWeaver = function(X, Y)
@@ -3903,13 +4005,13 @@ function Game()
 			var theLife = Math.round(Math.random() * 15) + 15;
 			var theSpeed = Math.round(Math.random() * 50) + 100;
 			var theDmg = Math.round(Math.random() * 10) + 15;
-			var Cores = Math.round(Math.random() * 20) + 20;
+			var cores = Math.round(Math.random() * 20) + 20;
 			var model;
 			var points;
 			if(theDmg > 10){model = 3; points = 7;} else {model = 2; points = 6;}
 			width = 31;
 			height = 21;
-			var enemy = new Enemy(theSpeed, theDmg, theLife, Cores, width, height, model, X, Y, 1, points);
+			var enemy = new Enemy(theSpeed, theDmg, theLife, cores, width, height, model, X, Y, 1, points);
 			enemies.push(enemy);
 		}
 		
@@ -5229,6 +5331,7 @@ function Game()
         }
         player = new Player();
 		enemyGeneration = new EnemyGeneration();
+        lg = new LevelGen();
         starGeneration = new StarGeneration();
         foregroundGeneration = new ForegroundGeneration();
 		itemGeneration = new RandomItemGeneration();
@@ -5253,7 +5356,7 @@ function Game()
     {	
         if(canvas != null) {
             self.gameLoop = setInterval(self.Loop, 1);
-        }	
+        }
     }
     
     /******************************************************/
@@ -5312,7 +5415,11 @@ function Game()
         gco.Update(); // Game Control Object Update
         if(!ed.eventPlaying() && !gco.transition.active) { // If event is not playing
             if(!paused && gameState == 1 && !gco.win) {
-                enemyGeneration.generate(); // Random Enemy Generation
+                if(gco.level < 1) {
+                    lg.Update();
+                } else {
+                    enemyGeneration.generate(); // Random Enemy Generation
+                }
                 itemGeneration.generate(); // Random Item Generation
 
                 if(player.isAlive()) { // Update Player
@@ -5322,14 +5429,17 @@ function Game()
                 
                 for(var i = 0; i < enemies.length; i++) { // Enemy Update Ticks
                     if(enemies[i].onTick != ticks){ enemies[i].onTick = ticks; }
-                    switch(enemies[i].Update()){
+                    let returnValue = enemies[i].Update();
+                    if ('destroyClause' in enemies[i]) {
+                        returnValue = enemies[i].destroyClause();
+                    }
+                    switch(returnValue) {
                         case 1:
-                            if(!self.isEnemyAlive(enemies[i].enemyNum)) {
-                                enemiesKilled += 1;
+                            if(enemies[i].life <= 0) {
+                                enemiesKilled++;
                                 enemyPoints += enemies[i].points;
                                 sfx.play(0);
-                                mon = new MoneyEntity(enemies[i].Cores, enemies[i].x, enemies[i].y);
-                                money.push(mon);
+                                money.push(new MoneyEntity(enemies[i].cores, enemies[i].x, enemies[i].y));
                             }
                             if(!gco.win) self.popArray(enemies, i);
                         break;
@@ -5366,10 +5476,6 @@ function Game()
                     
                     for(var a = 0; a < enemies.length; a++) { // Various Update Ticks and Collision with enemies
                         if(player.isAlive()) {
-                            if(ticks % 2 == 0) { // Laser Collision Detection
-                               a
-                            }
-                            
                             if(self.Collision(player, enemies[a])) { // Player Collision with enemies or boss
                                 if(enemies[a].isBoss) {
                                     player.DamagePlayer(9000); // once to ensure shield is gone
@@ -6085,22 +6191,24 @@ function Game()
 		buffer.shadowBlur = 0;
     }
 	
-	this.drawEnemies = function()
+    this.drawEnemies = function()
     {
-		var drawLaser = false;
-		var x = 0, y = 0, h = 0, w = 0;
-		buffer.beginPath();
-        for(var i = 0; i < enemies.length; i++)
-        {
-			buffer.drawImage(enemyImages[enemies[i].Model], enemies[i].x - (enemies[i].width / 2), enemies[i].y - (enemies[i].height / 2), enemies[i].width, enemies[i].height);
-			if(enemies[i].isBoss)
-			{
-                self.drawBossLifeMeter(enemies[i]);
-			}
-			if(enemies[i].laser == true){ drawLaser = true; x = enemies[i].laserX; y = enemies[i].laserY; h = enemies[i].laserHeight; w = enemies[i].laserWidth; }
+        var drawLaser = false;
+        var x = 0, y = 0, h = 0, w = 0;
+        buffer.beginPath();
+        for(var i = 0; i < enemies.length; i++) {
+            if ('Draw' in enemies[i]) {
+                enemies[i].Draw();
+            } else {
+                buffer.drawImage(enemyImages[enemies[i].Model], enemies[i].x - (enemies[i].width / 2), enemies[i].y - (enemies[i].height / 2), enemies[i].width, enemies[i].height);
+                if(enemies[i].isBoss) {
+                    self.drawBossLifeMeter(enemies[i]);
+                }
+                if(enemies[i].laser == true){ drawLaser = true; x = enemies[i].laserX; y = enemies[i].laserY; h = enemies[i].laserHeight; w = enemies[i].laserWidth; }
+            }
         }
-		buffer.closePath();
-		if(drawLaser){ this.drawBossLaser(x, y, w, h); }
+        buffer.closePath();
+        if(drawLaser){ this.drawBossLaser(x, y, w, h); }
     }
 	
 	this.drawMoney = function()
