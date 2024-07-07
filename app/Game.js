@@ -492,7 +492,7 @@ function Game()
     {   
         this.Init = function() {
             // Levels
-            this.level = 0;
+            this.level = 1;
             this.levelDefs = {
                 0: {title: "Tutorial", upgradeTutorial: false},
                 1: {title: "Level 1 Gauntlet", upgradeTutorial: false}, 2: {title: "Level 1 Boss", upgradeTutorial: false},
@@ -2630,7 +2630,7 @@ function Game()
         this.skipBossLevelStart = [23];
         this.objectives = [
             {1001: 5}, // Tutorial
-            {0: 1}, // Level 1 Gauntlet
+            {1002: 24, 1003: 26, 1004: 18, 1005:18}, // Level 1 Gauntlet
             {1: 1}, // Level 1 Boss
             {0: 1, 1: 1}, // Level 2 Gauntlet
             {2: 1}, // Level 2 Boss
@@ -2688,6 +2688,8 @@ function Game()
         this.UpdateProgress = function(enType) {
             if(!this.progress[enType]) { this.progress[enType] = 0; }
             this.progress[enType] += 1;
+            //tells gen logic something what was killed
+            lg.phaseCheck(enType);
         }
         
         this.GauntletComplete = function() { // returns true if level is complete, else returns false
@@ -3140,7 +3142,7 @@ function Game()
     function LevelGen()
     {
         let onTick = 0;
-        let gens = [new TutorialGen()];
+        let gens = [new TutorialGen(), new GauntletOneGen()];
         let runTick = false;
         let runTime = 0;
 
@@ -3159,10 +3161,21 @@ function Game()
             }
             gens[gco.level].Update({runTick: runTick, runTime: runTime});
         }
+
+        this.phaseCheck = function(enType) {
+            gens[gco.level].phaseCheck(enType);
+        }
+    }
+
+    function BaseGen()
+    {
+        this.phaseCheck = function(enType) {
+        }
     }
 
     function TutorialGen()
     {
+        BaseGen.call(this);
         let droneCount = 0;
         const segment = _canvas.width / 6;
 
@@ -3183,6 +3196,114 @@ function Game()
         }
     }
 
+    function GauntletOneGen()
+    {
+        BaseGen.call(this);
+        let phase = 0;
+        let runTime = 0;
+        let p1DroneCount = 0;
+        let p2DroneCount = 0;
+        let p3DroneCount = 0;
+        let p4DroneCount = 0;
+        const p1Segment = _canvas.width / 25;
+        const p2Segment = _canvas.width / 19;
+        const p3Segment = _canvas.width / 11;
+        const p4Segment = _canvas.width / 9;
+        let p1Progress = 0;
+        let p2Progress = 0;
+        let p3Progress = 0;
+        let p4Progress = 0;
+        let p1Goal = 24;
+        let p2Goal = 18;
+        let p3Goal = 20;
+        let p4Goal = 24;
+        let p1CompTime = 0;
+
+        this.reset = function() {
+            droneCount = 0;
+        }
+
+        this.Update = function(args) {
+            runTime = args.runTime;
+            console.log(this.phase)
+            if(phase == 0){
+                let timeframe = p1DroneCount + 1;
+                if(args.runTime > timeframe / 10 && p1DroneCount < timeframe && p1DroneCount < p1Goal) {
+                    p1DroneCount++;
+                    this.spawn(p1Segment * timeframe);
+                }
+            }
+            if(phase == 1){
+                let timeframe = p2DroneCount + 1;
+                if(args.runTime - p1CompTime > timeframe / 10 && p2DroneCount < timeframe && p2DroneCount < p2Goal) {
+                    p2DroneCount++;
+                    this.spawn(p2Segment * timeframe);
+                }
+            }
+            if(phase == 2){
+                let timeframe = p3DroneCount + 1;
+                if(args.runTime - p1CompTime > timeframe / 10 && p3DroneCount < timeframe && p3DroneCount < p3Goal) {
+                    p3DroneCount++;
+                    this.spawn((p3Segment * timeframe) + 40);
+                    p3DroneCount++;
+                    this.spawn(_canvas.width - (p3Segment * timeframe) - 40);
+                }
+            }
+            if(phase == 3){
+                let timeframe = p4DroneCount + 1;
+                if(args.runTime - p1CompTime > timeframe / 10 && p4DroneCount < timeframe && p4DroneCount < p4Goal) {
+                    p4DroneCount++;
+                    this.spawn((p4Segment * timeframe) + 50);
+                    p4DroneCount++;
+                    this.spawn(_canvas.width - (p4Segment * timeframe) - 50);
+                    p4DroneCount++;
+                    this.spawn(p4Segment * timeframe);
+                }
+            }
+        }
+
+        this.spawn = function(x) {
+            if(phase == 0) enemies.push(new DroneN1({x: x}));
+            if(phase == 1) enemies.push(new DroneN2({x: x}));
+            if(phase == 2) enemies.push(new DroneN3L({x: x}));
+            if(phase == 2) enemies.push(new DroneN3R({x: x}));
+            if(phase == 3) enemies.push(new DroneN3L({x: x}));
+            if(phase == 3) enemies.push(new DroneN3R({x: x}));
+            if(phase == 3) enemies.push(new DroneN2({x: x}));
+        }
+
+        this.phaseCheck = function(enType) {
+            if(phase == 0){
+                p1Progress++;
+                if(p1Progress == p1Goal){
+                    phase = 1;
+                    p1CompTime = runTime;
+                }
+            }
+            if(phase == 1){
+                p2Progress++;
+                if(p2Progress == p2Goal){
+                    phase = 2;
+                    p1CompTime = runTime;
+                }
+            }
+            if(phase == 2){
+                p3Progress++;
+                if(p3Progress == p3Goal){
+                    phase = 3;
+                    p1CompTime = runTime;
+                }
+            }
+/*             if(phase == 3){
+                p4Progress++;
+                if(p4Progress == p4Goal){
+                    phase = 4;
+                    p1CompTime = runTime;
+                }
+            } */
+        }
+    }
+
     function Drone()
     {
         numEnemies++;
@@ -3197,6 +3318,29 @@ function Game()
         this.img = 0;
         this.cores = 1;
         this.points = 1;
+        this.doRealMovement = false;
+		
+
+        //point based movement variables
+        this.pbmCoords = [];
+        this.targetX = 0;
+        this.targetY = 0;
+        this.moveIndex = 0;
+        this.minSpeed = 10;
+        this.ySpeed = 100;
+        this.xSpeed = 100;
+
+        //pi based movement variables
+        this.piCenterX = _canvas.width / 2;
+        this.piCenterY = _canvas.height / 2;
+        this.piRadius = 150;
+        this.piSpeed = 10;
+        this.moveX = 0;
+        this.moveY = 0;
+        this.waveLength = 100;
+        this.sinOffset = -1;
+        this.timeAlive = 0;
+        this.circleCount = 0;
 
         this.resetPosition = function() {
             this.y = -1 * this.height + 10
@@ -3220,6 +3364,10 @@ function Game()
 
         this.Update = function() {}
 
+        this.baseUpdate = function() {
+            this.timeAlive += delta;
+        }
+
         this.Draw = function() {
             buffer.drawImage(enemyImages[this.img], this.x - (this.width / 2), this.y - (this.height / 2), this.width, this.height);
         }
@@ -3233,6 +3381,50 @@ function Game()
             }
             return 0;
         }
+
+        this.changePBMTarget = function() {
+            this.moveIndex++;
+            if(this.pbmCoords.length == this.moveIndex) this.moveIndex = 0;
+            this.targetX = this.pbmCoords[this.moveIndex].x;
+            this.targetY = this.pbmCoords[this.moveIndex].y;
+        }
+
+        //Point A to point B movement
+        this.pbmUpdate = function(){
+            if(this.x != this.targetX) {
+                this.x += (this.xSpeed * delta) * (this.x > this.targetX ? -1 : 1);
+                if(Math.abs(this.x - this.targetX) < 0.2){
+                    this.x = this.targetX;
+                }
+                if(this.xSpeed > this.minSpeed) {
+                    this.xSpeed = Math.abs(this.x - this.targetX);
+                }
+                if(this.xSpeed < this.minSpeed){
+                    this.xSpeed = this.minSpeed;
+                }
+            }
+            if(this.y != this.targetY) {
+                this.y += (this.ySpeed * delta) * (this.y > this.targetY ? -1 : 1);
+                if(Math.abs(this.y - this.targetY) < 0.2){
+                    this.y = this.targetY;
+                }
+                if(this.ySpeed > this.minSpeed) {
+                    this.ySpeed = Math.abs(this.y - this.targetY);
+                }
+                if(this.ySpeed < this.minSpeed){
+                    this.ySpeed = this.minSpeed;
+                }
+            }
+            if(this.y == this.targetY && this.x == this.targetX){
+                this.changePBMTarget()
+            }
+        }
+
+        //curve based movement
+        this.piUpdate = function(){
+            this.x = this.piCenterX + (this.piRadius * Math.sin(this.piSpeed * Math.PI * this.waveLength * (this.timeAlive / 1000))) * this.sinOffset;
+            this.y = this.piCenterY + (this.piRadius * Math.cos(this.piSpeed * Math.PI * this.waveLength * (this.timeAlive / 1000))) * this.sinOffset;
+        }
     }
 
     function TutorialDrone(args) {
@@ -3245,6 +3437,7 @@ function Game()
         this.resetPosition();
 
         this.Update = function() {
+            this.baseUpdate();
             if(this.y < targetY) {
                 this.y += this.speed * delta;
                 if(this.speed > minSpeed) {
@@ -3253,6 +3446,145 @@ function Game()
             }
         }
     }
+
+    function DroneN1(args) {
+        //Drone Normal 1 - This shit does not shoot
+        Drone.call(this);
+        this.type = 1002;
+        this.x = args.x;
+        this.targetY = (_canvas.height / 2) - 150;
+        this.targetX = this.x;
+        this.resetPosition();
+        this.img = 3;
+        this.ySpeed = 600;
+        this.xSpeed = 600;
+        this.minSpeed = 50;
+        this.pbmCoords = [{x: this.targetX, y: this.targetY},
+                          {x: _canvas.width - this.x, y:(_canvas.height / 2) + 100}];
+
+        this.Update = function() {
+            this.baseUpdate(); 
+            this.pbmUpdate();
+        }
+    } 
+
+    function DroneN2(args){
+        Drone.call(this);
+        this.type = 1003;
+        this.img = 10;
+        this.x = args.x;
+        this.targetY = (_canvas.height / 2) - 300;
+        this.targetX = this.x;
+        this.originalX = this.x;
+        this.resetPosition();
+        this.ySpeed = 600;
+        this.xSpeed = 600;
+        this.minSpeed = 400;
+        this.posState = 0;
+        this.pbmCoords = [{x: this.targetX, y: this.targetY},
+                          {x: _canvas.width / 2, y:(_canvas.height / 2) - 150},
+                          {x: _canvas.width / 2, y:(_canvas.height / 2) - 25},
+                          {x: this.originalX, y: 550},
+                          {x: 50, y: 550},
+                          {x: 50, y: -50}];
+
+        this.Update = function() {
+            this.baseUpdate();
+            if(this.posState == 0){
+                this.pbmUpdate();
+                if(this.y == this.pbmCoords[1].y && this.x == this.pbmCoords[1].x){
+                    this.posState++;
+                    this.timeAlive = 0;
+                }
+            }
+            if(this.posState == 1){
+                this.ySpeed = 100;
+                this.xSpeed = 100;
+                this.piRadius = 150;
+                this.piUpdate();
+                if(this.timeAlive > 2){
+                    this.posState++;
+                }
+            }
+            if(this.posState == 2){
+                this.pbmUpdate();
+                if(this.y == this.pbmCoords[2].y && this.x == this.pbmCoords[2].x){
+                    this.posState++;
+                    this.timeAlive = 0;
+                }
+            }   
+            if(this.posState == 3){
+                this.ySpeed = 100;
+                this.xSpeed = 100;
+                this.piRadius = 25;
+                this.piUpdate();
+                if(this.timeAlive > 2){
+                    this.posState = 0;
+                }                  
+            }      
+        }
+    }
+
+    function DroneN3L(args) {
+        //Drone Normal 1 - This shit does not shoot
+        Drone.call(this);
+        this.type = 1003;
+        this.x = args.x;
+        this.targetY = (_canvas.height / 2) - 150;
+        this.targetX = this.x;
+        this.resetPosition();
+        this.img = 7;
+        this.ySpeed = 600;
+        this.xSpeed = 600;
+        this.minSpeed = 300;
+        this.pbmCoords = [{x: this.targetX, y: this.targetY},
+                          {x: 40, y: this.targetY},
+                          {x: 40, y: 560},
+                          {x: 760, y: 560},
+                          {x: 760, y: 40},
+                          {x: 40, y: 40},
+                          {x: 150, y: 150},
+                          {x: 150, y: 450},
+                          {x: 650, y: 450},
+                          {x: 650, y: 150},
+                          {x: _canvas.width / 2, y: 150},
+                        ];
+
+        this.Update = function() {
+            this.baseUpdate(); 
+            this.pbmUpdate();
+        }
+    } 
+
+    function DroneN3R(args) {
+        //Drone Normal 1 - This shit does not shoot
+        Drone.call(this);
+        this.type = 1004;
+        this.x = args.x;
+        this.targetY = (_canvas.height / 2) - 150;
+        this.targetX = this.x;
+        this.resetPosition();
+        this.img = 7;
+        this.ySpeed = 600;
+        this.xSpeed = 600;
+        this.minSpeed = 300;
+        this.pbmCoords = [{x: this.targetX, y: this.targetY},
+                          {x: 760, y: this.targetY},
+                          {x: 760, y: 560},
+                          {x: 40, y: 560},
+                          {x: 40, y: 40},
+                          {x: 760, y: 40},
+                          {x: 650, y: 150},
+                          {x: 650, y: 450},
+                          {x: 150, y: 450},
+                          {x: 150, y: 150},
+                          {x: _canvas.width / 2, y: 150}],
+
+        this.Update = function() {
+            this.baseUpdate(); 
+            this.pbmUpdate();
+        }
+    } 
 
 	function EnemyGeneration()
 	{
@@ -5415,7 +5747,7 @@ function Game()
         gco.Update(); // Game Control Object Update
         if(!ed.eventPlaying() && !gco.transition.active) { // If event is not playing
             if(!paused && gameState == 1 && !gco.win) {
-                if(gco.level < 1) {
+                if(gco.level < 2) {
                     lg.Update();
                 } else {
                     enemyGeneration.generate(); // Random Enemy Generation

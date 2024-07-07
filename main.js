@@ -6,7 +6,7 @@ function createWindow () {
     width: 800,
     height: 600,
     icon: path.join(__dirname, 'app/KATT.png'),
-    frame: false,
+    frame: true,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
