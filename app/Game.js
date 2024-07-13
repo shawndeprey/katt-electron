@@ -3225,12 +3225,12 @@ function Game()
 
         this.Update = function(args) {
             runTime = args.runTime;
-            console.log(this.phase)
             if(phase == 0){
                 let timeframe = p1DroneCount + 1;
                 if(args.runTime > timeframe / 10 && p1DroneCount < timeframe && p1DroneCount < p1Goal) {
                     p1DroneCount++;
                     this.spawn(p1Segment * timeframe);
+                    console.log(p1DroneCount)
                 }
             }
             if(phase == 1){
@@ -3238,11 +3238,12 @@ function Game()
                 if(args.runTime - p1CompTime > timeframe / 10 && p2DroneCount < timeframe && p2DroneCount < p2Goal) {
                     p2DroneCount++;
                     this.spawn(p2Segment * timeframe);
+                    console.log(p2DroneCount)
                 }
             }
             if(phase == 2){
                 let timeframe = p3DroneCount + 1;
-                if(args.runTime - p1CompTime > timeframe / 10 && p3DroneCount < timeframe && p3DroneCount < p3Goal) {
+                if(args.runTime - p1CompTime > timeframe / 10 && p3DroneCount/2 < timeframe && p3DroneCount < p3Goal/2) {
                     p3DroneCount++;
                     this.spawn((p3Segment * timeframe) + 40);
                     p3DroneCount++;
@@ -3251,7 +3252,7 @@ function Game()
             }
             if(phase == 3){
                 let timeframe = p4DroneCount + 1;
-                if(args.runTime - p1CompTime > timeframe / 10 && p4DroneCount < timeframe && p4DroneCount < p4Goal) {
+                if(args.runTime - p1CompTime > timeframe / 10 && p4DroneCount/3 < timeframe && p4DroneCount < p4Goal/3) {
                     p4DroneCount++;
                     this.spawn((p4Segment * timeframe) + 50);
                     p4DroneCount++;
@@ -3274,6 +3275,7 @@ function Game()
 
         this.phaseCheck = function(enType) {
             if(phase == 0){
+                //console.log(phase,p1Progress,p1Goal)
                 p1Progress++;
                 if(p1Progress == p1Goal){
                     phase = 1;
@@ -3281,6 +3283,7 @@ function Game()
                 }
             }
             if(phase == 1){
+                //console.log(phase,p2Progress,p2Goal)
                 p2Progress++;
                 if(p2Progress == p2Goal){
                     phase = 2;
@@ -3288,19 +3291,21 @@ function Game()
                 }
             }
             if(phase == 2){
+               // console.log(phase,p3Progress,p3Goal)
                 p3Progress++;
                 if(p3Progress == p3Goal){
                     phase = 3;
                     p1CompTime = runTime;
                 }
             }
-/*             if(phase == 3){
+            if(phase == 3){
+                //console.log(phase,p4Progress,p4Goal)
                 p4Progress++;
                 if(p4Progress == p4Goal){
                     phase = 4;
                     p1CompTime = runTime;
                 }
-            } */
+            } 
         }
     }
 
@@ -3528,7 +3533,7 @@ function Game()
     function DroneN3L(args) {
         //Drone Normal 1 - This shit does not shoot
         Drone.call(this);
-        this.type = 1003;
+        this.type = 1004;
         this.x = args.x;
         this.targetY = (_canvas.height / 2) - 150;
         this.targetX = this.x;
@@ -3559,7 +3564,7 @@ function Game()
     function DroneN3R(args) {
         //Drone Normal 1 - This shit does not shoot
         Drone.call(this);
-        this.type = 1004;
+        this.type = 1005;
         this.x = args.x;
         this.targetY = (_canvas.height / 2) - 150;
         this.targetX = this.x;
