@@ -492,7 +492,7 @@ function Game()
     {   
         this.Init = function() {
             // Levels
-            this.level = 1;
+            this.level = 0;
             this.levelDefs = {
                 0: {title: "Tutorial", upgradeTutorial: false},
                 1: {title: "Level 1 Gauntlet", upgradeTutorial: false}, 2: {title: "Level 1 Boss", upgradeTutorial: false},
@@ -2630,7 +2630,7 @@ function Game()
         this.skipBossLevelStart = [23];
         this.objectives = [
             {1001: 5}, // Tutorial
-            {1002: 24, 1003: 26, 1004: 18, 1005:18}, // Level 1 Gauntlet
+            {1002: 24, 1003: 27, 1004:38}, // Level 1 Gauntlet
             {1: 1}, // Level 1 Boss
             {0: 1, 1: 1}, // Level 2 Gauntlet
             {2: 1}, // Level 2 Boss
@@ -3147,12 +3147,14 @@ function Game()
         let runTime = 0;
 
         this.resetForLevel = function() {
+            if(gco.level > 2) return;
             runTick = false;
             runTime = 0;
             gens[gco.level].reset();
         }
 
         this.Update = function() {
+            if(gco.level > 2) return;
             runTick = false;
             runTime += delta;
             if(onTick != ticks) {
@@ -3163,6 +3165,7 @@ function Game()
         }
 
         this.phaseCheck = function(enType) {
+            if(gco.level > 2) return;
             gens[gco.level].phaseCheck(enType);
         }
     }
@@ -3208,7 +3211,7 @@ function Game()
         const p1Segment = _canvas.width / 25;
         const p2Segment = _canvas.width / 19;
         const p3Segment = _canvas.width / 11;
-        const p4Segment = _canvas.width / 9;
+        const p4Segment = _canvas.width / 28;
         let p1Progress = 0;
         let p2Progress = 0;
         let p3Progress = 0;
@@ -3216,11 +3219,14 @@ function Game()
         let p1Goal = 24;
         let p2Goal = 18;
         let p3Goal = 20;
-        let p4Goal = 24;
+        let p4Goal = 27;
         let p1CompTime = 0;
 
         this.reset = function() {
-            droneCount = 0;
+            p1DroneCount = 0;
+            p2DroneCount = 0;
+            p3DroneCount = 0;
+            p4DroneCount = 0;
         }
 
         this.Update = function(args) {
@@ -3229,77 +3235,77 @@ function Game()
                 let timeframe = p1DroneCount + 1;
                 if(args.runTime > timeframe / 10 && p1DroneCount < timeframe && p1DroneCount < p1Goal) {
                     p1DroneCount++;
-                    this.spawn(p1Segment * timeframe);
-                    console.log(p1DroneCount)
+                    this.spawn({x: p1Segment * timeframe});
                 }
             }
             if(phase == 1){
                 let timeframe = p2DroneCount + 1;
                 if(args.runTime - p1CompTime > timeframe / 10 && p2DroneCount < timeframe && p2DroneCount < p2Goal) {
                     p2DroneCount++;
-                    this.spawn(p2Segment * timeframe);
-                    console.log(p2DroneCount)
+                    this.spawn({x: p2Segment * timeframe});
                 }
             }
             if(phase == 2){
                 let timeframe = p3DroneCount + 1;
-                if(args.runTime - p1CompTime > timeframe / 10 && p3DroneCount/2 < timeframe && p3DroneCount < p3Goal/2) {
+                if(args.runTime - p1CompTime > timeframe / 10 && p3DroneCount < timeframe && p3DroneCount < p3Goal) {
                     p3DroneCount++;
-                    this.spawn((p3Segment * timeframe) + 40);
-                    p3DroneCount++;
-                    this.spawn(_canvas.width - (p3Segment * timeframe) - 40);
+                    if(p3DroneCount % 2 == 0){
+                        this.spawn({x: _canvas.width - (p3Segment * timeframe) - 40, isRight: true});
+                    }else{
+                        this.spawn({x: (p3Segment * timeframe) + 40, isRight: false});
+                    }
                 }
             }
             if(phase == 3){
                 let timeframe = p4DroneCount + 1;
-                if(args.runTime - p1CompTime > timeframe / 10 && p4DroneCount/3 < timeframe && p4DroneCount < p4Goal/3) {
+                if(args.runTime - p1CompTime > timeframe / 10 && p4DroneCount < timeframe && p4DroneCount < p4Goal) {
                     p4DroneCount++;
-                    this.spawn((p4Segment * timeframe) + 50);
-                    p4DroneCount++;
-                    this.spawn(_canvas.width - (p4Segment * timeframe) - 50);
-                    p4DroneCount++;
-                    this.spawn(p4Segment * timeframe);
+                    if(p4DroneCount % 3 == 0){
+                        this.spawn({x: _canvas.width / 2, isRight: false, shipType: 0});
+                    }
+                    if(p4DroneCount % 3 == 1){
+                        this.spawn({x: _canvas.width - (p4Segment * timeframe) - 50, isRight: true, shipType: 1});
+                    }
+                    if(p4DroneCount % 3 == 2){
+                        this.spawn({x: (p4Segment * timeframe) + 50, isRight: false, shipType: 1});
+                    }
                 }
             }
         }
 
-        this.spawn = function(x) {
-            if(phase == 0) enemies.push(new DroneN1({x: x}));
-            if(phase == 1) enemies.push(new DroneN2({x: x}));
-            if(phase == 2) enemies.push(new DroneN3L({x: x}));
-            if(phase == 2) enemies.push(new DroneN3R({x: x}));
-            if(phase == 3) enemies.push(new DroneN3L({x: x}));
-            if(phase == 3) enemies.push(new DroneN3R({x: x}));
-            if(phase == 3) enemies.push(new DroneN2({x: x}));
+        this.spawn = function(args) {
+            if(phase == 0) enemies.push(new DroneN1(args));
+            if(phase == 1) enemies.push(new DroneN2(args));
+            if(phase == 2) enemies.push(new DroneN3(args));
+            if(phase == 3) {
+                if(args.shipType == 0) enemies.push(new DroneN2(args));
+                if(args.shipType == 1) enemies.push(new DroneN3(args));             
+            }
         }
 
         this.phaseCheck = function(enType) {
             if(phase == 0){
-                //console.log(phase,p1Progress,p1Goal)
                 p1Progress++;
                 if(p1Progress == p1Goal){
                     phase = 1;
                     p1CompTime = runTime;
                 }
             }
-            if(phase == 1){
-                //console.log(phase,p2Progress,p2Goal)
+            else if(phase == 1){
                 p2Progress++;
                 if(p2Progress == p2Goal){
                     phase = 2;
                     p1CompTime = runTime;
                 }
             }
-            if(phase == 2){
-               // console.log(phase,p3Progress,p3Goal)
+            else if(phase == 2){
                 p3Progress++;
                 if(p3Progress == p3Goal){
                     phase = 3;
                     p1CompTime = runTime;
                 }
             }
-            if(phase == 3){
-                //console.log(phase,p4Progress,p4Goal)
+            else if(phase == 3){
                 p4Progress++;
                 if(p4Progress == p4Goal){
                     phase = 4;
@@ -3530,11 +3536,12 @@ function Game()
         }
     }
 
-    function DroneN3L(args) {
+    function DroneN3(args) {
         //Drone Normal 1 - This shit does not shoot
         Drone.call(this);
         this.type = 1004;
         this.x = args.x;
+        this.isRight = args.isRight;
         this.targetY = (_canvas.height / 2) - 150;
         this.targetX = this.x;
         this.resetPosition();
@@ -3542,56 +3549,45 @@ function Game()
         this.ySpeed = 600;
         this.xSpeed = 600;
         this.minSpeed = 300;
-        this.pbmCoords = [{x: this.targetX, y: this.targetY},
-                          {x: 40, y: this.targetY},
-                          {x: 40, y: 560},
-                          {x: 760, y: 560},
-                          {x: 760, y: 40},
-                          {x: 40, y: 40},
-                          {x: 150, y: 150},
-                          {x: 150, y: 450},
-                          {x: 650, y: 450},
-                          {x: 650, y: 150},
-                          {x: _canvas.width / 2, y: 150},
-                        ];
+        this.borderOne = 40;
+        this.borderTwo = 150;
+        
+        if(this.isRight){
+            this.pbmCoords = [{x: this.targetX, y: this.targetY},
+                {x: this.borderOne, y: this.targetY},
+                {x: this.borderOne, y: 560},
+                {x: _canvas.width - this.borderOne, y: 560},
+                {x: _canvas.width - this.borderOne, y: 40},
+                {x: this.borderOne, y: 40},
+                {x: this.borderTwo, y: 150},
+                {x: this.borderTwo, y: 450},
+                {x: _canvas.width - this.borderTwo, y: 450},
+                {x: _canvas.width - this.borderTwo, y: 150},
+                {x: _canvas.width / 2, y: 150},
+              ];
+        }else{
+            this.pbmCoords = [{x: this.targetX, y: this.targetY},
+                {x: _canvas.width - this.borderOne, y: this.targetY},
+                {x: _canvas.width - this.borderOne, y: 560},
+                {x: this.borderOne, y: 560},
+                {x: this.borderOne, y: 40},
+                {x: _canvas.width - this.borderOne, y: 40},
+                {x: _canvas.width - this.borderTwo, y: 150},
+                {x: _canvas.width - this.borderTwo, y: 450},
+                {x: this.borderTwo, y: 450},
+                {x: this.borderTwo, y: 150},
+                {x: _canvas.width / 2, y: 150}
+            ];
+        }
+        
 
         this.Update = function() {
             this.baseUpdate(); 
             this.pbmUpdate();
         }
-    } 
+    }
 
-    function DroneN3R(args) {
-        //Drone Normal 1 - This shit does not shoot
-        Drone.call(this);
-        this.type = 1005;
-        this.x = args.x;
-        this.targetY = (_canvas.height / 2) - 150;
-        this.targetX = this.x;
-        this.resetPosition();
-        this.img = 7;
-        this.ySpeed = 600;
-        this.xSpeed = 600;
-        this.minSpeed = 300;
-        this.pbmCoords = [{x: this.targetX, y: this.targetY},
-                          {x: 760, y: this.targetY},
-                          {x: 760, y: 560},
-                          {x: 40, y: 560},
-                          {x: 40, y: 40},
-                          {x: 760, y: 40},
-                          {x: 650, y: 150},
-                          {x: 650, y: 450},
-                          {x: 150, y: 450},
-                          {x: 150, y: 150},
-                          {x: _canvas.width / 2, y: 150}],
-
-        this.Update = function() {
-            this.baseUpdate(); 
-            this.pbmUpdate();
-        }
-    } 
-
-	function EnemyGeneration()
+    function EnemyGeneration()
 	{
 		this.hasBoss = false;
 		this.onTick = 0;
@@ -4549,7 +4545,6 @@ function Game()
                     break;
                 }
                 case 3: { // Rapid Fire Cyclone
-                    console.log("Missile 3!!!")
                     this.x = this.startX + (30 * Math.sin(30 * 3.14 * 100 * (this.timeAlive / 1000))) * this.sinOffset;
                     this.y -= this.speed * delta;
                     break;
