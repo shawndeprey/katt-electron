@@ -33,13 +33,16 @@ function Game()
 	var playerInfo = false;
 	var masterBGMVolume = 0.2;
 	var bossPhase = -1;
-    var postProcessing = {bloom: false}
+    var postProcessing = {bloom: false};
+    var lg = null;
+    var planet = null;
+    var planetLevel = null;
 	
-	//GUI Info
+	// GUI Info
 	var currentGui = 0;
 	var lastGui = 0;
 	var NULL_GUI_STATE = 8;// Should always be above current state limit
-	//State GUIs
+	// State GUIs
 	// 0 = Main Menu
 	// 1 = Pause Menu
 	// 2 = Level Up Menu
@@ -67,7 +70,7 @@ function Game()
     var gamepadX = false;
     var gamepadStart = false;
 	
-	//Options
+	// Options
 	var particleOffset = 5;
 	
     // Timing
@@ -400,6 +403,8 @@ function Game()
 		self.RefreshSoundsOnGameLoss();
 		enemyGeneration = new EnemyGeneration();
         lg = new LevelGen();
+        planet = new Planet();
+        planetLevel = new PlanetLevel();
         ed.ResetAll();
         playerInfo = false;
     }
@@ -481,6 +486,12 @@ function Game()
         // Calculate the central x-coordinate of the overlap
         const centralOverlapX = (overlapMinX + overlapMaxX) / 2;
         return centralOverlapX;
+    }
+
+    // This is an easing function meant to smoothly ease between 1 number and another.
+    // i.e. animate smoothly between y1 and y2.
+    this.easeOutQuad = function(start, end, progress) {
+        return start + (end - start) * (1 - Math.pow(1 - progress, 2));
     }
     /******************************************************/
     
@@ -704,10 +715,12 @@ function Game()
             this.onTick = 0;
             this.activeEvent = 0; // 0 = No Active Event
             this.eventTime = 0;
+            this.subtickEventTime = 0;
             this.dialogue = new Dialogue();
             this.cutscene = new Cutscene();
             
             // Event variables other systems can watch or use
+            this.skipStarMoveMultiplier = false;
             this.moveMultiplierOne = 1;
         }
 
@@ -737,12 +750,30 @@ function Game()
         this.initEvent = function(event) {
             this.globalActionCull();
             this.activeEvent = event;
+            this.subtickEventTime = 0;
+            this.skipStarMoveMultiplier = false;
             if(this.activeEvent == 1) {
+                if(planetLevel.isEnabled()) {
+                    if(gco.level == 13) {
+                        planetLevel.initOutro();
+                    } else {
+                        planetLevel.init();
+                    }
+                    if(gco.level == 12) {
+                        this.skipStarMoveMultiplier = true;
+                    }
+                }
                 this.eventTime = 60; // 3 Seconds
                 player.y = _buffer.height + player.height;
                 lg.resetForLevel();
                 sfx.play(3);
             } else if(this.activeEvent == 2) {
+                if(planetLevel.isEnabled()) {
+                    planetLevel.initOutro();
+                    if(gco.level == 11 || gco.level == 12) {
+                        this.skipStarMoveMultiplier = true;
+                    }
+                }
                 this.eventTime = 60; // 3 Seconds
                 sfx.play(3);
             } else if(this.activeEvent == 3) {
@@ -761,10 +792,12 @@ function Game()
         }
 
         this.Update = function() {
+            // Timing claculators
             if(ticks != this.onTick) {
                 this.onTick = ticks
                 if (this.eventTime > 0) this.eventTime--; // For time based events, this controls the time of the event in 50ms increments
             }
+            this.subtickEventTime += delta;
             // Event Updates
             if(this.activeEvent == 1) this.levelIntroUpdate();
             if(this.activeEvent == 2) this.levelOutroUpdate();
@@ -787,6 +820,15 @@ function Game()
             let normalizedTime = (60 - this.eventTime) / 60;
             normalizedTime = Math.max(0, Math.min(1, normalizedTime)); // Ensure it's between 0 and 1
 
+            if(planetLevel.isEnabled() && !planetLevel.isPositioned()) {
+                // Calculate progress for subtick events: delta adds up and we divide it by 3 since the whole animation is 3 seconds
+                if(gco.level == 13) {
+                    planetLevel.progressOutroAnimation(this.subtickEventTime / 3);
+                } else {
+                    planetLevel.progressIntroAnimation(this.subtickEventTime / 3);
+                }
+            }
+
             // Speed calculation using the derivative of the cubic easing function
             // Speed should be proportional to the derivative of the easing function times the total distance
             let speed = -3 * Math.pow(1 - normalizedTime, 2) * totalDistance / 3; // Total duration is 3 seconds
@@ -795,6 +837,13 @@ function Game()
             player.y += speed * delta;  // Use += since speed will be negative, moving the player up
 
             if(this.eventTime <= 0) {
+                if(planetLevel.isEnabled() && !planetLevel.isPositioned()) {
+                    if(gco.level == 13) {
+                        planetLevel.finalizeOutroAnimation();
+                    } else {
+                        planetLevel.finalizeIntroAnimation();
+                    }
+                }
                 this.endEvent();
                 this.initEvent(3);
             }
@@ -2712,6 +2761,264 @@ function Game()
         }
     }
 
+    function Planet()
+    { // This object is the base planet handler to copy the pixel-planet canvas into our game context
+        this.onTick = 0;
+
+        this.Update = function() {
+            if(ticks != this.onTick) {
+                this.onTick = ticks;
+                if(this.onTick % 2 === 0) { // Planet Pre-Rendering
+                    this.cachePlanet();
+                }
+            }
+        }
+
+        this.cachePlanet = function() {
+            var planetCanvas = document.querySelector('#root canvas');
+            if(planetCanvas == null) return;
+            // Clear and reset our planet rendering contexts so we can re-render this game loop.
+            offscreenPlanetGl.clear(offscreenPlanetGl.COLOR_BUFFER_BIT);
+            shaderPlanetCtx.clearRect(0, 0, shaderPlanetCanvas.width, shaderPlanetCanvas.height);
+            offScreenPlanetCanvas.width = planetCanvas.width;
+            offScreenPlanetCanvas.height = planetCanvas.height;
+
+            // Vertex shader code
+            var vertexShaderSource = `
+                attribute vec2 a_position;
+                varying vec2 v_texCoord;
+
+                void main() {
+                    gl_Position = vec4(a_position, 0, 1);
+                    v_texCoord = a_position * 0.5 + 0.5;
+                }
+            `;
+
+            // Fragment shader code
+            var fragmentShaderSource = `
+                precision mediump float;
+                varying vec2 v_texCoord;
+                uniform sampler2D u_texture;
+
+                void main() {
+                    vec4 color = texture2D(u_texture, v_texCoord);
+                    if (color == vec4(0, 0, 0, 1)) {
+                        discard; // Discard black color pixels
+                    }
+                    gl_FragColor = color;
+                }
+            `;
+
+            // Compile shaders
+            var vertexShader = offscreenPlanetGl.createShader(offscreenPlanetGl.VERTEX_SHADER);
+            offscreenPlanetGl.shaderSource(vertexShader, vertexShaderSource);
+            offscreenPlanetGl.compileShader(vertexShader);
+
+            var fragmentShader = offscreenPlanetGl.createShader(offscreenPlanetGl.FRAGMENT_SHADER);
+            offscreenPlanetGl.shaderSource(fragmentShader, fragmentShaderSource);
+            offscreenPlanetGl.compileShader(fragmentShader);
+
+            // Link shaders into a program
+            var shaderProgram = offscreenPlanetGl.createProgram();
+            offscreenPlanetGl.attachShader(shaderProgram, vertexShader);
+            offscreenPlanetGl.attachShader(shaderProgram, fragmentShader);
+            offscreenPlanetGl.linkProgram(shaderProgram);
+            offscreenPlanetGl.useProgram(shaderProgram);
+
+            // Create and bind buffer to render a quad
+            var positionBuffer = offscreenPlanetGl.createBuffer();
+            offscreenPlanetGl.bindBuffer(offscreenPlanetGl.ARRAY_BUFFER, positionBuffer);
+            offscreenPlanetGl.bufferData(offscreenPlanetGl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), offscreenPlanetGl.STATIC_DRAW);
+
+            var positionLocation = offscreenPlanetGl.getAttribLocation(shaderProgram, 'a_position');
+            offscreenPlanetGl.enableVertexAttribArray(positionLocation);
+            offscreenPlanetGl.vertexAttribPointer(positionLocation, 2, offscreenPlanetGl.FLOAT, false, 0, 0);
+
+            // Create a texture from your source canvas
+            var texture = offscreenPlanetGl.createTexture();
+            offscreenPlanetGl.bindTexture(offscreenPlanetGl.TEXTURE_2D, texture);
+            offscreenPlanetGl.texImage2D(offscreenPlanetGl.TEXTURE_2D, 0, offscreenPlanetGl.RGBA, offscreenPlanetGl.RGBA, offscreenPlanetGl.UNSIGNED_BYTE, planetCanvas);
+            offscreenPlanetGl.texParameteri(offscreenPlanetGl.TEXTURE_2D, offscreenPlanetGl.TEXTURE_MIN_FILTER, offscreenPlanetGl.LINEAR);
+            offscreenPlanetGl.texParameteri(offscreenPlanetGl.TEXTURE_2D, offscreenPlanetGl.TEXTURE_WRAP_S, offscreenPlanetGl.CLAMP_TO_EDGE);
+            offscreenPlanetGl.texParameteri(offscreenPlanetGl.TEXTURE_2D, offscreenPlanetGl.TEXTURE_WRAP_T, offscreenPlanetGl.CLAMP_TO_EDGE);
+
+            // Set the texture uniform in the shader
+            var textureLocation = offscreenPlanetGl.getUniformLocation(shaderProgram, 'u_texture');
+            offscreenPlanetGl.uniform1i(textureLocation, 0);
+
+            // Ensure the webGL context has the correct dimensions for our planet canvas
+            offscreenPlanetGl.viewport(0, 0, offScreenPlanetCanvas.width, offScreenPlanetCanvas.height);
+
+            // Render the quad with the shader applied
+            offscreenPlanetGl.drawArrays(offscreenPlanetGl.TRIANGLE_STRIP, 0, 4);
+
+            // Get the resulting image data from WebGL
+            var imageData = new Uint8Array(offScreenPlanetCanvas.width * offScreenPlanetCanvas.height * 4);
+            offscreenPlanetGl.readPixels(0, 0, offScreenPlanetCanvas.width, offScreenPlanetCanvas.height, offscreenPlanetGl.RGBA, offscreenPlanetGl.UNSIGNED_BYTE, imageData);
+
+            // Put the modified image data onto your buffer canvas
+            var imageDataUint8Clamped = new Uint8ClampedArray(imageData);
+            var imageDataObject = new ImageData(imageDataUint8Clamped, offScreenPlanetCanvas.width, offScreenPlanetCanvas.height);
+
+            shaderPlanetCanvas.width = offScreenPlanetCanvas.width;
+            shaderPlanetCanvas.height = offScreenPlanetCanvas.height;
+            shaderPlanetCtx.putImageData(imageDataObject, 0, 0);
+        }
+
+        this.randomlySelectPlanet = function() {
+            // Get the select element
+            var selectElement = document.querySelector('.dg.ac select');
+            if(!selectElement) return;
+
+            // Get all the options within the select element
+            var options = selectElement.options;
+
+            // Commit selection
+            this.selectPlanet(Math.floor(Math.random() * options.length));
+        }
+
+        this.selectPlanet = function(option) {
+            // 7 = Dry Planet, 8 = Earth Planet
+            var selectElement = document.querySelector('.dg.ac select');
+            if(!selectElement) return;
+
+            // Get all the options within the select element
+            var options = selectElement.options;
+
+            // Set the selected option based on the random index
+            options[option].selected = true;
+
+            // Simulate the change event on the select element
+            var event = new Event('change', { bubbles: true });
+            selectElement.dispatchEvent(event);
+        }
+    }
+
+    function PlanetLevel()
+    { // This object handles level art which are close to planets
+        // Planet definitions
+        this.pY = -1000; // Target: -25
+        this.pSizeMultiplier = 0.25; // Target: 3
+        let pX;
+
+        // Gradient definitions
+        this.gOpacity = 0; // Target: 0.3
+        let gX = _buffer.width / 2;
+        let gY = 0;
+        let gHeight = _buffer.height;
+        let gWidth = _buffer.width;
+        let gLight = "#588ede";
+        let gDark = "#172862";
+
+        // Animation helpers
+        let introStartY = -1000;
+        let introEndY = -25;
+        let introStartSizeMultiplier = 0.25;
+        let introEndSizeMultiplier = 3;
+        let introStartOpacity = 0;
+        let introEndOpacity = 0.3;
+        let outroStartY = -25;
+        let outroEndY = -1000;
+        let outroStartSizeMultiplier = 3;
+        let outroEndSizeMultiplier = 0.25;
+        let outroStartOpacity = 0.3;
+        let outroEndOpacity = 0;
+
+        this.init = function() {
+            if(!this.isEnabled) return;
+            if(gco.level == 11) {
+                planet.selectPlanet(8);
+                introStartY = -1000;
+                introEndY = -25;
+                introStartSizeMultiplier = 0.25;
+                introEndSizeMultiplier = 3;
+                introStartOpacity = 0;
+                introEndOpacity = 0.3;
+            }
+        }
+
+        this.initOutro = function() {
+            if(!this.isEnabled) return;
+            if(gco.level == 13) {
+                outroStartY = -25;
+                outroEndY = 975;
+                outroStartSizeMultiplier = 3;
+                outroEndSizeMultiplier = 0.25;
+                outroStartOpacity = 0.3;
+                outroEndOpacity = 0;
+            }
+        }
+        
+        this.isEnabled = function() {
+            return gco.level == 11 || gco.level == 12 || gco.level == 13
+        }
+
+        this.isPositioned = function() {
+            if(gco.level == 11 && this.pY == introEndY) return true;
+            if(gco.level == 13 && this.pY == outroEndY) return true;
+            return false
+        }
+
+        this.progressIntroAnimation = function(progress) {
+            if(gco.level != 11) return;
+            this.pY = self.easeOutQuad(introStartY, introEndY, progress);
+            this.pSizeMultiplier = self.easeOutQuad(introStartSizeMultiplier, introEndSizeMultiplier, progress);
+            this.gOpacity = self.easeOutQuad(introStartOpacity, introEndOpacity, progress);
+            this.calculatePlanetX();
+        }
+
+        this.finalizeIntroAnimation = function() {
+            if(gco.level != 11) return;
+            this.pY = introEndY;
+            this.pSizeMultiplier = introEndSizeMultiplier;
+            this.gOpacity = introEndOpacity;
+        }
+
+        this.progressOutroAnimation = function(progress) {
+            if(gco.level != 13) return;
+            this.pY = self.easeOutQuad(outroStartY, outroEndY, progress);
+            this.pSizeMultiplier = self.easeOutQuad(outroStartSizeMultiplier, outroEndSizeMultiplier, progress);
+            this.gOpacity = self.easeOutQuad(outroStartOpacity, outroEndOpacity, progress);
+            this.calculatePlanetX();
+        }
+
+        this.finalizeOutroAnimation = function() {
+            if(gco.level != 13) return;
+            this.pY = outroEndY;
+            this.pSizeMultiplier = outroEndSizeMultiplier;
+            this.gOpacity = outroEndOpacity;
+        }
+
+        this.calculatePlanetX = function() {
+            pX = ((_buffer.width / 2) - ((600 * this.pSizeMultiplier) / 2));
+        }
+
+        this.renderGradient = function() {
+            // Create a linear gradient from the top to the bottom of the canvas
+            const gradient = buffer.createLinearGradient(gX, gY, gX, gHeight);
+        
+            // Add color stops to the gradient
+            gradient.addColorStop(0, gDark);
+            gradient.addColorStop(1, gLight);
+        
+            // Set global opacity for the gradient
+            buffer.globalAlpha = this.gOpacity;
+        
+            // Fill the canvas with the gradient
+            buffer.fillStyle = gradient;
+            buffer.fillRect(0, 0, gWidth, gHeight);
+        
+            // Reset the global opacity to avoid affecting other drawings
+            buffer.globalAlpha = 1;
+        }
+
+        this.renderPlanet = function() {
+            buffer.drawImage(shaderPlanetCanvas, pX, this.pY, offScreenPlanetCanvas.width * this.pSizeMultiplier, offScreenPlanetCanvas.height * this.pSizeMultiplier);
+        }
+
+        pX = this.calculatePlanetX();
+    }
+
     function ForegroundGeneration()
     {
         this.onTick = 0;
@@ -2832,7 +3139,9 @@ function Game()
                 this.onTick = ticks;
                 if(stars.length < numStars) {
                     while(stars.length < numStars) {
-                        var starType = this.genRandomStarType(ed.movementEventPlaying()); // Only gen stars in fly in and out events
+                        var movementEventPlaying = ed.movementEventPlaying();
+                        var isPlanetLevel = planetLevel.isEnabled();
+                        var starType = this.genRandomStarType(movementEventPlaying || isPlanetLevel); // Only gen stars in fly in and out events
                         var X = Math.floor(Math.random() * _buffer.width);
                         var Y = 0;
                         var speed = this.starSpeed(starType);
@@ -2903,15 +3212,9 @@ function Game()
         }
 
         this.Update = function() {
-            if(ticks != this.onTick) {
-                this.onTick = ticks;
-                if(this.onTick % 2 === 0 && this.isPlanet) { // Planet Pre-Rendering
-                    this.renderPlanet();
-                }
-            }
-
             // Movement Dynamics
-            this.y += ((this.speed * player.yVecMulti) * ed.moveMultiplierOne) * delta;
+            let moveMultiplier = ed.skipStarMoveMultiplier ? 1 : ed.moveMultiplierOne
+            this.y += ((this.speed * player.yVecMulti) * moveMultiplier) * delta;
             if(this.y > this.killY) {
                 return 1;
             }
@@ -3017,122 +3320,11 @@ function Game()
                 this.image.src = renderStarCanvas.toDataURL();
             }
         }
-
-        this.renderPlanet = function() {
-            var planetCanvas = document.querySelector('#root canvas');
-            if(planetCanvas == null) return;
-            // Clear and reset our planet rendering contexts so we can re-render this game loop.
-            offscreenPlanetGl.clear(offscreenPlanetGl.COLOR_BUFFER_BIT);
-            shaderPlanetCtx.clearRect(0, 0, shaderPlanetCanvas.width, shaderPlanetCanvas.height);
-            offScreenPlanetCanvas.width = planetCanvas.width;
-            offScreenPlanetCanvas.height = planetCanvas.height;
-
-            // Vertex shader code
-            var vertexShaderSource = `
-                attribute vec2 a_position;
-                varying vec2 v_texCoord;
-
-                void main() {
-                    gl_Position = vec4(a_position, 0, 1);
-                    v_texCoord = a_position * 0.5 + 0.5;
-                }
-            `;
-
-            // Fragment shader code
-            var fragmentShaderSource = `
-                precision mediump float;
-                varying vec2 v_texCoord;
-                uniform sampler2D u_texture;
-
-                void main() {
-                    vec4 color = texture2D(u_texture, v_texCoord);
-                    if (color == vec4(0, 0, 0, 1)) {
-                        discard; // Discard black color pixels
-                    }
-                    gl_FragColor = color;
-                }
-            `;
-
-            // Compile shaders
-            var vertexShader = offscreenPlanetGl.createShader(offscreenPlanetGl.VERTEX_SHADER);
-            offscreenPlanetGl.shaderSource(vertexShader, vertexShaderSource);
-            offscreenPlanetGl.compileShader(vertexShader);
-
-            var fragmentShader = offscreenPlanetGl.createShader(offscreenPlanetGl.FRAGMENT_SHADER);
-            offscreenPlanetGl.shaderSource(fragmentShader, fragmentShaderSource);
-            offscreenPlanetGl.compileShader(fragmentShader);
-
-            // Link shaders into a program
-            var shaderProgram = offscreenPlanetGl.createProgram();
-            offscreenPlanetGl.attachShader(shaderProgram, vertexShader);
-            offscreenPlanetGl.attachShader(shaderProgram, fragmentShader);
-            offscreenPlanetGl.linkProgram(shaderProgram);
-            offscreenPlanetGl.useProgram(shaderProgram);
-
-            // Create and bind buffer to render a quad
-            var positionBuffer = offscreenPlanetGl.createBuffer();
-            offscreenPlanetGl.bindBuffer(offscreenPlanetGl.ARRAY_BUFFER, positionBuffer);
-            offscreenPlanetGl.bufferData(offscreenPlanetGl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), offscreenPlanetGl.STATIC_DRAW);
-
-            var positionLocation = offscreenPlanetGl.getAttribLocation(shaderProgram, 'a_position');
-            offscreenPlanetGl.enableVertexAttribArray(positionLocation);
-            offscreenPlanetGl.vertexAttribPointer(positionLocation, 2, offscreenPlanetGl.FLOAT, false, 0, 0);
-
-            // Create a texture from your source canvas
-            var texture = offscreenPlanetGl.createTexture();
-            offscreenPlanetGl.bindTexture(offscreenPlanetGl.TEXTURE_2D, texture);
-            offscreenPlanetGl.texImage2D(offscreenPlanetGl.TEXTURE_2D, 0, offscreenPlanetGl.RGBA, offscreenPlanetGl.RGBA, offscreenPlanetGl.UNSIGNED_BYTE, planetCanvas);
-            offscreenPlanetGl.texParameteri(offscreenPlanetGl.TEXTURE_2D, offscreenPlanetGl.TEXTURE_MIN_FILTER, offscreenPlanetGl.LINEAR);
-            offscreenPlanetGl.texParameteri(offscreenPlanetGl.TEXTURE_2D, offscreenPlanetGl.TEXTURE_WRAP_S, offscreenPlanetGl.CLAMP_TO_EDGE);
-            offscreenPlanetGl.texParameteri(offscreenPlanetGl.TEXTURE_2D, offscreenPlanetGl.TEXTURE_WRAP_T, offscreenPlanetGl.CLAMP_TO_EDGE);
-
-            // Set the texture uniform in the shader
-            var textureLocation = offscreenPlanetGl.getUniformLocation(shaderProgram, 'u_texture');
-            offscreenPlanetGl.uniform1i(textureLocation, 0);
-
-            // Ensure the webGL context has the correct dimensions for our planet canvas
-            offscreenPlanetGl.viewport(0, 0, offScreenPlanetCanvas.width, offScreenPlanetCanvas.height);
-
-            // Render the quad with the shader applied
-            offscreenPlanetGl.drawArrays(offscreenPlanetGl.TRIANGLE_STRIP, 0, 4);
-
-            // Get the resulting image data from WebGL
-            var imageData = new Uint8Array(offScreenPlanetCanvas.width * offScreenPlanetCanvas.height * 4);
-            offscreenPlanetGl.readPixels(0, 0, offScreenPlanetCanvas.width, offScreenPlanetCanvas.height, offscreenPlanetGl.RGBA, offscreenPlanetGl.UNSIGNED_BYTE, imageData);
-
-            // Put the modified image data onto your buffer canvas
-            var imageDataUint8Clamped = new Uint8ClampedArray(imageData);
-            var imageDataObject = new ImageData(imageDataUint8Clamped, offScreenPlanetCanvas.width, offScreenPlanetCanvas.height);
-
-            shaderPlanetCanvas.width = offScreenPlanetCanvas.width;
-            shaderPlanetCanvas.height = offScreenPlanetCanvas.height;
-            shaderPlanetCtx.putImageData(imageDataObject, 0, 0);
-        }
-
-        this.randomlySelectPlanet = function() {
-            if(!this.isPlanet) return;
-
-            // Get the select element
-            var selectElement = document.querySelector('.dg.ac select');
-
-            if(!selectElement) return;
-
-            // Get all the options within the select element
-            var options = selectElement.options;
-
-            // Calculate a random index within the range of options
-            var randomIndex = Math.floor(Math.random() * options.length);
-
-            // Set the selected option based on the random index
-            options[randomIndex].selected = true;
-
-            // Simulate the change event on the select element
-            var event = new Event('change', { bubbles: true });
-            selectElement.dispatchEvent(event);
-        }
     
         // Call pre-render on object creation
-        this.randomlySelectPlanet();
+        if(this.isPlanet) {
+            planet.randomlySelectPlanet();
+        }
         if(this.customStarShader) {
             this.renderStar();
         }
@@ -5664,6 +5856,8 @@ function Game()
         player = new Player();
 		enemyGeneration = new EnemyGeneration();
         lg = new LevelGen();
+        planet = new Planet();
+        planetLevel = new PlanetLevel();
         starGeneration = new StarGeneration();
         foregroundGeneration = new ForegroundGeneration();
 		itemGeneration = new RandomItemGeneration();
@@ -5721,6 +5915,7 @@ function Game()
             starGeneration.generate();
             foregroundGeneration.Update();
             ed.Update();
+            planet.Update();
             for(var i = 0; i < stars.length; i++) {
                 if(stars[i].Update() != 0) {
                     if(stars[i].isPlanet){ starGeneration.hasPlanet = false;}
@@ -6431,6 +6626,12 @@ function Game()
         
         // Stars
         self.drawStars();
+
+        // Planet Level Background Context
+        if(planetLevel.isEnabled()) {
+            planetLevel.renderPlanet();
+        }
+        
         
         if(gameState == 1 && !gco.Ended()) {
             //Money
@@ -6465,6 +6666,11 @@ function Game()
 
         // Foreground
         foregroundGeneration.Draw();
+
+        // Planet level foreground context
+        if(planetLevel.isEnabled()) {
+            planetLevel.renderGradient();
+        }
         
         // GUI
         self.drawGUI();
