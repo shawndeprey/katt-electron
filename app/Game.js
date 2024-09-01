@@ -487,6 +487,12 @@ function Game()
         const centralOverlapX = (overlapMinX + overlapMaxX) / 2;
         return centralOverlapX;
     }
+
+    // This is an easing function meant to smoothly ease between 1 number and another.
+    // i.e. animate smoothly between y1 and y2.
+    this.easeOutQuad = function(start, end, progress) {
+        return start + (end - start) * (1 - Math.pow(1 - progress, 2));
+    }
     /******************************************************/
     
     
@@ -497,7 +503,7 @@ function Game()
     {   
         this.Init = function() {
             // Levels
-            this.level = 11;
+            this.level = 0;
             this.levelDefs = {
                 0: {title: "Tutorial", upgradeTutorial: false},
                 1: {title: "Level 1 Gauntlet", upgradeTutorial: false}, 2: {title: "Level 1 Boss", upgradeTutorial: false},
@@ -709,10 +715,12 @@ function Game()
             this.onTick = 0;
             this.activeEvent = 0; // 0 = No Active Event
             this.eventTime = 0;
+            this.subtickEventTime = 0;
             this.dialogue = new Dialogue();
             this.cutscene = new Cutscene();
             
             // Event variables other systems can watch or use
+            this.skipStarMoveMultiplier = false;
             this.moveMultiplierOne = 1;
         }
 
@@ -742,15 +750,30 @@ function Game()
         this.initEvent = function(event) {
             this.globalActionCull();
             this.activeEvent = event;
+            this.subtickEventTime = 0;
+            this.skipStarMoveMultiplier = false;
             if(this.activeEvent == 1) {
                 if(planetLevel.isEnabled()) {
-                    planetLevel.init();
+                    if(gco.level == 13) {
+                        planetLevel.initOutro();
+                    } else {
+                        planetLevel.init();
+                    }
+                    if(gco.level == 12) {
+                        this.skipStarMoveMultiplier = true;
+                    }
                 }
                 this.eventTime = 60; // 3 Seconds
                 player.y = _buffer.height + player.height;
                 lg.resetForLevel();
                 sfx.play(3);
             } else if(this.activeEvent == 2) {
+                if(planetLevel.isEnabled()) {
+                    planetLevel.initOutro();
+                    if(gco.level == 11 || gco.level == 12) {
+                        this.skipStarMoveMultiplier = true;
+                    }
+                }
                 this.eventTime = 60; // 3 Seconds
                 sfx.play(3);
             } else if(this.activeEvent == 3) {
@@ -769,10 +792,12 @@ function Game()
         }
 
         this.Update = function() {
+            // Timing claculators
             if(ticks != this.onTick) {
                 this.onTick = ticks
                 if (this.eventTime > 0) this.eventTime--; // For time based events, this controls the time of the event in 50ms increments
             }
+            this.subtickEventTime += delta;
             // Event Updates
             if(this.activeEvent == 1) this.levelIntroUpdate();
             if(this.activeEvent == 2) this.levelOutroUpdate();
@@ -795,6 +820,15 @@ function Game()
             let normalizedTime = (60 - this.eventTime) / 60;
             normalizedTime = Math.max(0, Math.min(1, normalizedTime)); // Ensure it's between 0 and 1
 
+            if(planetLevel.isEnabled() && !planetLevel.isPositioned()) {
+                // Calculate progress for subtick events: delta adds up and we divide it by 3 since the whole animation is 3 seconds
+                if(gco.level == 13) {
+                    planetLevel.progressOutroAnimation(this.subtickEventTime / 3);
+                } else {
+                    planetLevel.progressIntroAnimation(this.subtickEventTime / 3);
+                }
+            }
+
             // Speed calculation using the derivative of the cubic easing function
             // Speed should be proportional to the derivative of the easing function times the total distance
             let speed = -3 * Math.pow(1 - normalizedTime, 2) * totalDistance / 3; // Total duration is 3 seconds
@@ -803,6 +837,13 @@ function Game()
             player.y += speed * delta;  // Use += since speed will be negative, moving the player up
 
             if(this.eventTime <= 0) {
+                if(planetLevel.isEnabled() && !planetLevel.isPositioned()) {
+                    if(gco.level == 13) {
+                        planetLevel.finalizeOutroAnimation();
+                    } else {
+                        planetLevel.finalizeIntroAnimation();
+                    }
+                }
                 this.endEvent();
                 this.initEvent(3);
             }
@@ -2856,12 +2897,12 @@ function Game()
     function PlanetLevel()
     { // This object handles level art which are close to planets
         // Planet definitions
-        let pY = -25;
-        let pSizeMultiplier = 3;
-        let pX = ((_buffer.width / 2) - ((600 * pSizeMultiplier) / 2));
+        this.pY = -1000; // Target: -25
+        this.pSizeMultiplier = 0.25; // Target: 3
+        let pX;
 
         // Gradient definitions
-        let gOpacity = 0.3;
+        this.gOpacity = 0; // Target: 0.3
         let gX = _buffer.width / 2;
         let gY = 0;
         let gHeight = _buffer.height;
@@ -2869,15 +2910,87 @@ function Game()
         let gLight = "#588ede";
         let gDark = "#172862";
 
+        // Animation helpers
+        let introStartY = -1000;
+        let introEndY = -25;
+        let introStartSizeMultiplier = 0.25;
+        let introEndSizeMultiplier = 3;
+        let introStartOpacity = 0;
+        let introEndOpacity = 0.3;
+        let outroStartY = -25;
+        let outroEndY = -1000;
+        let outroStartSizeMultiplier = 3;
+        let outroEndSizeMultiplier = 0.25;
+        let outroStartOpacity = 0.3;
+        let outroEndOpacity = 0;
+
         this.init = function() {
             if(!this.isEnabled) return;
             if(gco.level == 11) {
                 planet.selectPlanet(8);
+                introStartY = -1000;
+                introEndY = -25;
+                introStartSizeMultiplier = 0.25;
+                introEndSizeMultiplier = 3;
+                introStartOpacity = 0;
+                introEndOpacity = 0.3;
+            }
+        }
+
+        this.initOutro = function() {
+            if(!this.isEnabled) return;
+            if(gco.level == 13) {
+                outroStartY = -25;
+                outroEndY = 975;
+                outroStartSizeMultiplier = 3;
+                outroEndSizeMultiplier = 0.25;
+                outroStartOpacity = 0.3;
+                outroEndOpacity = 0;
             }
         }
         
         this.isEnabled = function() {
-            return gco.level == 11 || gco.level == 12
+            return gco.level == 11 || gco.level == 12 || gco.level == 13
+        }
+
+        this.isPositioned = function() {
+            if(gco.level == 11 && this.pY == introEndY) return true;
+            if(gco.level == 13 && this.pY == outroEndY) return true;
+            return false
+        }
+
+        this.progressIntroAnimation = function(progress) {
+            if(gco.level != 11) return;
+            this.pY = self.easeOutQuad(introStartY, introEndY, progress);
+            this.pSizeMultiplier = self.easeOutQuad(introStartSizeMultiplier, introEndSizeMultiplier, progress);
+            this.gOpacity = self.easeOutQuad(introStartOpacity, introEndOpacity, progress);
+            this.calculatePlanetX();
+        }
+
+        this.finalizeIntroAnimation = function() {
+            if(gco.level != 11) return;
+            this.pY = introEndY;
+            this.pSizeMultiplier = introEndSizeMultiplier;
+            this.gOpacity = introEndOpacity;
+        }
+
+        this.progressOutroAnimation = function(progress) {
+            if(gco.level != 13) return;
+            this.pY = self.easeOutQuad(outroStartY, outroEndY, progress);
+            this.pSizeMultiplier = self.easeOutQuad(outroStartSizeMultiplier, outroEndSizeMultiplier, progress);
+            this.gOpacity = self.easeOutQuad(outroStartOpacity, outroEndOpacity, progress);
+            this.calculatePlanetX();
+        }
+
+        this.finalizeOutroAnimation = function() {
+            if(gco.level != 13) return;
+            this.pY = outroEndY;
+            this.pSizeMultiplier = outroEndSizeMultiplier;
+            this.gOpacity = outroEndOpacity;
+        }
+
+        this.calculatePlanetX = function() {
+            pX = ((_buffer.width / 2) - ((600 * this.pSizeMultiplier) / 2));
         }
 
         this.renderGradient = function() {
@@ -2889,7 +3002,7 @@ function Game()
             gradient.addColorStop(1, gLight);
         
             // Set global opacity for the gradient
-            buffer.globalAlpha = gOpacity;
+            buffer.globalAlpha = this.gOpacity;
         
             // Fill the canvas with the gradient
             buffer.fillStyle = gradient;
@@ -2900,8 +3013,10 @@ function Game()
         }
 
         this.renderPlanet = function() {
-            buffer.drawImage(shaderPlanetCanvas, pX, pY, offScreenPlanetCanvas.width * pSizeMultiplier, offScreenPlanetCanvas.height * pSizeMultiplier);
+            buffer.drawImage(shaderPlanetCanvas, pX, this.pY, offScreenPlanetCanvas.width * this.pSizeMultiplier, offScreenPlanetCanvas.height * this.pSizeMultiplier);
         }
+
+        pX = this.calculatePlanetX();
     }
 
     function ForegroundGeneration()
@@ -3098,7 +3213,8 @@ function Game()
 
         this.Update = function() {
             // Movement Dynamics
-            this.y += ((this.speed * player.yVecMulti) * ed.moveMultiplierOne) * delta;
+            let moveMultiplier = ed.skipStarMoveMultiplier ? 1 : ed.moveMultiplierOne
+            this.y += ((this.speed * player.yVecMulti) * moveMultiplier) * delta;
             if(this.y > this.killY) {
                 return 1;
             }
