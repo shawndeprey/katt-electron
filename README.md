@@ -1,6 +1,28 @@
 # katt-electron
 Code repo for the KATT reboot app.
 
+## Controls
+KATT Support KBM and XInput
+
+## KBM Controls
+- Arrow Keys & WASD: Move (Up, Down, Left, Right), Menu Move(Up, Down, Left, Right)
+- Esc: Pause, Back
+- Space: Primary Fire, Menu Select
+- Enter: Menu Select
+- B: Secondary Fire
+- V: Boost
+- 9: Toggle WebGL Bloom
+- F11: Toggle Window/Fullscreen
+- E: Toggle Ship Stats
+- Q: Toggle System Info
+
+## XInput Controls
+- JoyLeft & DPad: Move (Up, Down, Left, Right), Menu Move(Up, Down, Left, Right)
+- Start: Pause, Back
+- A, LTrigger, RTrigger: Primary Fire, Menu Select
+- B, LBumber, RBumber: Secondary Fire, Back
+- X: Boost
+
 ## Project Setup
 
 Before starting, ensure you have Git and Node.js installed on your system. This project requires both to run and build successfully.
@@ -56,12 +78,12 @@ The following will build for Windows devices.
 npx electron-builder -w
 ```
 
-The following will build for Linux devices.
+The following will build for Linux devices. (Broken ATM)
 ```shell
 npx electron-builder -l
 ```
 
-The following will build for Mac devices.
+The following will build for Mac devices. (Broken ATM)
 ```shell
 npx electron-builder -m
 ```
